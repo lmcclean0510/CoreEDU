@@ -36,17 +36,11 @@ export default function middleware(request: Request) {
     });
   }
   
-  // Allow request to continue
+  // Allow request to continue normally
   console.log('✅ Allowing request to continue:', pathname);
   
-  // For Vercel, we need to return a response that doesn't interfere
-  // This is different from Next.js where we use NextResponse.next()
-  return new Response(null, {
-    status: 200,
-    headers: {
-      'x-middleware-processed': 'true'
-    }
-  });
+  // For non-redirect cases, don't return anything to let the request continue
+  // This lets Vercel handle the request normally
 }
 
 // Configure which paths trigger the middleware
