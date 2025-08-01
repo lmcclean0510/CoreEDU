@@ -1,40 +1,59 @@
-import { NextRequest, NextResponse } from 'next/server'
+// middleware.ts - Following Vercel's exact format
 
-// Explicitly declare edge runtime
-export const runtime = 'edge'
-
-export function middleware(request: NextRequest) {
-  const url = request.nextUrl.clone()
-  const pathname = url.pathname
+export default function middleware(request: Request) {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
   
-  // Force console output with timestamp for better debugging
-  const timestamp = new Date().toISOString()
-  console.log(`[${timestamp}] 🚀 MIDDLEWARE: ${pathname}`)
+  // Debug logging (will appear in Vercel logs)
+  console.log('🚀 Middleware triggered for:', pathname);
+  console.log('Full URL:', request.url);
+  console.log('Method:', request.method);
   
-  // Test with homepage redirect first
+  // Test redirect first
   if (pathname === '/test-middleware') {
-    console.log(`[${timestamp}] 🔧 Test redirect triggered`)
-    url.pathname = '/login'
-    url.searchParams.set('test', 'middleware-works')
-    return NextResponse.redirect(url)
+    console.log('🔧 Test redirect triggered!');
+    return new Response(null, {
+      status: 302,
+      headers: { Location: '/login?test=working' },
+    });
   }
   
-  // Dashboard blocking
+  // Dashboard protection
   if (pathname.startsWith('/dashboard')) {
-    console.log(`[${timestamp}] 🔒 Dashboard blocked: ${pathname}`)
-    url.pathname = '/login'
-    url.searchParams.set('blocked', pathname)
-    url.searchParams.set('reason', 'middleware')
-    return NextResponse.redirect(url)
+    console.log('🔒 Dashboard access blocked:', pathname);
+    return new Response(null, {
+      status: 302,
+      headers: { Location: `/login?blocked=${encodeURIComponent(pathname)}` },
+    });
   }
   
-  console.log(`[${timestamp}] ✅ Allowing: ${pathname}`)
-  return NextResponse.next()
+  // Admin protection  
+  if (pathname.startsWith('/admin')) {
+    console.log('🔒 Admin access blocked:', pathname);
+    return new Response(null, {
+      status: 302,
+      headers: { Location: `/login?admin=blocked` },
+    });
+  }
+  
+  // Allow request to continue
+  console.log('✅ Allowing request to continue:', pathname);
+  
+  // For Vercel, we need to return a response that doesn't interfere
+  // This is different from Next.js where we use NextResponse.next()
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'x-middleware-processed': 'true'
+    }
+  });
 }
 
+// Configure which paths trigger the middleware
 export const config = {
+  runtime: 'nodejs', // Use Node.js runtime (Vercel default)
   matcher: [
-    // Match all paths except static files and API routes
+    // Run on all paths except static files and API routes
     '/((?!_next/static|_next/image|favicon.ico|api).*)',
   ],
-}
+};
