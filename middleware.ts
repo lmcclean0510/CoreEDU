@@ -1,9 +1,7 @@
-// middleware.ts - CORRECTED VERSION for Vercel
+// middleware.ts - Fixed to allow public routes
 
 import { NextRequest, NextResponse } from 'next/server'
 
-// ❌ WRONG: export default function middleware(request: Request)
-// ✅ CORRECT: Named export with NextRequest type
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
@@ -12,10 +10,30 @@ export function middleware(request: NextRequest) {
   console.log('Full URL:', request.url)
   console.log('Method:', request.method)
   
+  // ✅ ALLOW PUBLIC ROUTES - Add this section!
+  const publicRoutes = [
+    '/',
+    '/login',
+    '/signup',
+    '/corecs',
+    '/corelabs',
+    '/coretools'
+  ]
+  
+  // Check if current path is public
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || 
+    (route !== '/' && pathname.startsWith(route))
+  )
+  
+  if (isPublicRoute) {
+    console.log('✅ Public route, allowing access:', pathname)
+    return NextResponse.next()
+  }
+  
   // Test redirect first
   if (pathname === '/test-middleware') {
     console.log('🔧 Test redirect triggered!')
-    // ✅ Use NextResponse.redirect instead of raw Response
     return NextResponse.redirect(new URL('/login?test=working', request.url))
   }
   
@@ -33,10 +51,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login?admin=blocked', request.url))
   }
   
+  // Account protection
+  if (pathname.startsWith('/account')) {
+    console.log('🔒 Account access blocked:', pathname)
+    return NextResponse.redirect(new URL('/login?blocked=' + encodeURIComponent(pathname), request.url))
+  }
+  
   // Allow request to continue normally
   console.log('✅ Allowing request to continue:', pathname)
-  
-  // ✅ IMPORTANT: Always return NextResponse.next() to continue
   return NextResponse.next()
 }
 
@@ -47,13 +69,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|api).*)',
   ],
 }
-
-// Alternative, more specific matcher if you want to be more targeted:
-// export const config = {
-//   matcher: [
-//     '/dashboard/:path*',
-//     '/admin/:path*',
-//     '/test-middleware',
-//     '/'  // Include homepage if needed
-//   ],
-// }
