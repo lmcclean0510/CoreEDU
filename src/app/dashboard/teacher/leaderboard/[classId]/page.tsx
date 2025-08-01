@@ -4,14 +4,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { notFound, useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/auth/use-auth';
+import { useAuth } from '@/providers/UserProvider';
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, query, where, getDocs, documentId } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/shared/use-toast';
 import { LoaderCircle, AlertTriangle, ArrowLeft, Trophy } from 'lucide-react';
-import { LeaderboardTable } from '@/components/leaderboard-table';
+import { LeaderboardTable } from '@/components/features/games/leaderboard-table';
 
 type ClassInfo = {
   id: string;

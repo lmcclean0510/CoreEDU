@@ -10,7 +10,7 @@ import { CheckCircle, RefreshCw, LoaderCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/auth/use-auth';
+import { useAuth } from '@/providers/UserProvider';
 
 type InputStatus = 'default' | 'correct' | 'incorrect';
 
