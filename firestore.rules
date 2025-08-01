@@ -1,0 +1,226 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // HELPER FUNCTIONS
+    // ==========================================
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isTeacher() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+    }
+
+    function isStudent() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'student';
+    }
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isClassTeacher(classId) {
+      return request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.teacherIds;
+    }
+
+    // ==========================================
+    // USER MANAGEMENT
+    // ==========================================
+    
+    // Individual user documents
+    match /users/{userId} {
+      // Allow users to read their own document
+      allow read: if isSignedIn() && isOwner(userId);
+      
+      // Allow teachers to read users in their school
+      allow read: if isSignedIn() && isTeacher() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.schoolId == resource.data.schoolId;
+      
+      // Allow teachers to read any user (needed for join request student info)
+      allow read: if isSignedIn() && isTeacher();
+      
+      // Allow users to update their own document, but not change their role
+      allow update: if isSignedIn() && isOwner(userId) && 
+        request.resource.data.role == resource.data.role;
+      
+      // Allow any signed-in user to create a user document
+      allow create: if isSignedIn();
+      
+      // Allow admin access
+      allow read, write: if isAdmin();
+    }
+
+    // ==========================================
+    // SCHOOL & CLASS MANAGEMENT
+    // ==========================================
+    
+    // Schools collection - read-only for all signed-in users
+    match /schools/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // Classes collection - teacher-managed
+    match /classes/{classId} {
+      // Allow teachers to create classes
+      allow create: if isSignedIn() && isTeacher();
+      
+      // Allow teachers who are part of the class to read, update, and DELETE it
+      allow read, update, delete: if isSignedIn() && request.auth.uid in resource.data.teacherIds;
+      
+      // Allow students who are part of the class to read it
+      allow read: if isSignedIn() && request.auth.uid in resource.data.studentUids;
+      
+      // Allow students to read classes when searching by join code
+      allow read: if isSignedIn() && isStudent();
+      
+      // Allow listing classes for teachers (needed for queries)
+      allow list: if isSignedIn() && isTeacher();
+      
+      // Allow listing classes for students (needed for queries)
+      allow list: if isSignedIn() && isStudent();
+      
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // CLASS JOIN REQUESTS
+    // ==========================================
+
+    match /classJoinRequests/{requestId} {
+      // Students can create join requests
+      allow create: if isSignedIn() && isStudent() && 
+        request.resource.data.studentId == request.auth.uid;
+      
+      // Students can read their own join requests
+      allow read: if isSignedIn() && isStudent() && 
+        resource.data.studentId == request.auth.uid;
+      
+      // Teachers can read join requests for their classes
+      allow read: if isSignedIn() && isTeacher() && 
+        request.auth.uid in get(/databases/$(database)/documents/classes/$(resource.data.classId)).data.teacherIds;
+      
+      // Teachers can update/delete join requests (approve/deny)
+      allow update, delete: if isSignedIn() && isTeacher() && 
+        request.auth.uid in get(/databases/$(database)/documents/classes/$(resource.data.classId)).data.teacherIds;
+      
+      // Allow teachers to list/query join requests
+      allow list: if isSignedIn() && isTeacher();
+      
+      // Allow students to list their own join requests
+      allow list: if isSignedIn() && isStudent();
+      
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // HOMEWORK MANAGEMENT
+    // ==========================================
+    
+    // Homework collection
+    match /homework/{homeworkId} {
+      // Allow teachers to query homework
+      allow list: if isSignedIn() && isTeacher();
+      
+      // Allow students to query homework (needed for __name__ queries)
+      allow list: if isSignedIn() && isStudent();
+      
+      // Teachers can create homework
+      allow create: if isSignedIn() && isTeacher();
+      
+      // Teachers in the class can read, update, and delete homework
+      allow read, update, delete: if isSignedIn() && isClassTeacher(resource.data.classId);
+      
+      // Students in the class can read homework
+      allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/classes/$(resource.data.classId)).data.studentUids;
+      
+      // Allow direct document reads for students (needed for specific document fetches)
+      allow get: if isSignedIn() && isStudent();
+      
+      allow write: if isAdmin();
+    }
+    
+    // Student homework progress
+    match /studentHomeworks/{studentHomeworkId} {
+      // Allow teachers to query student homeworks
+      allow list: if isSignedIn() && isTeacher();
+      
+      // Allow students to query their own homework
+      allow list: if isSignedIn() && isStudent();
+      
+      // Teachers can create student homework entries
+      allow create: if isSignedIn() && isTeacher();
+      
+      // Students can read and update their own homework
+      allow read, update: if isSignedIn() && request.auth.uid == resource.data.studentId;
+      
+      // Teachers in the class can read and delete all student homework
+      allow read, delete: if isSignedIn() && isClassTeacher(resource.data.classId);
+      
+      // Teachers can update student homework in their classes
+      allow update: if isSignedIn() && isClassTeacher(resource.data.classId);
+      
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // LEARNING CONTENT
+    // ==========================================
+    
+    // Puzzles and puzzle sections
+    match /puzzles/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /sandbox_items/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    match /puzzleSections/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // Fill-in-the-blanks challenges and sections
+    match /fillInTheBlanksChallenges/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    match /fillInTheBlanksSections/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // FLASHCARD SYSTEM
+    // ==========================================
+    
+    // Flashcards collection - all users can read, only admins can write
+    match /flashcards/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // User flashcard ratings - users can only manage their own ratings
+    match /userFlashcardRatings/{ratingId} {
+      // Allow read if signed in
+      allow read: if isSignedIn();
+      
+      // Allow write only if creating/updating with correct userId
+      allow write: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      
+      allow write: if isAdmin();
+    }
+  }
+}
