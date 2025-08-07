@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  console.log('🚀 Middleware triggered for:', pathname)
   
   // Check for authentication cookie/session
   const sessionCookie = request.cookies.get('session')?.value
