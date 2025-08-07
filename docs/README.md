@@ -1,314 +1,963 @@
-# CoreEDU: Project Blueprint
+# CoreEDU: Comprehensive Code & Site Documentation
 
-This document provides a comprehensive overview of the CoreEDU application, its architecture, key features, design philosophy, and technical implementation.
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Technology Stack](#technology-stack)
+3. [Site Architecture & Navigation](#site-architecture--navigation)
+4. [Feature Documentation](#feature-documentation)
+5. [Component Architecture](#component-architecture)
+6. [Database Schema](#database-schema)
+7. [Authentication & Authorization](#authentication--authorization)
+8. [AI Integration](#ai-integration)
+9. [Development Guide](#development-guide)
+10. [Deployment & Configuration](#deployment--configuration)
 
-## 1. High-Level Goal
+## Project Overview
 
-CoreEDU is a modular educational platform designed to provide interactive learning tools for various subjects. It serves both students and teachers with a suite of applications, from curriculum-aligned challenges to powerful classroom management utilities. The platform is architected for future expansion into subject hubs like "CoreGEO" (Geography) and "CoreMATHS" (Mathematics) alongside the flagship "CoreCS" (Computer Science) hub.
+CoreEDU is a sophisticated educational platform built with Next.js 15 and Firebase, designed to revolutionize computer science education through interactive learning experiences, comprehensive class management, and innovative teaching tools.
 
-## 2. Technology Stack
+### Core Product Areas
+- **CoreCS**: Computer Science curriculum with GCSE content, Python challenges, and interactive tools
+- **CoreLabs**: Skills-based games and training exercises for fundamental computing concepts
+- **CoreTools**: Professional teacher utilities including seating plan generators and analytics
 
--   **Frontend Framework:** **Next.js** with **React** (using the App Router).
--   **Language:** **TypeScript**.
--   **Styling:** **Tailwind CSS** with **ShadCN/UI** for a pre-built, accessible, and themeable component library.
--   **Backend & Database:** **Firebase** (Firestore and Firebase Authentication).
--   **Drag & Drop:** **Dnd-Kit** for interactive UIs.
--   **Generative AI:** **Genkit** for AI-powered features.
+### User Roles & Capabilities
+- **Students**: Access learning content, complete assignments, track progress, join classes
+- **Teachers**: Manage classes, create homework, monitor student progress, access teaching tools
+- **Administrators**: Full content management, user administration, system analytics
 
----
+## Technology Stack
 
-## 3. Project Structure
+### Frontend
+- **Framework**: Next.js 15.3.3 with App Router
+- **Language**: TypeScript 5+ with strict mode
+- **UI Framework**: React 18.3.1
+- **Styling**: Tailwind CSS 3.4.1 + ShadCN/UI component library
+- **Drag & Drop**: @dnd-kit for interactive experiences
+- **Game Engine**: Phaser.js 3.80.1 for educational games
+- **Code Editor**: Ace Editor with React integration
 
-The project follows a scalable, feature-first structure centered around the Next.js App Router.
+### Backend & Services
+- **Database**: Firebase Firestore (NoSQL)
+- **Authentication**: Firebase Auth with custom claims
+- **File Storage**: Firebase Storage
+- **AI Services**: Google Genkit 1.13.0 with Gemini 2.0 Flash
+- **Hosting**: Firebase Hosting with App Hosting
 
-### `src/app` - Routing & Pages
+### Development Tools
+- **Build Tool**: Next.js with Turbopack
+- **Type Checking**: TypeScript compiler
+- **Linting**: ESLint with Next.js config
+- **Package Manager**: npm with lock file
+- **Development Server**: Custom port 9002
 
+## Site Architecture & Navigation
+
+### Public Routes (No Authentication Required)
 ```
-src/app/
-│
-├── (auth)/                 # Group for authentication routes
-│   ├── login/page.tsx      # User login page
-│   └── signup/page.tsx     # User registration page
-│
-├── admin/                  # Admin Content Management Dashboard
-│   ├── components/         # Admin-specific components
-│   │   ├── AdminAnalytics.tsx
-│   │   ├── AdminHeader.tsx
-│   │   ├── FlashcardForm.tsx
-│   │   ├── FlashcardManagement.tsx
-│   │   ├── JsonImportDialog.tsx
-│   │   ├── PuzzleForm.tsx
-│   │   ├── PuzzleJsonImportDialog.tsx
-│   │   └── PuzzleManagement.tsx
-│   ├── hooks/              # Admin-specific hooks
-│   │   ├── useAdminFlashcards.ts
-│   │   ├── useAdminPuzzles.ts
-│   │   ├── useContentSearch.ts
-│   │   ├── useFlashcardForm.ts
-│   │   ├── useJsonImport.ts
-│   │   ├── usePuzzleForm.ts
-│   │   └── usePuzzleJsonImport.ts
-│   └── page.tsx            # Main admin dashboard page
-│
-├── corecs/                 # Core Computer Science Subject Hub
-│   ├── gcse/               # Section for GCSE-level content
-│   │   ├── flashcards/page.tsx
-│   │   └── page.tsx        # Landing page for GCSE CS topics
-│   │
-│   ├── binary/page.tsx     # Self-contained binary practice tool
-│   ├── hex/page.tsx        # Self-contained hex practice tool
-│   ├── concept-detective/page.tsx # Concept application game
-│   └── python/             # Hub for Python challenges
-│       ├── fill-in-the-blanks/[id]/page.tsx
-│       ├── jigsaw/[id]/page.tsx
-│       └── page.tsx
-│
-├── corelabs/               # Hub for skills-based games
-│   ├── binary-game/page.tsx
-│   ├── denary-game/page.tsx
-│   ├── keyboard-ninja/page.tsx
-│   ├── mouse-skills/page.tsx
-│   └── page.tsx
-│
-├── coretools/              # Hub for teacher-specific utilities
-│   ├── seating-plan/
-│   │   ├── ... (Seating Plan feature files)
-│   └── page.tsx
-│
-├── dashboard/              # User dashboards
-│   ├── student/page.tsx
-│   └── teacher/
-│       ├── class/[classId]/page.tsx
-│       ├── leaderboard/[classId]/page.tsx
-│       └── page.tsx
-│
-├── homework/
-│   └── attempt/[studentHomeworkId]/page.tsx
-│
-├── account/page.tsx        # User account management page
-├── quick-quiz/page.tsx     # Placeholder for future quiz feature
-├── page.tsx                # Main landing page for the CoreEDU platform
-├── layout.tsx              # Root layout for the entire application
-└── globals.css             # Global styles and ShadCN theme
+/ - Landing page with product overview
+├── /login - User authentication with role-based redirects
+├── /signup - Account creation with student/teacher selection
+├── /corecs - Computer Science hub overview
+│   ├── /gcse - GCSE Computer Science curriculum
+│   ├── /python - Python programming challenges
+│   ├── /binary - Binary conversion tools
+│   ├── /hex - Hexadecimal conversion exercises
+│   └── /concept-detective - Concept recognition game
+├── /corelabs - Skills & games hub
+│   ├── /binary-game - Binary Fall interactive game
+│   ├── /denary-game - Binary Builder challenge
+│   ├── /mouse-skills - Mouse accuracy training
+│   └── /keyboard-ninja - Keyboard shortcut mastery
+└── /coretools - Teacher utilities overview
+    └── /seating-plan - Classroom layout generator
 ```
 
-### `src/components` - Reusable UI Components
+### Protected Routes (Authentication Required)
+```
+/dashboard
+├── /student - Student learning dashboard
+└── /teacher - Teacher management dashboard
+    ├── /class/[classId] - Individual class management
+    ├── /class/[classId]/create-homework - Homework creation wizard
+    └── /leaderboard/[classId] - Class performance analytics
+
+/admin - Content management system (Admin only)
+
+/account - User profile and settings
+
+/homework/attempt/[studentHomeworkId] - Student homework interface
+
+Protected Content Access:
+├── /corecs/gcse/flashcards - Interactive flashcard system
+├── /corecs/python/fill-in-the-blanks/[id] - Coding challenges
+└── /corecs/python/jigsaw/[id] - Code arrangement puzzles
+```
+
+### API Routes
+```
+/api/auth/session - Session management (POST/DELETE)
+```
+
+## Feature Documentation
+
+### 1. Authentication & Session Management
+
+**Implementation**: `src/providers/UserProvider.tsx` + `src/middleware.ts`
+
+**Key Features**:
+- Firebase Authentication with email/password
+- Role-based access control (Student, Teacher, Admin)
+- HTTP-only cookie sessions for security
+- Automatic token refresh and session management
+- Protected route middleware with role verification
+
+**Authentication Flow**:
+1. User submits credentials → Firebase Auth
+2. Custom claims added to token (role, school)
+3. Session cookie created with ID token
+4. Middleware validates token on protected routes
+5. Context provides user state globally
+
+**Files**:
+- `src/providers/UserProvider.tsx` - Global auth context
+- `src/middleware.ts` - Route protection and redirects
+- `src/app/api/auth/session/route.ts` - Server-side session handling
+- `src/components/auth/ProtectedRoute.tsx` - Client-side route protection
+
+### 2. Class Management System
+
+**Implementation**: `src/hooks/teacher/` + `src/components/dashboard/teacher/`
+
+**Key Features**:
+- Class creation with unique join codes
+- Student join request workflow with approval system
+- Weekly timetable management with period scheduling
+- Bulk student operations and individual management
+- Real-time class updates and notifications
+
+**Class Creation Process**:
+1. Teacher creates class with basic info
+2. System generates unique 6-digit join code
+3. Students request to join using class code
+4. Teacher approves/denies join requests
+5. Approved students gain access to class content
+
+**Data Flow**:
+```
+Teacher Input → useClassManagement → Firestore → Real-time Updates → Student Dashboard
+```
+
+**Key Files**:
+- `src/hooks/teacher/use-teacher-classes.ts` - Class data fetching
+- `src/hooks/teacher/use-class-management.ts` - Class CRUD operations
+- `src/hooks/teacher/use-join-requests.ts` - Join request handling
+- `src/components/dashboard/teacher/ClassCard.tsx` - Class overview interface
+
+### 3. Homework Management System
+
+**Implementation**: Multi-step creation wizard with task selection
+
+**Key Features**:
+- 3-step homework creation process (Overview → Tasks → Preview)
+- Mixed task types (Flashcards + Coding Puzzles)
+- Optional due date enforcement
+- Individual student progress tracking
+- Automatic assignment distribution
+
+**Creation Workflow**:
+1. **Overview Step**: Basic homework details and due date
+2. **Task Selection**: Browse and filter available content
+3. **Preview Step**: Review and confirm assignment
+4. **Distribution**: Auto-create individual student assignments
+
+**Progress Tracking**:
+- Real-time completion status per student
+- Task-level progress indicators
+- Completion timestamps and analytics
+- Teacher dashboard integration
+
+**Key Files**:
+- `src/hooks/homework/use-homework-creation.ts` - Multi-step form state
+- `src/components/features/homework/creation/` - Wizard components
+- `src/hooks/teacher/use-homework-management.ts` - Assignment lifecycle
+- `src/app/homework/attempt/[studentHomeworkId]/page.tsx` - Student interface
+
+### 4. Interactive Flashcard System
+
+**Implementation**: Spaced repetition with confidence tracking
+
+**Key Features**:
+- Subject → Topic → SubTopic hierarchical organization
+- 3-level confidence rating system (Red/Amber/Green)
+- Advanced filtering by topic, subtopic, and confidence level
+- Progress tracking with performance analytics
+- Customizable display settings (simple vs. detailed definitions)
+
+**Learning Algorithm**:
+- Cards cycle based on confidence ratings
+- Lower confidence cards appear more frequently
+- Progress tracked per user per card
+- Performance analytics drive adaptive sequencing
+
+**Component Architecture**:
+```
+FlashcardClient (Controller)
+├── FlashcardRenderer (Display)
+├── FlashcardControls (Navigation)
+├── FlashcardSidebar (Progress)
+├── FlashcardSettingsDialog (Configuration)
+└── FlashcardFilterDialog (Content filtering)
+```
+
+**Key Files**:
+- `src/components/features/flashcards/flashcard-client.tsx` - Main controller
+- `src/hooks/flashcard/use-flashcard-data.tsx` - Data management
+- `src/hooks/flashcard/use-flashcard-progress.tsx` - Progress tracking
+- `src/hooks/flashcard/use-flashcard-navigation.tsx` - Card sequencing
+
+### 5. Interactive Coding System
+
+**Implementation**: Drag-and-drop with real-time validation
+
+**Puzzle Types**:
+
+**A. Jigsaw Puzzles** (`puzzle-client.tsx`):
+- Drag-and-drop code block arrangement
+- Real-time syntax validation
+- Expected output comparison
+- Progressive difficulty levels
+
+**B. Fill-in-the-Blanks** (`fill-in-the-blanks-client.tsx`):
+- Code completion exercises
+- Multiple choice and text input options
+- Contextual hints and explanations
+- Immediate feedback on submissions
+
+**AI Integration** (Currently disabled):
+- Personalized hint generation
+- Explanation of coding concepts
+- Adaptive difficulty adjustment
+
+**Key Files**:
+- `src/components/features/puzzles/puzzle-client.tsx` - Jigsaw interface
+- `src/components/features/puzzles/fill-in-the-blanks-client.tsx` - Fill-in interface
+- `src/components/features/puzzles/puzzles-client.tsx` - Puzzle browser
+
+### 6. Gaming & Skills Laboratory
+
+**Implementation**: Phaser.js-based interactive experiences
+
+**Game Portfolio**:
+
+**Binary Fall** (`/corelabs/binary-game`):
+- Falling object game with binary conversion challenges
+- Real-time score tracking and leaderboards
+- Progressive difficulty with speed increases
+- Visual feedback and celebration animations
+
+**Binary Builder** (`/corelabs/denary-game`):
+- Construction-themed binary building game
+- Drag-and-drop binary digit placement
+- Visual representation of binary values
+- Achievement system with milestone rewards
+
+**Mouse Skills** (`/corelabs/mouse-skills`):
+- Precision clicking and dragging exercises
+- Accuracy and speed measurement
+- Progress tracking over time
+- Adaptive difficulty based on performance
+
+**Keyboard Ninja** (`/corelabs/keyboard-ninja`):
+- Keyboard shortcut memorization game
+- Multiple software environments (VS Code, Photoshop, etc.)
+- Typing speed and accuracy metrics
+- Competitive leaderboards
+
+**Performance Tracking**:
+- Individual high scores per game
+- Progress analytics and improvement trends
+- Class-wide leaderboards for teachers
+- Achievement badges and milestone rewards
+
+### 7. Admin Content Management
+
+**Implementation**: Full CRUD interface with bulk operations
+
+**Content Types Managed**:
+- **Flashcards**: Subject-based educational content
+- **Puzzles**: Interactive coding challenges
+- **Fill-in-the-Blanks**: Code completion exercises
+- **User Management**: Student and teacher accounts
+
+**Key Features**:
+- **Bulk Import**: JSON-based content upload with validation
+- **Advanced Search**: Multi-field content filtering
+- **Edit History**: Version control with rollback capabilities
+- **Analytics Dashboard**: Usage statistics and performance metrics
+- **Content Validation**: Automated quality checks
+
+**Bulk Import Process**:
+1. JSON file upload or paste
+2. Schema validation and error reporting
+3. Preview of changes before commit
+4. Batch creation with progress tracking
+5. Success/failure reporting per item
+
+**Key Files**:
+- `src/app/admin/page.tsx` - Main admin dashboard
+- `src/app/admin/components/` - Admin-specific UI components
+- `src/app/admin/hooks/` - Admin data management hooks
+
+### 8. Seating Plan Generator
+
+**Implementation**: Advanced drag-and-drop with constraint solving
+
+**Key Features**:
+- **Multiple Layouts**: Traditional rows, groups, U-shape, etc.
+- **Student Assignment**: Automatic and manual placement options
+- **Conflict Resolution**: Separation rules for problematic combinations
+- **Export Options**: PDF generation and image export
+- **Accessibility**: Screen reader support and keyboard navigation
+
+**Constraint System**:
+- Define students who cannot sit together
+- Specify required separations (distance-based)
+- Randomization with constraint satisfaction
+- Manual override capabilities
+
+**Export Capabilities**:
+- High-resolution PNG export
+- PDF generation with class information
+- Print-optimized layouts
+- Multiple format options
+
+**Key Files**:
+- `src/app/coretools/seating-plan/` - Complete feature directory
+- `src/app/coretools/seating-plan/hooks/` - State management
+- `src/app/coretools/seating-plan/components/` - UI components
+- `src/app/coretools/seating-plan/utils/` - Calculation algorithms
+
+## Component Architecture
+
+### Design System Foundation
+
+**Component Library**: ShadCN/UI with Radix UI primitives
+- **Atomic Components**: Button, Input, Card, Dialog, etc.
+- **Composed Components**: Forms, Navigation, Data Tables
+- **Feature Components**: Domain-specific functionality
+- **Layout Components**: Page structure and responsive grids
+
+### Component Hierarchy
+
+```
+Application Root
+├── UserProvider (Global authentication state)
+├── FirestoreMonitorProvider (Development performance tracking)
+├── MainLayout (Application shell)
+│   ├── Header (Dynamic branding and navigation)
+│   ├── Main Content Area (Route-specific content)
+│   └── Footer (Contextual footer content)
+└── Toaster (Global notification system)
+```
+
+### Component Organization Structure
 
 ```
 src/components/
-│
-├── auth/
-│   └── ProtectedRoute.tsx  # Protects routes from unauthenticated access
-│
-├── dashboard/              # Components used only within user dashboards
-│   ├── student/
-│   │   └── JoinClassDialog.tsx
-│   └── teacher/
-│       ├── ClassCard.tsx
-│       ├── ClassSettingsDialog.tsx
-│       ├── CreateClassDialog.tsx
-│       ├── DeleteClassDialog.tsx
-│       ├── JoinRequestCard.tsx
-│       ├── JoinRequestPanel.tsx
-│       ├── JoinRequestsButton.tsx
-│       ├── NextLessonWidget.tsx
-│       ├── StudentManagement.tsx
-│       ├── TeacherManagement.tsx
-│       └── WeeklyTimetable.tsx
-│
-├── features/               # Components tied to a specific app feature
-│   ├── flashcards/
-│   │   ├── flashcard-client.tsx
-│   │   ├── flashcard-confidence-dialog.tsx
-│   │   ├── flashcard-controls.tsx
-│   │   ├── flashcard-filter-dialog.tsx
-│   │   ├── flashcard-renderer.tsx
-│   │   ├── flashcard-settings-dialog.tsx
-│   │   └── flashcard-sidebar.tsx
-│   ├── games/
-│   │   └── leaderboard-table.tsx
-│   ├── homework/
-│   │   ├── HomeworkManagement.tsx
-│   │   └── homework-flash-card-client.tsx
-│   └── puzzles/
-│       ├── fill-in-the-blanks-client.tsx
-│       ├── puzzle-client.tsx
-│       └── puzzles-client.tsx
-│
-├── layout/                 # Main application layout components
-│   ├── footer.tsx
-│   ├── header.tsx
-│   └── main-layout.tsx
-│
-├── shared/                 # Components reused across multiple, unrelated features
+├── ui/ - Base ShadCN components (25+ components)
+│   ├── button.tsx, card.tsx, dialog.tsx
+│   ├── form.tsx, input.tsx, select.tsx
+│   └── table.tsx, tabs.tsx, toast.tsx
+├── shared/ - Cross-feature reusable components
 │   ├── ConfirmationDialog.tsx
-│   ├── FirestoreStats.tsx
 │   ├── UserListItem.tsx
 │   ├── UserSearchDialog.tsx
 │   └── user-nav.tsx
-│
-└── ui/                     # Core, unstyled UI components from ShadCN (Button, Card, etc.)
+├── layout/ - Application structure
+│   ├── header.tsx, footer.tsx
+│   └── main-layout.tsx
+├── auth/ - Authentication components
+│   └── ProtectedRoute.tsx
+├── dashboard/ - Role-specific interfaces
+│   ├── student/ - Student dashboard components
+│   └── teacher/ - Teacher dashboard components
+└── features/ - Feature-specific components
+    ├── flashcards/ - Flashcard system components
+    ├── homework/ - Homework management components
+    ├── games/ - Gaming interface components
+    └── puzzles/ - Interactive coding components
 ```
 
-### `src/hooks` - Custom React Hooks
+### State Management Patterns
+
+**Global State**:
+- React Context for authentication and user preferences
+- Custom hooks for feature-specific state management
+- Firestore real-time listeners for live data updates
+
+**Local State**:
+- Component-level state for UI interactions
+- Form state management with validation
+- Loading and error states for async operations
+
+**Caching Strategy**:
+- 10-minute memory cache for frequently accessed data
+- Optimistic updates with rollback on failure
+- Strategic cache invalidation on data mutations
+
+## Database Schema
+
+### Firestore Collections Overview
+
+#### Core User Data
+```typescript
+// users/{userId}
+{
+  uid: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'student' | 'teacher';
+  schoolId: string;
+  corebinStats?: {
+    binaryFall: { highScore: number };
+    binaryBuilder: { highScore: number };
+  };
+}
+```
+
+#### Class Management
+```typescript
+// classes/{classId}
+{
+  id: string;
+  className: string;
+  subject: 'Computer Science' | 'Geography' | 'Maths';
+  classCode: string; // 6-digit unique code
+  teacherIds: string[];
+  studentUids: string[];
+  createdAt: Timestamp;
+  periods?: Period[]; // Weekly timetable
+}
+
+// classJoinRequests/{requestId}
+{
+  id: string;
+  classId: string;
+  studentId: string;
+  status: 'pending' | 'approved' | 'denied';
+  createdAt: Timestamp;
+  studentInfo: {
+    name: string;
+    email: string;
+  };
+}
+```
+
+#### Homework System
+```typescript
+// homework/{homeworkId}
+{
+  id: string;
+  classId: string;
+  teacherId: string;
+  title: string;
+  instructions?: string;
+  tasks: HomeworkTask[];
+  createdAt: Timestamp;
+  dueDate?: Timestamp;
+}
+
+// studentHomeworks/{studentHomeworkId}
+{
+  id: string;
+  studentId: string;
+  homeworkId: string;
+  classId: string;
+  status: 'not-started' | 'in-progress' | 'completed';
+  completedAt?: Timestamp;
+  progress: {
+    completedTaskIds: string[];
+  };
+}
+```
+
+#### Educational Content
+```typescript
+// flashcards/{flashcardId} - Unified collection for all subjects
+{
+  id: string;
+  subject: string; // Enables multi-subject scaling
+  examBoard: string;
+  specification: string;
+  specificationCode: string;
+  specificationPoint: string;
+  topic: string;
+  subTopic: string;
+  term: string;
+  definition: string;
+  alternativeDefinitions: string[];
+  simpleDefinition: string;
+  examples: string[];
+  relatedTerms: string[];
+  hints: string[];
+}
+
+// puzzles/{puzzleId}
+{
+  id: string;
+  title: string;
+  description: string;
+  skillSection: string;
+  sectionId: string;
+  challengeLevel: number;
+  codeSnippet: string;
+  initialBlocks: string[];
+  solution: string[];
+  expectedOutput: string;
+  isDynamic?: boolean;
+  inputPrompt?: string;
+}
+
+// fillInTheBlanksChallenges/{challengeId}
+{
+  id: string;
+  title: string;
+  description: string;
+  sectionId: string;
+  challengeLevel: number;
+  codeParts: (string | null)[];
+  solution: string[];
+  expectedOutput: string;
+  isDynamic?: boolean;
+  inputPrompt?: string;
+}
+```
+
+#### Progress Tracking
+```typescript
+// userFlashcardRatings/{ratingId}
+{
+  id: string;
+  userId: string;
+  flashcardId: string;
+  confidence?: 1 | 2 | 3 | null;
+  correct?: number;
+  incorrect?: number;
+  totalAttempts?: number;
+  lastUpdated: Timestamp;
+}
+```
+
+### Security Rules Highlights
+
+**Rule-based Access Control**:
+- Students can only read their own data and class content
+- Teachers can manage their own classes and students
+- Admins have full content management access
+- School-based data isolation for multi-tenant support
+
+**Performance Optimizations**:
+- Compound indexes for complex queries
+- Efficient pagination for large datasets
+- Strategic denormalization for read performance
+- Query limit enforcement to prevent abuse
+
+## Authentication & Authorization
+
+### Authentication Flow Architecture
 
 ```
-src/hooks/
-│
-├── flashcard/              # Hooks for the flashcard system
-│   ├── use-flashcard-data.tsx
-│   ├── use-flashcard-navigation.tsx
-│   └── use-flashcard-progress.tsx
-│
-├── shared/                 # Hooks used across the entire application
-│   ├── use-firestore-monitor.ts
-│   ├── use-toast.ts
-│   └── use-user-search.ts
-│
-└── teacher/                # Hooks for managing teacher-specific data and actions
-    ├── use-class-data.ts
-    ├── use-class-management.ts
-    ├── use-homework-management.ts
-    ├── use-join-requests.ts
-    └── use-teacher-classes.ts
+User Login Attempt
+├── Firebase Authentication (Email/Password)
+├── Custom Claims Addition (Role, School, Permissions)
+├── ID Token Generation with Claims
+├── HTTP-Only Session Cookie Creation
+├── Middleware Route Validation
+└── Context Provider State Management
 ```
 
-### `src/providers` - Global Context Providers
+### Role-Based Access Control
+
+**Student Permissions**:
+- Access assigned homework and learning content
+- View personal progress and analytics
+- Join classes with valid class codes
+- Submit homework and track completion
+
+**Teacher Permissions**:
+- Create and manage classes
+- Assign homework to students
+- View student progress and analytics
+- Access teaching tools and utilities
+- Manage class membership and join requests
+
+**Admin Permissions**:
+- Full content management (CRUD operations)
+- User account administration
+- System analytics and monitoring
+- Bulk content operations and imports
+
+### Security Implementation
+
+**Session Management**:
+- HTTP-only cookies prevent XSS attacks
+- Secure flag ensures HTTPS-only transmission
+- Automatic token refresh prevents session expiry
+- Secure logout clears all session data
+
+**Route Protection**:
+- Middleware validates tokens on every request
+- Role-based redirects to appropriate dashboards
+- Protected API routes validate user permissions
+- Client-side route guards prevent unauthorized access
+
+## AI Integration
+
+### Current AI Infrastructure
+
+**Framework**: Google Genkit 1.13.0 with Gemini 2.0 Flash
+**Status**: Partially implemented but disabled due to billing requirements
+
+### AI Flows Architecture
+```
+src/ai/
+├── genkit.ts - Core AI service configuration
+├── dev.ts - Development server setup
+└── flows/ - Individual AI capabilities
+    ├── generate-avatar.ts - Profile picture generation
+    ├── explain-quiz-answer.ts - Educational explanations
+    ├── generate-personalized-hint.ts - Adaptive learning hints
+    └── generate-fill-in-the-blanks-hint.ts - Code completion assistance
+```
+
+### Implemented Features (Disabled)
+
+**Avatar Generation**:
+- Personalized profile pictures based on user preferences
+- Multiple style options and customization parameters
+- Integration with user profile management
+
+**Educational AI**:
+- Quiz answer explanations with step-by-step breakdowns
+- Personalized learning hints based on user progress
+- Code completion assistance for programming exercises
+
+**Adaptive Learning** (Planned):
+- Difficulty adjustment based on performance analytics
+- Personalized learning path recommendations
+- Intelligent content suggestion algorithms
+
+### AI Integration Points
+
+**Future Capabilities**:
+- Automated content generation for flashcards and puzzles
+- Natural language processing for question answering
+- Performance analysis and learning insights
+- Adaptive assessment and feedback systems
+
+## Project Structure & File Dependencies
+
+### High-Level Architecture
+
+The CoreEDU application follows a well-organized Next.js architecture with clear separation of concerns and consistent patterns for data management:
 
 ```
-src/providers/
-│
-├── FirestoreMonitorProvider.tsx
-└── UserProvider.tsx
+Next.js App Router
+├── Middleware (authentication & route protection)
+├── Layout (providers + UI shell)
+│   ├── UserProvider (global authentication state)
+│   ├── FirestoreMonitorProvider (performance monitoring)
+│   └── MainLayout (header/footer structure)
+├── Pages (feature-specific routes)
+├── Components (organized by feature/role)
+├── Hooks (data fetching + state management)
+├── Utils (types, cache, utilities)
+└── AI (Genkit flows - currently disabled)
 ```
+
+### Directory Structure & Dependencies
+
+```
+CoreEDU/
+├── src/
+│   ├── app/ - Next.js App Router pages and API routes
+│   │   ├── layout.tsx - Root application bootstrap
+│   │   ├── (auth)/ - Authentication pages (login, signup)
+│   │   ├── dashboard/ - Role-specific dashboards
+│   │   ├── admin/ - Content management system
+│   │   ├── corecs/ - Computer Science learning hub
+│   │   ├── corelabs/ - Skills-based games
+│   │   ├── coretools/ - Teacher utilities
+│   │   └── api/ - Server-side API endpoints
+│   ├── components/ - Reusable UI components
+│   │   ├── ui/ - ShadCN base components (25+ components)
+│   │   ├── shared/ - Cross-feature reusable components
+│   │   ├── layout/ - Application structure (header, footer)
+│   │   ├── auth/ - Authentication components
+│   │   ├── dashboard/ - Role-specific interfaces
+│   │   └── features/ - Feature-specific components
+│   ├── hooks/ - Custom React hooks for data management
+│   │   ├── flashcard/ - Flashcard system hooks
+│   │   ├── homework/ - Homework management hooks
+│   │   ├── teacher/ - Teacher-specific data hooks
+│   │   └── shared/ - Utility hooks (toast, monitoring, search)
+│   ├── lib/ - Core utility functions and configurations
+│   │   ├── firebase.ts - Firebase client configuration
+│   │   ├── firebase-admin.ts - Server-side Firebase Admin
+│   │   ├── types.ts - System-wide TypeScript definitions
+│   │   ├── cache.ts - Performance optimization layer
+│   │   ├── utils.ts - CSS class merging utilities
+│   │   └── date-utils.ts - Date formatting utilities
+│   ├── providers/ - React context providers
+│   │   ├── UserProvider.tsx - Global authentication state
+│   │   └── FirestoreMonitorProvider.tsx - Database monitoring
+│   ├── ai/ - AI integration (currently disabled)
+│   │   ├── genkit.ts - AI service configuration
+│   │   └── flows/ - Individual AI capabilities
+│   └── middleware.ts - Route protection middleware
+├── docs/ - Project documentation
+├── public/ - Static assets
+├── firebase.json - Firebase configuration
+├── firestore.rules - Database security rules
+├── next.config.ts - Next.js configuration
+├── tailwind.config.ts - Tailwind CSS configuration
+└── tsconfig.json - TypeScript configuration
+```
+
+### Key File Dependencies & Import Relationships
+
+#### 1. Application Bootstrap Chain
+```
+layout.tsx (root)
+├── Imports: globals.css, providers, layout components
+├── Sets up: UserProvider → FirestoreMonitorProvider → MainLayout
+└── Provides: Global font configuration, toast system
+
+UserProvider.tsx
+├── Imports: Firebase Auth, Firestore, cache system, types
+├── Provides: useAuth() hook globally
+└── Used by: All authenticated components, ProtectedRoute
+
+MainLayout.tsx
+├── Imports: Header, Footer components, Next.js navigation
+├── Logic: Conditionally renders header/footer (games excluded)
+└── Used by: All pages for consistent layout
+```
+
+#### 2. Authentication & Security Flow
+```
+middleware.ts (standalone)
+├── Purpose: Route protection and authentication checks
+├── Dependencies: Next.js server utilities only
+└── Protects: Admin pages, dashboards, protected content
+
+ProtectedRoute.tsx
+├── Imports: useAuth hook, Next.js router
+├── Purpose: Client-side route protection
+└── Wraps: Admin pages, dashboard pages, protected features
+```
+
+#### 3. Database Integration Pattern
+```
+firebase.ts (central config)
+├── Imports: Firebase SDK modules
+├── Exports: auth, db, storage instances
+└── Used by: All components needing Firebase services
+
+Data Flow Pattern:
+Component → Custom Hook → Firebase/Cache → UI Update
+
+Example Hook Dependencies:
+useTeacherClasses.ts
+├── useAuth() - Authentication context
+├── db - Firebase Firestore instance
+├── dataCache - Performance caching layer
+├── useToast() - Error handling
+└── ClassInfo types - Type safety
+```
+
+#### 4. Component Architecture Patterns
+```
+All Components Import Pattern:
+├── React/Next.js - Core framework
+├── UI Components - ShadCN/UI primitives
+├── Icons - Lucide React icons
+├── Styling - cn() utility for class merging
+├── Types - Relevant TypeScript definitions
+└── Data Hooks - Feature-specific data management
+
+Header Component Example:
+├── Multiple ShadCN components (Button, Sheet, etc.)
+├── Lucide icons for UI elements
+├── Next.js Link and usePathname for navigation
+├── useAuth hook for authentication state
+└── cn utility for responsive styling
+```
+
+#### 5. Utility System Dependencies
+```
+utils.ts (CSS utilities)
+├── Imports: clsx, tailwind-merge
+├── Exports: cn() function for class merging
+└── Used by: Every styled component
+
+types.ts (Type definitions)
+├── No imports: Pure TypeScript types
+├── Defines: UserProfile, ClassInfo, Flashcard, etc.
+└── Used by: All data-handling components
+
+cache.ts (Performance layer)
+├── No imports: Standalone caching class
+├── Features: Memory + localStorage with TTL
+└── Used by: UserProvider, all data hooks
+```
+
+#### 6. Feature-Specific Dependencies
+
+**Flashcard System:**
+```
+flashcard-client.tsx (main controller)
+├── flashcard-renderer.tsx - Display component
+├── flashcard-controls.tsx - Navigation component
+├── flashcard-sidebar.tsx - Progress tracking
+├── use-flashcard-data.tsx - Data management hook
+└── use-flashcard-progress.tsx - Progress tracking hook
+```
+
+**Homework System:**
+```
+HomeworkCreationLayout.tsx (wizard controller)
+├── AddTasksStep.tsx - Task selection step
+├── OverviewStep.tsx - Basic details step
+├── PreviewStep.tsx - Final review step
+├── use-homework-creation.ts - Multi-step form state
+└── use-homework-management.ts - Assignment lifecycle
+```
+
+### Critical Dependency Relationships
+
+#### Must-Have Files for System Function:
+1. **`layout.tsx`** - Application bootstrap and provider setup
+2. **`UserProvider.tsx`** - Global authentication state management
+3. **`firebase.ts`** - Database connection configuration
+4. **`types.ts`** - System-wide type definitions
+5. **`cache.ts`** - Performance optimization layer
+6. **`ProtectedRoute.tsx`** - Security boundary component
+7. **`middleware.ts`** - Server-side route protection
+
+#### Common Import Patterns:
+- **Authentication**: Every protected component imports `useAuth()`
+- **Styling**: Every styled component imports `cn()` utility
+- **Database**: Data hooks import Firebase + cache + types
+- **UI**: Components import ShadCN components + Lucide icons
+- **Routing**: Components use Next.js navigation hooks (`useRouter`, `usePathname`)
+
+## Development Guide
+
+### Getting Started
+
+**Prerequisites**:
+- Node.js 18+ with npm
+- Firebase CLI for deployment
+- Git for version control
+
+**Installation**:
+```bash
+git clone [repository-url]
+cd CoreEDU
+npm install
+```
+
+**Development Commands**:
+```bash
+npm run dev          # Start development server (port 9002)
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint checks
+npm run typecheck    # TypeScript type checking
+
+# AI Development (when enabled)
+npm run genkit:dev   # Start Genkit development server
+npm run genkit:watch # Start Genkit with file watching
+```
+
+### Development Guidelines
+
+**Code Standards**:
+- TypeScript strict mode for type safety
+- ESLint configuration for code quality
+- Consistent component naming conventions
+- Comprehensive error handling and loading states
+
+**Feature Development Process**:
+1. Create feature branch from main
+2. Implement components with TypeScript
+3. Add custom hooks for state management
+4. Implement Firestore integration
+5. Add proper error handling and loading states
+6. Test functionality across user roles
+7. Create pull request with detailed description
+
+**Database Best Practices**:
+- Use existing type definitions from `src/lib/types.ts`
+- Implement proper security rules for new collections
+- Use compound indexes for complex queries
+- Cache frequently accessed data appropriately
+
+## Deployment & Configuration
+
+### Firebase Configuration
+
+**Services Used**:
+- **Firestore**: NoSQL database with real-time updates
+- **Authentication**: User management with custom claims
+- **Hosting**: Static site hosting with CDN
+- **App Hosting**: Server-side rendering support
+
+**Configuration Files**:
+- `firebase.json` - Hosting and service configuration
+- `firestore.rules` - Database security rules
+- `apphosting.yaml` - App hosting configuration
+
+### Environment Variables
+
+**Required Variables**:
+```env
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=service-account-email
+FIREBASE_PRIVATE_KEY=service-account-private-key
+NEXT_PUBLIC_FIREBASE_CONFIG=firebase-client-config
+```
+
+### Build Configuration
+
+**Next.js Configuration** (`next.config.ts`):
+- TypeScript and ESLint errors ignored during builds (for development speed)
+- Image optimization for external domains (placehold.co, robohash.org)
+- Custom port configuration (9002)
+
+**Performance Optimizations**:
+- Turbopack for faster development builds
+- Static generation where possible
+- Automatic code splitting by route
+- Image optimization and lazy loading
+
+### Monitoring & Analytics
+
+**Built-in Monitoring**:
+- Firestore operation tracking for performance analysis
+- Real-time connection status monitoring
+- Error boundary implementation for graceful failures
+- User activity analytics for feature usage
+
+**Development Tools**:
+- Firestore Monitor Provider for debugging database operations
+- Console logging for authentication state changes
+- Performance metrics for component render times
+- Network request monitoring for API calls
 
 ---
 
-## 4. Key Features & Implementation
-
-### 4.1. Authentication & User Management
--   Authentication is handled globally by **`UserProvider.tsx`**, which provides a React Context for user state across the application.
--   The **`useAuth()` hook**, exported from `UserProvider.tsx`, is used by components to access the current user's authentication status, Firebase user object, and custom profile data from Firestore (e.g., `role`, `firstName`).
--   Pages requiring authentication are wrapped in the **`ProtectedRoute.tsx`** component. This component checks the user's authentication state via the `useAuth()` hook and automatically redirects unauthenticated users to the `/login` page.
--   The system supports distinct `student` and `teacher` roles stored in Firestore. An `admin` role is also supported via Firebase Custom Claims, granting access to the `/admin` dashboard.
-
-### 4.2. Admin Dashboard
--   **Content Management:** A full-featured dashboard at `/admin` for CRUD (Create, Read, Update, Delete) operations on `flashcards` and `puzzles`.
--   **Bulk Import:** The `JsonImportDialog` component allows admins to bulk-create content by pasting a JSON array, significantly speeding up content population.
--   **Custom Hooks:** The entire feature is powered by a suite of dedicated hooks in `src/app/admin/hooks`, such as `useAdminFlashcards` and `useAdminPuzzles`, which encapsulate all Firestore logic.
--   **Analytics:** A simple analytics tab provides an overview of content distribution and database status.
-
-### 4.3. CoreCS - Computer Science Hub
--   **Python Challenges:** Features a "Coding Jigsaw" (drag-and-drop) and "Fill-in-the-Blanks" powered by `Dnd-Kit`.
--   **Binary/Hex Tools:** Standalone pages for practicing number base conversions with different modes and stat tracking.
--   **Flashcard System:** A highly reusable system built with a `FlashCardClient` controller and multiple custom hooks (`useFlashcardData`, `useFlashcardNavigation`, `useFlashcardProgress`) to manage state and data fetching. It's designed to be easily adapted for any subject.
-
-### 4.4. CoreTools - Teacher Utilities
--   **Seating Plan Generator:** A sophisticated tool for classroom layouts using `Dnd-Kit`. It includes automated student assignment logic and flexible layout tools.
-
----
-
-## 5. Design & Style Overview
-
-The UI is designed to be clean, modern, and accessible, built upon ShadCN/UI and styled with Tailwind CSS.
-
-### 5.1. Color Palette
-The color system is defined using HSL values in `src/app/globals.css`.
-
--   **Primary Color:** `hsl(173, 80%, 40%)` (#14b8a6) - A vibrant teal for key interactive elements.
--   **Foreground Color:** `hsl(220, 30%, 35%)` (#3f5374) - A dark, desaturated blue for primary text.
--   **Background Color:** `hsl(240, 6%, 99%)` (#f8fafc) - A very light, clean background.
--   **Destructive & Success:** Standard red and green for user feedback.
-
-### 5.2. Typography
--   **Body Font (`--font-inter`):** **Inter** is used for all body text.
--   **Headline Font (`--font-lexend`):** **Lexend** is used for major headings and titles.
-
-### 5.3. Component Styling
--   **Cards (`Card`):** Have a subtle shadow (`shadow-md`), `1px` border, and rounded corners (`rounded-lg`).
--   **Buttons (`Button`):** Feature variants for different purposes and provide clear interactive feedback on hover.
--   **Inputs (`Input`, `Textarea`):** Use a clean design with a distinct focus state.
-
----
-
-## 6. Firestore Database Structure
-
-The database is designed for scalability.
-
--   **`users`:** Stores user profiles and roles.
--   **`classes`:** Stores class information and student/teacher relationships.
--   **`puzzles` & `fillInTheBlanksChallenges`:** Collections for specific challenge types.
--   **`flashcards`:** A **single, unified collection for all subjects**. Each document has a `subject` field, making it highly scalable and easy to query for any new subject without schema changes.
-
-## 7. File Breakdown & Connections
-
-This section provides a detailed explanation of each key file and its relationship with other parts of the application.
-
-### `src/app` (Pages & Routes)
-
--   **`layout.tsx`**: The root layout of the entire application.
-    -   **Connections**: Wraps all other pages. Imports `UserProvider`, `FirestoreMonitorProvider`, `Toaster`, `MainLayout`, and global CSS.
--   **`page.tsx`**: The main landing page of the CoreEDU platform.
-    -   **Connections**: Uses the `useAuth` hook to conditionally display dashboard links. Imports `UserNav`, `Card`, and `Button` components.
--   **`(auth)/*`**: Contains the login and signup pages. These are public-facing routes.
-    -   **Connections**: Utilize Firebase Authentication (`signInWithEmailAndPassword`, etc.), `useToast`, and various UI components.
--   **`admin/page.tsx`**: The main page for the Content Management System.
-    -   **Connections**: Wrapped in `ProtectedRoute`. Uses admin-specific hooks (`useAdminFlashcards`, `useAdminPuzzles`) and components (`AdminHeader`, `FlashcardManagement`, etc.) to build the management interface.
--   **`account/page.tsx`**: User account management page.
-    -   **Connections**: Wrapped in `ProtectedRoute`. Uses `useAuth` hook for user data, interacts with Firestore to update user profiles, and uses `generateAvatar` Genkit flow.
--   **`dashboard/teacher/*`**: Pages for the teacher dashboard, including the main dashboard, class-specific views, and leaderboards.
-    -   **Connections**: Wrapped in `ProtectedRoute`. Heavily dependent on teacher-specific hooks (`useTeacherClasses`, `useClassData`, `useJoinRequests`) and dashboard components.
--   **`dashboard/student/page.tsx`**: The main dashboard for students, primarily showing homework.
-    -   **Connections**: Wrapped in `ProtectedRoute`. Uses `useAuth` hook and `JoinClassDialog` component. Interacts with `homework` and `studentHomeworks` collections in Firestore.
--   **`corecs/*`**: The hub for all Computer Science content. Includes pages for Python, Binary, Hex, and GCSE-specific topics.
-    -   **Connections**: All interactive pages (`binary`, `hex`, `gcse/flashcards`, `python`, etc.) are wrapped in `ProtectedRoute`. These pages often use feature-specific components like `PuzzlesClient` or `FlashCardClient`.
--   **`corelabs/*`**: The hub for skills-based games.
-    -   **Connections**: All game pages are wrapped in `ProtectedRoute` to save high scores and require user authentication to play.
--   **`coretools/seating-plan/*`**: The seating plan generator tool.
-    -   **Connections**: A complex feature composed of many specific components and hooks within its own subdirectory. Uses `Dnd-Kit` for drag-and-drop functionality. Wrapped in `ProtectedRoute`.
--   **`homework/attempt/[studentHomeworkId]/page.tsx`**: The page where a student completes a homework assignment.
-    -   **Connections**: Wrapped in `ProtectedRoute`. Uses `useAuth` to verify the student. Fetches `studentHomeworks` and `homework` collections. Renders task components like `HomeworkFlashCardClient` and `PuzzleClient`.
-
-### `src/components` (UI Components)
-
--   **`auth/ProtectedRoute.tsx`**: A component that wraps page content to ensure a user is authenticated before rendering.
-    -   **Connections**: Used by most pages in `src/app`. Depends on `useAuth` from `UserProvider`.
--   **`layout/*`**: `Header`, `Footer`, `MainLayout`. These structure the visual layout of the app.
-    -   **Connections**: `MainLayout` is used in the root `layout.tsx`. `Header` uses `UserNav` and is aware of the current route via `usePathname`.
--   **`shared/*`**: `ConfirmationDialog`, `UserListItem`, `UserSearchDialog`, `UserNav`. Highly reusable components used across different features.
-    -   **Connections**: `UserNav` uses `useAuth`. `UserSearchDialog` uses the `useUserSearch` hook. These are imported by various dashboard and management pages.
--   **`dashboard/teacher/*`**: Components specifically for the teacher dashboard interface.
-    -   **Connections**: These components are the building blocks for the teacher dashboard pages. They often take data fetched by hooks like `useClassData` as props.
--   **`dashboard/student/*`**: Components for the student dashboard.
-    -   **Connections**: `JoinClassDialog` uses the `useClassManagement` hook to send requests.
--   **`features/flashcards/*`**: The entire flashcard system is broken down into modular components here.
-    -   **Connections**: `flashcard-client.tsx` is the main controller, orchestrating the other flashcard components and using the `useFlashcard...` hooks.
--   **`features/puzzles/*`**: Clients for displaying Python challenges.
-    -   **Connections**: Used by the Python pages in `src/app/corecs/python`. They handle the logic for jigsaws and fill-in-the-blanks.
-
-### `src/hooks` (Logic & State Management)
-
--   **`flashcard/*`**: State management for the flashcard feature.
-    -   **Connections**: `useFlashcardData` fetches cards from Firestore. `useFlashcardNavigation` handles the client-side logic of moving between cards. `useFlashcardProgress` saves user confidence ratings to Firestore. All are used by `FlashcardClient`.
--   **`teacher/*`**: Hooks for fetching and managing teacher-specific data.
-    -   **Connections**: `useTeacherClasses` fetches the list of classes for the main dashboard. `useClassData` fetches detailed information for a single class. `useClassManagement` provides functions to modify class data (add/remove students, etc.). `useJoinRequests` handles pending student join requests.
--   **`shared/*`**: Globally useful hooks.
-    -   **Connections**: `useToast` is used everywhere to show notifications. `useUserSearch` is used by components like `StudentManagement` to find users. `useFirestoreMonitor` is used by the `FirestoreMonitorProvider`.
-
-### `src/providers` (Global Context Providers)
-
--   **`UserProvider.tsx`**: The core of the authentication system. It provides a global context with the current user's state, profile, and loading status.
-    -   **Connections**: This provider wraps the entire application in `layout.tsx`. It exports the `useAuth()` hook which is used by almost every page and component that requires user data.
--   **`FirestoreMonitorProvider.tsx`**: A development tool that tracks and displays Firestore read/write operations to help debug performance issues.
-    -   **Connections**: This provider wraps the `MainLayout`. It exposes a global `window.firestoreMonitor` object for logging database interactions.
-
-### `src/lib` (Core Logic & Definitions)
-
--   **`firebase.ts`**: Initializes and exports the Firebase app instance, auth, and Firestore database.
-    -   **Connections**: Imported by almost every file that interacts with Firebase.
--   **`types.ts`**: Contains all TypeScript type definitions for the project's data structures (e.g., `ClassInfo`, `Puzzle`, `Flashcard`).
-    -   **Connections**: Imported throughout the application to ensure type safety.
--   **`utils.ts`**: Home to the `cn` utility function for merging Tailwind CSS classes.
-    -   **Connections**: Used in nearly every component that involves conditional styling.
--   **`cache.ts`**: A simple in-memory cache to reduce redundant Firestore reads for data that doesn't change frequently within a session.
-    -   **Connections**: Used by data-fetching hooks like `useTeacherClasses` and `useClassData`.
+*This documentation provides a comprehensive overview of the CoreEDU platform's architecture, features, and implementation details. For specific implementation questions or contribution guidelines, please refer to the individual component documentation or contact the development team.*
