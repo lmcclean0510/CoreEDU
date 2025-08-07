@@ -1,6 +1,7 @@
 // Create this file: src/app/api/auth/session/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import { adminAuth } from '@/lib/firebase-admin';
 
 export async function POST(request: NextRequest) {
