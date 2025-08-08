@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/UserProvider';
 import { useToast } from '@/hooks/shared/use-toast';
 import Link from 'next/link';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+// Protected via server layout for /corecs; client wrapper not needed
 
 // Types based on your flashcard structure
 type Flashcard = {
@@ -566,9 +566,5 @@ function ConceptDetectiveContent() {
 }
 
 export default function ConceptDetectivePage() {
-    return (
-        <ProtectedRoute>
-            <ConceptDetectiveContent />
-        </ProtectedRoute>
-    )
+    return <ConceptDetectiveContent />
 }

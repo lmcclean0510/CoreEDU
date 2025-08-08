@@ -13,7 +13,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+// Protected via /corelabs server layout
 
 interface Block {
   id: number;
@@ -467,8 +467,6 @@ function BinaryGameContent() {
 
 export default function BinaryGamePage() {
     return (
-        <ProtectedRoute>
             <BinaryGameContent />
-        </ProtectedRoute>
     )
 }

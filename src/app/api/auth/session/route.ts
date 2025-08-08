@@ -2,10 +2,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
-import { adminAuth } from '@/lib/firebase-admin';
+// NOTE: Importing firebase-admin at module scope will throw at build time
+// if env vars are not set. We lazily import inside handlers instead.
 
 export async function POST(request: NextRequest) {
   try {
+    const { adminAuth } = await import('@/lib/firebase-admin');
     const { idToken } = await request.json();
 
     if (!idToken) {
@@ -83,6 +85,8 @@ export async function POST(request: NextRequest) {
 // Logout endpoint
 export async function DELETE() {
   try {
+    // Lazy import here too for symmetry
+    await import('@/lib/firebase-admin');
     const response = NextResponse.json({ success: true });
     
     // Clear the session cookie

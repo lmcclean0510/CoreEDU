@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/providers/UserProvider';
 import type { Flashcard, Puzzle } from '@/lib/types';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 // Import our hooks and components
 import { useAdminFlashcards, type FlashcardFormData } from './hooks/useAdminFlashcards';
@@ -169,7 +168,6 @@ export default function AdminDashboard() {
   // }
 
   return (
-    <ProtectedRoute>
       <div className="container mx-auto p-6 space-y-6">
         <AdminHeader
           flashcards={flashcards}
@@ -388,6 +386,5 @@ export default function AdminDashboard() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </ProtectedRoute>
   );
 }

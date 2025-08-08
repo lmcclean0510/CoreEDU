@@ -34,7 +34,6 @@ import { useAuth } from '@/providers/UserProvider';
 import { useToast } from '@/hooks/shared/use-toast';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, updateDoc, increment, type Timestamp } from 'firebase/firestore';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 
 type BitStatus = 'default' | 'correct' | 'incorrect';
@@ -871,8 +870,6 @@ function BinaryPageContent() {
 
 export default function BinaryPage() {
     return (
-        <ProtectedRoute>
             <BinaryPageContent />
-        </ProtectedRoute>
     )
 }

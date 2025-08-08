@@ -1,6 +1,6 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+// Lazy import inside function to avoid build-time env requirements
 import type { UserProfile } from '@/lib/types';
 import type { NormalizedUser } from './shared';
 
@@ -10,6 +10,7 @@ export async function getCurrentUser(): Promise<NormalizedUser | null> {
   if (!session) return null;
 
   try {
+    const { adminAuth, adminDb } = await import('@/lib/firebase-admin');
     const decoded = await adminAuth.verifySessionCookie(session, true);
     const uid = decoded.uid;
 

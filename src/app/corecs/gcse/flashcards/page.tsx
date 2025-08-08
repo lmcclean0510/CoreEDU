@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, LoaderCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+// Protected via /corecs server layout
 
 function FlashCardsPageContent() {
   const { isLoading: isAuthLoading } = useAuth();
@@ -53,8 +53,6 @@ function FlashCardsPageContent() {
 
 export default function FlashCardsPage() {
     return (
-        <ProtectedRoute>
             <FlashCardsPageContent />
-        </ProtectedRoute>
     )
 }

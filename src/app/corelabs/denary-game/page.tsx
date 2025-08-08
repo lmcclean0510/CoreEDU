@@ -13,7 +13,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+// Protected via /corelabs server layout
 
 const generateDenary = (level: number) => {
   const bitLength = Math.min(4 + Math.floor(level / 2), 8);
@@ -406,8 +406,6 @@ function DenaryGameContent() {
 
 export default function DenaryGamePage() {
     return (
-        <ProtectedRoute>
             <DenaryGameContent />
-        </ProtectedRoute>
     )
 }

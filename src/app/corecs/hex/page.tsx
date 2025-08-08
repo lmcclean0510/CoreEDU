@@ -29,7 +29,7 @@ DialogTitle,
 DialogTrigger,
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+// Protected via /corecs server layout
 
 type BitStatus = 'default' | 'correct' | 'incorrect';
 
@@ -857,8 +857,6 @@ return (
 
 export default function HexPage() {
     return (
-        <ProtectedRoute>
             <HexPageContent />
-        </ProtectedRoute>
     )
 }
