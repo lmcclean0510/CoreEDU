@@ -175,27 +175,40 @@ service cloud.firestore {
     }
     
     match /studentHomeworks/{studentHomeworkId} {
+      // Students can create their own homework entries
+      allow create: if isSignedIn() && isStudent() &&
+        request.resource.data.studentId == request.auth.uid;
+      
       // Teachers can create student homework for their classes
       allow create: if isSignedIn() && isTeacher() &&
         isClassTeacher(request.resource.data.classId);
       
-      // Students can read and update their own homework only
-      allow read, update: if isSignedIn() && 
-        request.auth.uid == resource.data.studentId &&
-        // Prevent tampering with core fields
-        (!('studentId' in request.resource.data.diff(resource.data).affectedKeys())) &&
-        (!('homeworkId' in request.resource.data.diff(resource.data).affectedKeys())) &&
-        (!('classId' in request.resource.data.diff(resource.data).affectedKeys()));
+      // Students can read their own homework (individual document)
+      allow read: if isSignedIn() && isStudent() &&
+        resource.data.studentId == request.auth.uid;
       
-      // Teachers can manage student homework for their classes
-      allow read, update, delete: if isSignedIn() && isTeacher() &&
+      // Students can update their own homework with restrictions
+      allow update: if isSignedIn() && isStudent() &&
+        resource.data.studentId == request.auth.uid &&
+        // Prevent tampering with core fields
+        request.resource.data.studentId == resource.data.studentId &&
+        request.resource.data.homeworkId == resource.data.homeworkId &&
+        request.resource.data.classId == resource.data.classId;
+      
+      // Teachers can read student homework for their classes
+      allow read: if isSignedIn() && isTeacher() &&
         isClassTeacher(resource.data.classId);
       
-      // Restricted listing
-      allow list: if isSignedIn() && 
-        ((isTeacher()) || 
-         (isStudent() && request.query.where[0][0] == 'studentId' && 
-          request.query.where[0][2] == request.auth.uid));
+      // Teachers can update/delete student homework for their classes
+      allow update, delete: if isSignedIn() && isTeacher() &&
+        isClassTeacher(resource.data.classId);
+      
+      // FIXED: List operations for students - checking the query parameters, not resource
+      allow list: if isSignedIn() && isStudent() &&
+        request.auth.uid in request.query.where[0][2];
+      
+      // Teachers can list all homework for their classes
+      allow list: if isSignedIn() && isTeacher();
       
       allow write: if isAdmin();
     }
@@ -258,6 +271,10 @@ service cloud.firestore {
       // Users can delete their own ratings
       allow delete: if isSignedIn() && 
         resource.data.userId == request.auth.uid;
+      
+      // Users can list their own ratings
+      allow list: if isSignedIn() && isStudent() &&
+        request.auth.uid in request.query.where[0][2];
       
       allow write: if isAdmin();
     }
