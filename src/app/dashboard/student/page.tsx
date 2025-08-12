@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/UserProvider';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, getDoc, onSnapshot, type Unsubscribe } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import type { HomeworkAssignment, StudentHomework, ClassInfo } from '@/lib/types';
 import { LoaderCircle, ClipboardCheck, CheckCircle, UserPlus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { JoinClassDialog } from '@/components/dashboard/student/JoinClassDialog';
 import { DueDateBadge } from '@/components/shared/DueDateBadge';
+import { useSubscriptionManager } from '@/lib/utils/subscription-manager';
 
 type EnrichedHomework = {
   assignment: HomeworkAssignment;
@@ -26,17 +27,17 @@ export default function StudentDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isJoinClassOpen, setIsJoinClassOpen] = useState(false);
   
-  // Track subscriptions for cleanup
-  const unsubscribeRefs = useRef<Unsubscribe[]>([]);
+  // Memory-safe subscription management
+  const subscriptionManager = useSubscriptionManager('StudentDashboard');
 
   useEffect(() => {
-    if (!user) return;
-
-    // Clean up any existing subscriptions
-    unsubscribeRefs.current.forEach(unsub => unsub());
-    unsubscribeRefs.current = [];
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     console.log('🔔 Setting up real-time homework subscription for student:', user.uid);
+    setIsLoading(true);
 
     // Set up real-time subscription to studentHomeworks
     const studentHomeworkQuery = query(
@@ -44,90 +45,133 @@ export default function StudentDashboardPage() {
       where('studentId', '==', user.uid)
     );
 
-    const unsubscribeStudentHomework = onSnapshot(studentHomeworkQuery, async (snapshot) => {
-      try {
-        console.log('📝 Student homework data changed, updating...');
-        
-        const studentHomeworkData = snapshot.docs.map(doc => ({ 
-          id: doc.id, 
-          ...doc.data() 
-        }) as StudentHomework);
+    const unsubscribeStudentHomework = onSnapshot(
+      studentHomeworkQuery, 
+      async (snapshot) => {
+        try {
+          console.log('📝 Student homework data changed, updating...');
+          
+          const studentHomeworkData = snapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() 
+          }) as StudentHomework);
 
-        if (studentHomeworkData.length === 0) {
-          setHomeworks([]);
+          if (studentHomeworkData.length === 0) {
+            setHomeworks([]);
+            setIsLoading(false);
+            return;
+          }
+
+          // Get unique homework and class IDs
+          const homeworkIds = [...new Set(studentHomeworkData.map(sh => sh.homeworkId))];
+          const classIds = [...new Set(studentHomeworkData.map(sh => sh.classId))];
+
+          // Fetch related data with error handling
+          const [homeworkAssignments, classInfos] = await Promise.all([
+            // Fetch homework assignments
+            (async () => {
+              const assignments: Record<string, HomeworkAssignment> = {};
+              if (homeworkIds.length > 0) {
+                try {
+                  // Process in chunks to avoid Firestore limits
+                  const chunks = [];
+                  for (let i = 0; i < homeworkIds.length; i += 30) {
+                    chunks.push(homeworkIds.slice(i, i + 30));
+                  }
+                  
+                  for (const chunk of chunks) {
+                    const hwQuery = query(collection(db, 'homework'), where('__name__', 'in', chunk));
+                    const hwSnapshot = await getDocs(hwQuery);
+                    hwSnapshot.forEach(doc => {
+                      assignments[doc.id] = { id: doc.id, ...doc.data() } as HomeworkAssignment;
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error fetching homework assignments:', error);
+                }
+              }
+              return assignments;
+            })(),
+            // Fetch class info
+            (async () => {
+              const infos: Record<string, { id: string, className: string }> = {};
+              if (classIds.length > 0) {
+                try {
+                  // Process in chunks to avoid Firestore limits
+                  const chunks = [];
+                  for (let i = 0; i < classIds.length; i += 30) {
+                    chunks.push(classIds.slice(i, i + 30));
+                  }
+                  
+                  for (const chunk of chunks) {
+                    const classQuery = query(collection(db, 'classes'), where('__name__', 'in', chunk));
+                    const classSnapshot = await getDocs(classQuery);
+                    classSnapshot.forEach(doc => {
+                      infos[doc.id] = { id: doc.id, className: doc.data().className };
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error fetching class info:', error);
+                }
+              }
+              return infos;
+            })(),
+          ]);
+
+          // Filter out homework that no longer exists (deleted by teacher)
+          const enrichedData = studentHomeworkData
+            .map(sh => ({
+              assignment: homeworkAssignments[sh.homeworkId],
+              studentData: sh,
+              classInfo: classInfos[sh.classId],
+            }))
+            .filter(item => item.assignment && item.classInfo) // This filters out deleted homework
+            .sort((a, b) => b.assignment.createdAt.seconds - a.assignment.createdAt.seconds);
+
+          console.log(`✅ Updated homework list: ${enrichedData.length} assignments`);
+          setHomeworks(enrichedData);
           setIsLoading(false);
-          return;
+
+        } catch (error) {
+          console.error("Error processing homework data:", error);
+          setIsLoading(false);
         }
-
-        // Get unique homework and class IDs
-        const homeworkIds = [...new Set(studentHomeworkData.map(sh => sh.homeworkId))];
-        const classIds = [...new Set(studentHomeworkData.map(sh => sh.classId))];
-
-        // Fetch related data
-        const [homeworkAssignments, classInfos] = await Promise.all([
-          // Fetch homework assignments
-          (async () => {
-            const assignments: Record<string, HomeworkAssignment> = {};
-            if (homeworkIds.length > 0) {
-              const hwQuery = query(collection(db, 'homework'), where('__name__', 'in', homeworkIds));
-              const hwSnapshot = await getDocs(hwQuery);
-              hwSnapshot.forEach(doc => {
-                assignments[doc.id] = { id: doc.id, ...doc.data() } as HomeworkAssignment;
-              });
-            }
-            return assignments;
-          })(),
-          // Fetch class info
-          (async () => {
-            const infos: Record<string, { id: string, className: string }> = {};
-            if (classIds.length > 0) {
-              const classQuery = query(collection(db, 'classes'), where('__name__', 'in', classIds));
-              const classSnapshot = await getDocs(classQuery);
-              classSnapshot.forEach(doc => {
-                infos[doc.id] = { id: doc.id, className: doc.data().className };
-              });
-            }
-            return infos;
-          })(),
-        ]);
-
-        // Filter out homework that no longer exists (deleted by teacher)
-        const enrichedData = studentHomeworkData
-          .map(sh => ({
-            assignment: homeworkAssignments[sh.homeworkId],
-            studentData: sh,
-            classInfo: classInfos[sh.classId],
-          }))
-          .filter(item => item.assignment && item.classInfo) // This filters out deleted homework
-          .sort((a, b) => b.assignment.createdAt.seconds - a.assignment.createdAt.seconds);
-
-        console.log(`✅ Updated homework list: ${enrichedData.length} assignments`);
-        setHomeworks(enrichedData);
-        setIsLoading(false);
-
-      } catch (error) {
-        console.error("Error fetching homework data:", error);
+      },
+      (error) => {
+        console.error("Error in homework subscription:", error);
         setIsLoading(false);
       }
-    });
+    );
 
-    // Store subscription for cleanup
-    unsubscribeRefs.current.push(unsubscribeStudentHomework);
+    // Add subscription to manager for automatic cleanup
+    subscriptionManager.add('studentHomework', unsubscribeStudentHomework);
 
-  }, [user]);
+  }, [user, subscriptionManager]);
 
-  // Cleanup subscriptions on unmount
-  useEffect(() => {
-    return () => {
-      console.log('🧹 Cleaning up homework subscriptions');
-      unsubscribeRefs.current.forEach(unsub => unsub());
-    };
-  }, []);
-
+  // Loading state
   if (isAuthLoading || isLoading) {
     return (
       <div className="flex h-[calc(100vh-200px)] w-full items-center justify-center">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // No user state
+  if (!user) {
+    return (
+      <div className="flex h-[calc(100vh-200px)] w-full items-center justify-center">
+        <Card className="max-w-md text-center p-8">
+          <CardHeader>
+            <CardTitle>Please Sign In</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>You need to be signed in to view your dashboard.</p>
+            <Button asChild className="mt-4">
+              <Link href="/login">Sign In</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

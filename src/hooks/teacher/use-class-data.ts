@@ -10,17 +10,18 @@ import {
   documentId,
   onSnapshot,
   orderBy,
-  type Unsubscribe,
 } from 'firebase/firestore';
 import type { ClassInfo, UserProfile, HomeworkAssignment, StudentHomework, Flashcard, Puzzle } from '@/lib/types';
 import { useToast } from '@/hooks/shared/use-toast';
 import { dataCache } from '@/lib/cache';
+import { useSubscriptionManager } from '@/lib/utils/subscription-manager';
 
 export function useClassData(classId: string) {
   const { user, isLoading: isAuthLoading } = useAuth();
   const { toast } = useToast();
   
-  const unsubscribeRefs = useRef<Unsubscribe[]>([]);
+  // Memory-safe subscription management
+  const subscriptionManager = useSubscriptionManager('ClassData');
 
   const [isTeacher, setIsTeacher] = useState<boolean | null>(null);
   const [classInfo, setClassInfo] = useState<ClassInfo | null>(null);
@@ -50,8 +51,8 @@ export function useClassData(classId: string) {
 
     setIsLoading(true);
     
-    unsubscribeRefs.current.forEach(unsub => unsub());
-    unsubscribeRefs.current = [];
+    // Clear existing subscriptions before setting up new ones
+    subscriptionManager.cleanup();
 
     const classCacheKey = `class-data-${classId}`;
     const cachedData = dataCache.get<any>(classCacheKey);
@@ -71,64 +72,96 @@ export function useClassData(classId: string) {
       console.log(`%c[Firestore Read] %cSubscribing to real-time data for class ${classId}`, 'color: #3b82f6', 'color: default');
       const classDocRef = doc(db, 'classes', classId);
       
-      const unsubscribeClass = onSnapshot(classDocRef, async (classDoc) => {
-        if (!classDoc.exists() || !classDoc.data().teacherIds.includes(user.uid)) {
-          setClassInfo(null);
+      const unsubscribeClass = onSnapshot(
+        classDocRef, 
+        async (classDoc) => {
+          try {
+            if (!classDoc.exists() || !classDoc.data().teacherIds.includes(user.uid)) {
+              setClassInfo(null);
+              setIsLoading(false);
+              return;
+            }
+
+            console.log(`%c[Firestore Read] %cFetching user profiles for class ${classId}`, 'color: #3b82f6', 'color: default');
+            const fetchedClass = { id: classDoc.id, ...classDoc.data() } as ClassInfo;
+            setClassInfo(fetchedClass);
+
+            const allUserIds = [...new Set([...fetchedClass.studentUids, ...fetchedClass.teacherIds])];
+            const allUsers: UserProfile[] = [];
+            
+            if (allUserIds.length > 0) {
+                // Process users in chunks to avoid Firestore limits
+                const userChunks: string[][] = [];
+                for (let i = 0; i < allUserIds.length; i += 30) {
+                  userChunks.push(allUserIds.slice(i, i + 30));
+                }
+                
+                for (const chunk of userChunks) {
+                  try {
+                    const userDocs = await getDocs(query(collection(db, 'users'), where(documentId(), 'in', chunk)));
+                    userDocs.forEach(doc => allUsers.push({ uid: doc.id, ...doc.data() } as UserProfile));
+                  } catch (error) {
+                    console.error(`Error fetching user chunk:`, error);
+                  }
+                }
+            }
+            
+            const classStudents = allUsers.filter(u => fetchedClass.studentUids.includes(u.uid));
+            const classTeachers = allUsers.filter(u => fetchedClass.teacherIds.includes(u.uid));
+            setStudents(classStudents);
+            setTeachers(classTeachers);
+            
+            console.log(`%c[Firestore Read] %cFetching homework and progress for class ${classId}`, 'color: #3b82f6', 'color: default');
+            
+            // Fetch homework and student homework data
+            try {
+              const [hwSnapshot, shwSnapshot] = await Promise.all([
+                getDocs(query(collection(db, 'homework'), where('classId', '==', classId))),
+                getDocs(query(collection(db, 'studentHomeworks'), where('classId', '==', classId)))
+              ]);
+              
+              const classHomework = hwSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HomeworkAssignment));
+              const classStudentHw = shwSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudentHomework));
+              
+              setHomework(classHomework);
+              setStudentHomeworks(classStudentHw);
+
+              // Cache the data
+              dataCache.set(classCacheKey, {
+                  classInfo: fetchedClass, 
+                  students: classStudents, 
+                  teachers: classTeachers, 
+                  homework: classHomework, 
+                  studentHomeworks: classStudentHw
+              }, 5 * 60 * 1000);
+
+              setIsLoading(false);
+            } catch (error) {
+              console.error('Error fetching homework data:', error);
+              setIsLoading(false);
+            }
+
+          } catch (error) {
+            console.error("Error processing class data:", error);
+            setIsLoading(false);
+          }
+        },
+        (error) => {
+          console.error("Error in class subscription:", error);
+          toast({ title: 'Error', description: 'Could not load class data.', variant: 'destructive' });
           setIsLoading(false);
-          return;
         }
+      );
 
-        console.log(`%c[Firestore Read] %cFetching user profiles for class ${classId}`, 'color: #3b82f6', 'color: default');
-        const fetchedClass = { id: classDoc.id, ...classDoc.data() } as ClassInfo;
-        setClassInfo(fetchedClass);
-
-        const allUserIds = [...new Set([...fetchedClass.studentUids, ...fetchedClass.teacherIds])];
-        const allUsers: UserProfile[] = [];
-        if (allUserIds.length > 0) {
-            const userChunks: string[][] = [];
-            for (let i = 0; i < allUserIds.length; i += 30) {
-              userChunks.push(allUserIds.slice(i, i + 30));
-            }
-            for (const chunk of userChunks) {
-              const userDocs = await getDocs(query(collection(db, 'users'), where(documentId(), 'in', chunk)));
-              userDocs.forEach(doc => allUsers.push({ uid: doc.id, ...doc.data() } as UserProfile));
-            }
-        }
-        const classStudents = allUsers.filter(u => fetchedClass.studentUids.includes(u.uid));
-        const classTeachers = allUsers.filter(u => fetchedClass.teacherIds.includes(u.uid));
-        setStudents(classStudents);
-        setTeachers(classTeachers);
-        
-        console.log(`%c[Firestore Read] %cFetching homework and progress for class ${classId}`, 'color: #3b82f6', 'color: default');
-        const hwQuery = query(collection(db, 'homework'), where('classId', '==', classId));
-        const hwSnapshot = await getDocs(hwQuery);
-        const classHomework = hwSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HomeworkAssignment));
-        setHomework(classHomework);
-        
-        const shwQuery = query(collection(db, 'studentHomeworks'), where('classId', '==', classId));
-        const shwSnapshot = await getDocs(shwQuery);
-        const classStudentHw = shwSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudentHomework));
-        setStudentHomeworks(classStudentHw);
-
-        dataCache.set(classCacheKey, {
-            classInfo: fetchedClass, 
-            students: classStudents, 
-            teachers: classTeachers, 
-            homework: classHomework, 
-            studentHomeworks: classStudentHw
-        }, 5 * 60 * 1000);
-
-        setIsLoading(false);
-      });
-
-      unsubscribeRefs.current.push(unsubscribeClass);
+      // Add subscription to manager for automatic cleanup
+      subscriptionManager.add('classData', unsubscribeClass);
 
     } catch (error) {
-      console.error("Error fetching class data:", error);
+      console.error("Error setting up class data subscription:", error);
       toast({ title: 'Error', description: 'Could not load class data.', variant: 'destructive' });
       setIsLoading(false);
     }
-  }, [user?.uid, isTeacher, classId, isAuthLoading, toast, refreshTrigger]); // Add refreshTrigger here
+  }, [user?.uid, isTeacher, classId, isAuthLoading, toast, refreshTrigger, subscriptionManager]);
 
   const fetchAssignmentData = useCallback(async () => {
     const flashcardCache = dataCache.get<Flashcard[]>('flashcards');
@@ -158,12 +191,6 @@ export function useClassData(classId: string) {
       toast({ title: 'Error', description: 'Could not load data for homework creation.', variant: 'destructive' });
     }
   }, [toast]);
-
-  useEffect(() => {
-    return () => {
-      unsubscribeRefs.current.forEach(unsub => unsub());
-    };
-  }, []);
 
   // FIXED: refetchData now triggers a re-fetch by incrementing refreshTrigger
   const refetchData = useCallback(() => {
