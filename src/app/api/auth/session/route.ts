@@ -1,4 +1,4 @@
-// src/app/api/auth/session/route.ts
+// src/app/api/auth/session/route.ts - Version without email verification requirement
 
 import { NextRequest, NextResponse } from 'next/server';
 import { validateRequest } from '@/lib/validation/schemas';
@@ -98,13 +98,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Additional security checks
-    if (!decodedToken.email_verified) {
-      return NextResponse.json(
-        { error: 'Email address must be verified before accessing the platform' }, 
-        { status: 403 }
-      );
-    }
+    // REMOVED: Email verification check
+    // if (!decodedToken.email_verified) {
+    //   return NextResponse.json(
+    //     { error: 'Email address must be verified before accessing the platform' }, 
+    //     { status: 403 }
+    //   );
+    // }
 
     // Check token freshness (optional: reject tokens older than X minutes)
     const tokenAge = Date.now() - (decodedToken.auth_time * 1000);
