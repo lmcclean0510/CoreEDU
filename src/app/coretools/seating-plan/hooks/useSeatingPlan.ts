@@ -6,7 +6,7 @@ import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTempla
 
 const CANVAS_WIDTH = 1403;
 const CANVAS_HEIGHT = 1003;
-const SAFE_MARGIN = 40; // Keep desks away from edges
+const SAFE_MARGIN = 60; // Increased margin for safety
 
 export const useSeatingPlan = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
@@ -99,45 +99,63 @@ export const useSeatingPlan = () => {
     }).filter(Boolean);
   }, [groups, desks]);
 
-  // Preset loading with proper bounds checking
+  // Preset loading with proper bounds - FIT WITHIN ACTUAL USABLE SPACE
   const loadComputerRoomPreset = useCallback(() => {
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
     const baseId = Date.now();
     
-    // Desk dimensions
+    // Use the actual usable canvas dimensions
+    const usableWidth = CANVAS_WIDTH - (SAFE_MARGIN * 2);
+    const usableHeight = CANVAS_HEIGHT - (SAFE_MARGIN * 2);
+    
+    // Desk dimensions - make them slightly smaller to ensure fit
     const deskWidth = 120;
     const deskHeight = 80;
+    
+    // Calculate what we can actually fit
     const horizontalGap = 80;
-    const verticalGap = 80;
+    const verticalGap = 70;
     
-    // Calculate available space (with margins)
-    const availableWidth = CANVAS_WIDTH - (SAFE_MARGIN * 2);
-    const availableHeight = CANVAS_HEIGHT - (SAFE_MARGIN * 2);
-    
-    // 4 desks per group, 2 groups per row
+    // 4 rows, 2 groups per row, 4 desks per group
     const desksPerGroup = 4;
-    const totalGroupWidth = desksPerGroup * deskWidth;
-    const totalRowWidth = totalGroupWidth * 2 + horizontalGap;
+    const groupsPerRow = 2;
+    const rows = 4;
     
-    // Center the layout
-    const startX = (CANVAS_WIDTH - totalRowWidth) / 2;
-    const startY = 160; // Leave room for teacher desk
+    // Calculate total width needed
+    const singleGroupWidth = desksPerGroup * deskWidth; // 480
+    const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap; // 480 + 480 + 80 = 1040
+    
+    // Calculate starting position (centered, with margin)
+    const startX = SAFE_MARGIN + ((usableWidth - totalContentWidth) / 2);
+    const startY = 180; // Below teacher desk
+    
+    // Verify we have space
+    if (totalContentWidth > usableWidth) {
+      console.error('Preset too wide for canvas!');
+      return;
+    }
 
-    for (let row = 0; row < 4; row++) {
-      const yPos = startY + row * (deskHeight + verticalGap);
+    for (let row = 0; row < rows; row++) {
+      const yPos = startY + (row * (deskHeight + verticalGap));
       
-      // Ensure we don't go beyond bottom margin
-      if (yPos + deskHeight > CANVAS_HEIGHT - SAFE_MARGIN) break;
+      // Check if this row fits
+      if (yPos + deskHeight > CANVAS_HEIGHT - SAFE_MARGIN) {
+        console.warn(`Row ${row} would exceed canvas bounds, stopping`);
+        break;
+      }
       
       // Left group
       const leftGroupDeskIds: number[] = [];
       for (let i = 0; i < desksPerGroup; i++) {
-        const deskId = baseId + row * (desksPerGroup * 2) + i;
-        const xPos = startX + i * deskWidth;
+        const deskId = baseId + (row * desksPerGroup * groupsPerRow) + i;
+        const xPos = startX + (i * deskWidth);
         
-        // Ensure desk fits within bounds
-        if (xPos + deskWidth > CANVAS_WIDTH - SAFE_MARGIN) break;
+        // Double-check bounds
+        if (xPos + deskWidth > CANVAS_WIDTH - SAFE_MARGIN) {
+          console.warn(`Desk would exceed right bound at x=${xPos}, skipping`);
+          break;
+        }
         
         leftGroupDeskIds.push(deskId);
         newDesks.push({
@@ -153,7 +171,7 @@ export const useSeatingPlan = () => {
       
       if (leftGroupDeskIds.length > 0) {
         newGroups.push({
-          id: baseId + row * 2,
+          id: baseId + (row * groupsPerRow),
           deskIds: leftGroupDeskIds,
           name: `Row ${row + 1} - Left`,
           color: GROUP_COLORS[0]
@@ -162,14 +180,17 @@ export const useSeatingPlan = () => {
 
       // Right group
       const rightGroupDeskIds: number[] = [];
-      const rightGroupStartX = startX + totalGroupWidth + horizontalGap;
+      const rightGroupStartX = startX + singleGroupWidth + horizontalGap;
       
       for (let i = 0; i < desksPerGroup; i++) {
-        const deskId = baseId + row * (desksPerGroup * 2) + desksPerGroup + i;
-        const xPos = rightGroupStartX + i * deskWidth;
+        const deskId = baseId + (row * desksPerGroup * groupsPerRow) + desksPerGroup + i;
+        const xPos = rightGroupStartX + (i * deskWidth);
         
-        // Ensure desk fits within bounds
-        if (xPos + deskWidth > CANVAS_WIDTH - SAFE_MARGIN) break;
+        // Double-check bounds
+        if (xPos + deskWidth > CANVAS_WIDTH - SAFE_MARGIN) {
+          console.warn(`Right group desk would exceed bound at x=${xPos}, skipping`);
+          break;
+        }
         
         rightGroupDeskIds.push(deskId);
         newDesks.push({
@@ -185,7 +206,7 @@ export const useSeatingPlan = () => {
       
       if (rightGroupDeskIds.length > 0) {
         newGroups.push({
-          id: baseId + row * 2 + 1,
+          id: baseId + (row * groupsPerRow) + 1,
           deskIds: rightGroupDeskIds,
           name: `Row ${row + 1} - Right`,
           color: GROUP_COLORS[0]
@@ -193,10 +214,13 @@ export const useSeatingPlan = () => {
       }
     }
 
+    console.log(`Created ${newDesks.length} desks in ${newGroups.length} groups`);
+    console.log(`Layout spans from x=${Math.min(...newDesks.map(d => d.x))} to x=${Math.max(...newDesks.map(d => d.x + d.width))}`);
+
     setDesks(newDesks);
     setGroups(newGroups);
     
-    // Center teacher desk at top
+    // Center teacher desk at top with margin
     const teacherDeskWidth = 160;
     const teacherDeskHeight = 80;
     setTeacherDesk({ 
@@ -233,7 +257,7 @@ export const useSeatingPlan = () => {
     const centerY = CANVAS_HEIGHT / 2;
     
     const newDesks = template.desks.map((desk, index) => {
-      // Calculate position
+      // Calculate position relative to center
       let x = centerX + desk.x;
       let y = centerY + desk.y;
       
