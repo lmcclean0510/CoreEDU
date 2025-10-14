@@ -4,10 +4,8 @@ import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/providers/UserProvider';
-import { ChevronRight } from 'lucide-react';
-import Link from 'next/link';
 
-// Map paths to readable names
+// Map paths to readable page titles
 const pathNameMap: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/dashboard/student': 'Dashboard',
@@ -15,8 +13,8 @@ const pathNameMap: Record<string, string> = {
   '/corecs': 'CoreCS',
   '/corecs/gcse': 'CS GCSE',
   '/corecs/gcse/python': 'Python',
-  '/corecs/gcse/binary': 'Binary',
-  '/corecs/gcse/hex': 'Hexadecimal',
+  '/corecs/binary': 'Binary Conversion',
+  '/corecs/hex': 'Hexadecimal',
   '/corelabs': 'CoreLabs',
   '/corelabs/binary-game': 'Binary Game',
   '/corelabs/denary-game': 'Denary Game',
@@ -24,7 +22,7 @@ const pathNameMap: Record<string, string> = {
   '/corelabs/mouse-skills': 'Mouse Skills',
   '/coretools': 'CoreTools',
   '/coretools/seating-plan': 'Seating Plan',
-  '/homework': 'Homework',
+  '/homework': 'My Homework',
   '/account': 'Account',
   '/settings': 'Settings',
   '/admin': 'Admin Panel',
@@ -47,43 +45,32 @@ export function AppTopBar() {
     });
   };
 
-  // Generate breadcrumbs from current path
-  const getBreadcrumbs = () => {
-    const segments = pathname.split('/').filter(Boolean);
-    const breadcrumbs = [];
-    let currentPath = '';
-
-    for (const segment of segments) {
-      currentPath += `/${segment}`;
-      const name = pathNameMap[currentPath] || segment.charAt(0).toUpperCase() + segment.slice(1);
-      breadcrumbs.push({ name, path: currentPath });
+  // Get current page title
+  const getPageTitle = () => {
+    // Try exact match first
+    if (pathNameMap[pathname]) {
+      return pathNameMap[pathname];
     }
 
-    return breadcrumbs;
-  };
+    // Try to find a partial match for dynamic routes
+    for (const [path, title] of Object.entries(pathNameMap)) {
+      if (pathname.startsWith(path) && path !== '/') {
+        return title;
+      }
+    }
 
-  const breadcrumbs = getBreadcrumbs();
+    // Fallback: capitalize last segment
+    const segments = pathname.split('/').filter(Boolean);
+    const lastSegment = segments[segments.length - 1];
+    return lastSegment ? lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1) : 'Dashboard';
+  };
 
   return (
     <div className="h-14 border-b bg-card flex items-center justify-between px-6">
-      {/* Left: Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-sm">
-        {breadcrumbs.map((crumb, index) => (
-          <div key={crumb.path} className="flex items-center gap-2">
-            {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-            {index === breadcrumbs.length - 1 ? (
-              <span className="font-medium text-foreground">{crumb.name}</span>
-            ) : (
-              <Link 
-                href={crumb.path}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {crumb.name}
-              </Link>
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Left: Page Title */}
+      <h1 className="text-xl font-semibold text-foreground">
+        {getPageTitle()}
+      </h1>
 
       {/* Right: Date + User Info */}
       <div className="flex items-center gap-4">
@@ -91,17 +78,17 @@ export function AppTopBar() {
           {getCurrentDate()}
         </span>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
               {getInitials()}
             </AvatarFallback>
           </Avatar>
-          <div className="hidden md:flex flex-col">
-            <span className="text-sm font-medium leading-none">
+          <div className="hidden md:block">
+            <p className="text-sm font-medium leading-none">
               {user?.firstName} {user?.lastName}
-            </span>
-            <Badge variant="secondary" className="w-fit mt-1 capitalize text-xs py-0">
+            </p>
+            <Badge variant="secondary" className="mt-1 capitalize text-xs py-0 px-2">
               {user?.role}
             </Badge>
           </div>
