@@ -35,6 +35,7 @@ import { useSeatingPlan } from './hooks/useSeatingPlan';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useStudentAssignment } from './hooks/useStudentAssignment';
 import { useExport } from './hooks/useExport';
+import { GRID_SIZE } from './utils/constants';
 
 const CANVAS_WIDTH = 1403;
 const CANVAS_HEIGHT = 1003;
@@ -572,15 +573,15 @@ const SeatingPlanTool = () => {
                     {isGridVisible && (
                       <div
                         className="export-grid-bg absolute inset-0 opacity-60"
-                        style={{
-                          backgroundImage: `
-                            linear-gradient(to right, hsl(var(--primary) / 0.5) 1px, transparent 1px),
-                            linear-gradient(to bottom, hsl(var(--primary) / 0.5) 1px, transparent 1px)
-                          `,
-                          backgroundSize: '40px 40px'
-                        }}
-                      />
-                    )}
+                      style={{
+                        backgroundImage: `
+                          linear-gradient(to right, hsl(var(--primary) / 0.5) 1px, transparent 1px),
+                          linear-gradient(to bottom, hsl(var(--primary) / 0.5) 1px, transparent 1px)
+                        `,
+                        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`
+                      }}
+                    />
+                  )}
                     
                     {/* Teacher's desk */}
                     <DraggableTeacherDesk {...teacherDesk} isLayoutMode={activeTab === 'layout'} />

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES } from '../utils/constants';
+import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES, GRID_SIZE } from '../utils/constants';
 import { parseStudentInput, validateSeparationRule } from '../utils/validation';
 import { sortDesksByPosition } from '../utils/calculations';
 import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTemplate, DeskWithGroup, Stats } from '../types';
@@ -112,10 +112,10 @@ export const useSeatingPlan = () => {
     const usableWidth = width - (SAFE_MARGIN * 2);
     const usableHeight = height - (SAFE_MARGIN * 2);
     
-    const deskWidth = 120;
-    const deskHeight = 80;
-    const horizontalGap = 80;
-    const verticalGap = 70;
+    const deskWidth = 96;
+    const deskHeight = 64;
+    const horizontalGap = 128;
+    const verticalGap = 64;
     
     const desksPerGroup = 4;
     const groupsPerRow = 2;
@@ -128,7 +128,7 @@ export const useSeatingPlan = () => {
 
     const totalContentHeight = (rows * deskHeight) + ((rows - 1) * verticalGap);
     const centeredStartY = (height - totalContentHeight) / 2;
-    const startY = Math.max(SAFE_MARGIN + 120, centeredStartY);
+    const startY = Math.max(SAFE_MARGIN + (GRID_SIZE * 3), centeredStartY);
 
     for (let row = 0; row < rows; row++) {
       const yPos = startY + (row * (deskHeight + verticalGap));
@@ -209,8 +209,8 @@ export const useSeatingPlan = () => {
     setDesks(newDesks);
     setGroups(newGroups);
     
-    const teacherDeskWidth = 160;
-    const teacherDeskHeight = 80;
+    const teacherDeskWidth = 192;
+    const teacherDeskHeight = 64;
     const teacherDeskY = Math.max(SAFE_MARGIN, startY - teacherDeskHeight - verticalGap);
 
     setTeacherDesk({ 
