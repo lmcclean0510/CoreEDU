@@ -64,6 +64,7 @@ const DraggableItem = memo(({
   }, [transform, desk.x, desk.y]);
   
   const isGrouped = !!group;
+  const groupName = group?.name ?? 'Desk Group';
   const borderColor = group ? group.color : 'hsl(var(--primary))';
 
   const handleRemove = useCallback((e: React.MouseEvent) => {
@@ -95,52 +96,58 @@ const DraggableItem = memo(({
       style={style}
     >
         <div
-            className={cn(
-              "relative group border-2 rounded-lg flex flex-col items-center justify-center text-xs font-medium transition-all duration-200 shadow-sm select-none desk-bw",
-              isOver && "outline-dashed outline-2 outline-offset-2 outline-primary",
-              isExcluded && "bg-destructive/10 !border-destructive opacity-70",
-              !isExcluded && 'bg-card shadow-md',
-              'text-foreground'
-            )}
-            style={{ 
-              width: desk.width, 
-              height: desk.height,
-              borderColor: isExcluded ? 'hsl(var(--destructive))' : borderColor,
-            }}
-            title={isGrouped ? `${group.name}` : 'Drag to move'}
+          className={cn(
+            "relative group flex h-full w-full select-none rounded-xl border-2 bg-card shadow-md transition-all duration-200 desk-bw",
+            isOver && "outline-dashed outline-2 outline-offset-2 outline-primary",
+            isExcluded && "bg-destructive/10 !border-destructive opacity-70",
+            !isExcluded && 'text-foreground'
+          )}
+          style={{ 
+            width: desk.width, 
+            height: desk.height,
+            borderColor: isExcluded ? 'hsl(var(--destructive))' : borderColor,
+          }}
+          title={isGrouped ? groupName : 'Drag to move'}
         >
-            <div className="flex-1 flex items-center justify-center p-1 w-full">
-              <div className="text-center">
-                <div className="font-semibold text-xs leading-relaxed flex flex-col items-center gap-0">
-                    {desk.isLocked && <Lock className="w-3 h-3 text-muted-foreground absolute top-1 left-1" />}
-                    {isExcluded ? (
-                      <span>Not in use</span>
-                    ) : desk.student ? (
-                       <div className="flex flex-col text-center">
-                         <span>{firstName}</span>
-                         {lastName && <span>{lastName}</span>}
-                       </div>
-                    ) : (
-                      <span>&nbsp;</span>
-                    )}
-                </div>
+          {desk.isLocked && (
+            <Lock className="absolute right-2 top-2 h-3 w-3 text-muted-foreground" />
+          )}
+          <div
+            className={cn(
+              "flex h-full w-full flex-col items-center justify-center gap-1 px-3 py-2 text-center",
+              isLayoutMode && 'pl-8'
+            )}
+          >
+            {isExcluded ? (
+              <span className="text-xs font-semibold">Not in use</span>
+            ) : desk.student ? (
+              <div className="flex flex-col text-sm font-semibold leading-tight">
+                <span>{firstName}</span>
+                {lastName && <span className="text-xs font-medium text-muted-foreground">{lastName}</span>}
               </div>
+            ) : (
+              <span className="text-xs font-medium text-muted-foreground">Available</span>
+            )}
+          </div>
+          {areIndicatorsVisible && desk.studentInfo?.gender && (
+            <Badge variant="secondary" className="absolute bottom-2 left-2 px-1.5 py-0.5 text-xs font-bold leading-none">
+              {desk.studentInfo.gender === 'male' ? 'M' : 'F'}
+            </Badge>
+          )}
+          {areIndicatorsVisible && desk.studentInfo?.isSEND && !isExcluded && (
+            <Badge variant="destructive" className="absolute bottom-2 right-2 px-1.5 py-0.5 text-xs font-bold leading-none">
+              K
+            </Badge>
+          )}
+          {isLayoutMode && (
+            <div
+              {...dragHandleAttributes}
+              {...dragHandleListeners}
+              className="absolute left-1 top-1 bottom-1 flex w-6 items-center justify-center rounded-xl bg-muted/40 text-muted-foreground shadow-sm cursor-grab active:cursor-grabbing"
+            >
+              <GripVertical className="h-3 w-3" />
             </div>
-            {areIndicatorsVisible && desk.studentInfo?.gender && (
-              <Badge variant="secondary" className="absolute bottom-1 left-1 px-1.5 py-0.5 text-xs font-bold leading-none">
-                {desk.studentInfo.gender === 'male' ? 'M' : 'F'}
-              </Badge>
-            )}
-            {areIndicatorsVisible && desk.studentInfo?.isSEND && !isExcluded && (
-              <Badge variant="destructive" className="absolute bottom-1 right-1 px-1.5 py-0.5 text-xs font-bold leading-none">
-                K
-              </Badge>
-            )}
-            {isLayoutMode && (
-              <div {...dragHandleAttributes} {...dragHandleListeners} className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center bg-muted/30 rounded-l-md cursor-grab active:cursor-grabbing">
-                <GripVertical className="text-muted-foreground" />
-              </div>
-            )}
+          )}
             {isLayoutMode && onRemove && (
                 <Button
                   variant="ghost"

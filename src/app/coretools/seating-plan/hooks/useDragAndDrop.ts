@@ -2,8 +2,11 @@ import { useCallback } from 'react';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { getGroupBounds, constrainGroupMovement, alignToGrid } from '../utils/calculations';
-import { GROUP_COLORS, GRID_SIZE } from '../utils/constants';
+import { GROUP_COLORS } from '../utils/constants';
 import type { Desk, Group, TeacherDesk } from '../types';
+
+const DEFAULT_CANVAS_WIDTH = 1403;
+const DEFAULT_CANVAS_HEIGHT = 1003;
 
 export const useDragAndDrop = (scale: number = 1) => {
   const handleDragEnd = useCallback((
@@ -19,9 +22,11 @@ export const useDragAndDrop = (scale: number = 1) => {
     const { active, delta, over } = event;
     const activeId = active.id;
     const overId = over ? over.id : null;
-    const containerRect = containerRef.current?.getBoundingClientRect();
-
-    if (!containerRect) return;
+    const containerEl = containerRef.current;
+    if (!containerEl) return;
+    
+    const canvasWidth = containerEl.offsetWidth || DEFAULT_CANVAS_WIDTH;
+    const canvasHeight = containerEl.offsetHeight || DEFAULT_CANVAS_HEIGHT;
     
     const scaledDelta = {
         x: delta.x / scale,
@@ -32,8 +37,8 @@ export const useDragAndDrop = (scale: number = 1) => {
         setTeacherDesk(prev => {
             const newX = prev.x + scaledDelta.x;
             const newY = prev.y + scaledDelta.y;
-            const boundedX = Math.max(0, Math.min(newX, containerRect.width - prev.width));
-            const boundedY = Math.max(0, Math.min(newY, containerRect.height - prev.height));
+            const boundedX = Math.max(0, Math.min(newX, canvasWidth - prev.width));
+            const boundedY = Math.max(0, Math.min(newY, canvasHeight - prev.height));
             return { ...prev, x: boundedX, y: boundedY };
         });
         return;
@@ -74,7 +79,11 @@ export const useDragAndDrop = (scale: number = 1) => {
       const groupBounds = getGroupBounds(groupDesks);
       
       if (groupBounds) {
-        const constrainedDelta = constrainGroupMovement(scaledDelta, groupBounds, containerRect);
+        const constrainedDelta = constrainGroupMovement(
+          scaledDelta, 
+          groupBounds, 
+          { width: canvasWidth, height: canvasHeight }
+        );
         
         setDesks(prevDesks => prevDesks.map(desk => {
           if (activeGroup.deskIds.includes(desk.id)) {
@@ -88,8 +97,8 @@ export const useDragAndDrop = (scale: number = 1) => {
         if (desk.id === activeId) {
           const newX = desk.x + scaledDelta.x;
           const newY = desk.y + scaledDelta.y;
-          const boundedX = Math.max(0, Math.min(newX, containerRect.width - desk.width));
-          const boundedY = Math.max(0, Math.min(newY, containerRect.height - desk.height));
+          const boundedX = Math.max(0, Math.min(newX, canvasWidth - desk.width));
+          const boundedY = Math.max(0, Math.min(newY, canvasHeight - desk.height));
           return { ...desk, x: boundedX, y: boundedY };
         }
         return desk;
@@ -116,11 +125,14 @@ export const useDragAndDrop = (scale: number = 1) => {
     setDesks: (updater: (prev: Desk[]) => Desk[]) => void,
     setTeacherDesk: (updater: (prev: TeacherDesk) => TeacherDesk) => void
   ) => {
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    if (!containerRect) return;
+    const containerEl = containerRef.current;
+    if (!containerEl) return;
 
-    setDesks(prev => prev.map(desk => alignToGrid(desk, 1403, 1003)));
-    setTeacherDesk(prev => alignToGrid(prev, 1403, 1003));
+    const canvasWidth = containerEl.offsetWidth || DEFAULT_CANVAS_WIDTH;
+    const canvasHeight = containerEl.offsetHeight || DEFAULT_CANVAS_HEIGHT;
+
+    setDesks(prev => prev.map(desk => alignToGrid(desk, canvasWidth, canvasHeight)));
+    setTeacherDesk(prev => alignToGrid(prev, canvasWidth, canvasHeight));
   }, []);
 
   return { handleDragEnd, handleDeskOrderDragEnd, handleAutoAlign };
