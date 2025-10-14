@@ -124,11 +124,6 @@ export const useSeatingPlan = () => {
     const singleGroupWidth = desksPerGroup * deskWidth;
     const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap;
     
-    if (totalContentWidth > width - (SAFE_MARGIN * 2)) {
-      console.error('Preset too wide for canvas!');
-      return;
-    }
-
     const startX = Math.max(SAFE_MARGIN, (width - totalContentWidth) / 2);
 
     const totalContentHeight = (rows * deskHeight) + ((rows - 1) * verticalGap);
