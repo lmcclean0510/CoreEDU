@@ -65,7 +65,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0">
+      <aside className="w-64 flex-shrink-0 hidden lg:block">
         <AppSidebar />
       </aside>
 
@@ -75,8 +75,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AppTopBar />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto p-6">
+        <main className="flex-1 overflow-y-auto bg-muted/30">
+          <div className="container mx-auto p-4 md:p-6 max-w-7xl">
             {children}
           </div>
         </main>

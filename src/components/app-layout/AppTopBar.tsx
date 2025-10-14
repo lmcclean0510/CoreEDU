@@ -1,112 +1,111 @@
 "use client";
 
-import { Bell, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useAuth } from '@/providers/UserProvider';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/providers/UserProvider';
+import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+
+// Map paths to readable names
+const pathNameMap: Record<string, string> = {
+  '/dashboard': 'Dashboard',
+  '/dashboard/student': 'Dashboard',
+  '/dashboard/teacher': 'Dashboard',
+  '/corecs': 'CoreCS',
+  '/corecs/gcse': 'CS GCSE',
+  '/corecs/gcse/python': 'Python',
+  '/corecs/gcse/binary': 'Binary',
+  '/corecs/gcse/hex': 'Hexadecimal',
+  '/corelabs': 'CoreLabs',
+  '/corelabs/binary-game': 'Binary Game',
+  '/corelabs/denary-game': 'Denary Game',
+  '/corelabs/keyboard-ninja': 'Keyboard Ninja',
+  '/corelabs/mouse-skills': 'Mouse Skills',
+  '/coretools': 'CoreTools',
+  '/coretools/seating-plan': 'Seating Plan',
+  '/homework': 'Homework',
+  '/account': 'Account',
+  '/settings': 'Settings',
+  '/admin': 'Admin Panel',
+};
 
 export function AppTopBar() {
   const { user } = useAuth();
+  const pathname = usePathname();
 
   const getInitials = () => {
     if (!user?.firstName || !user?.lastName) return 'U';
     return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+  const getCurrentDate = () => {
+    return new Date().toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    });
   };
 
+  // Generate breadcrumbs from current path
+  const getBreadcrumbs = () => {
+    const segments = pathname.split('/').filter(Boolean);
+    const breadcrumbs = [];
+    let currentPath = '';
+
+    for (const segment of segments) {
+      currentPath += `/${segment}`;
+      const name = pathNameMap[currentPath] || segment.charAt(0).toUpperCase() + segment.slice(1);
+      breadcrumbs.push({ name, path: currentPath });
+    }
+
+    return breadcrumbs;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
+
   return (
-    <div className="h-16 border-b bg-card flex items-center justify-between px-6">
-      {/* Left: Greeting */}
-      <div>
-        <h2 className="text-xl font-semibold">
-          {getGreeting()}, {user?.firstName || 'there'}!
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {new Date().toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
-        </p>
+    <div className="h-14 border-b bg-card flex items-center justify-between px-6">
+      {/* Left: Breadcrumb Navigation */}
+      <div className="flex items-center gap-2 text-sm">
+        {breadcrumbs.map((crumb, index) => (
+          <div key={crumb.path} className="flex items-center gap-2">
+            {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            {index === breadcrumbs.length - 1 ? (
+              <span className="font-medium text-foreground">{crumb.name}</span>
+            ) : (
+              <Link 
+                href={crumb.path}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {crumb.name}
+              </Link>
+            )}
+          </div>
+        ))}
       </div>
 
-      {/* Right: Search, Notifications, Profile */}
+      {/* Right: Date + User Info */}
       <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search..."
-            className="pl-9 w-64"
-          />
+        <span className="text-sm text-muted-foreground hidden sm:inline-block">
+          {getCurrentDate()}
+        </span>
+        
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+              {getInitials()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="hidden md:flex flex-col">
+            <span className="text-sm font-medium leading-none">
+              {user?.firstName} {user?.lastName}
+            </span>
+            <Badge variant="secondary" className="w-fit mt-1 capitalize text-xs py-0">
+              {user?.role}
+            </Badge>
+          </div>
         </div>
-
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <Badge 
-            variant="destructive" 
-            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-          >
-            3
-          </Badge>
-        </Button>
-
-        {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden md:inline-block font-medium">
-                {user?.firstName} {user?.lastName}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
-                <p className="text-xs text-muted-foreground">{user?.email}</p>
-                <Badge variant="secondary" className="w-fit capitalize text-xs">
-                  {user?.role}
-                </Badge>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/account">Account Settings</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/settings">Preferences</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/help">Help & Support</Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </div>
   );
