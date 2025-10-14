@@ -1,1006 +1,330 @@
-# CoreEDU: Complete Platform Documentation
+# CoreEDU Platform Guide
+
+> Comprehensive reference for the CoreEDU learning platform. Use this document to understand the feature surface, data model, and day‑to‑day developer workflows.
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Technology Stack](#technology-stack)
-3. [Architecture & Data Flow](#architecture--data-flow)
-4. [Project Structure](#project-structure)
-5. [Authentication & Session Management](#authentication--session-management)
-6. [Database Schema & Security](#database-schema--security)
-7. [Core Features](#core-features)
-8. [File-by-File Breakdown](#file-by-file-breakdown)
-9. [Component Architecture](#component-architecture)
-10. [Hooks & State Management](#hooks--state-management)
-11. [API Routes](#api-routes)
-12. [Deployment & Configuration](#deployment--configuration)
-13. [Development Guide](#development-guide)
-14. [Troubleshooting](#troubleshooting)
+2. [Quick Start](#quick-start)
+3. [Architecture & Stack](#architecture--stack)
+4. [Product Surface](#product-surface)
+5. [Data & Security Model](#data--security-model)
+6. [Authentication & Sessions](#authentication--sessions)
+7. [UI & Experience System](#ui--experience-system)
+8. [Development Workflow](#development-workflow)
+9. [Deployment Notes](#deployment-notes)
+10. [Testing & Quality](#testing--quality)
+11. [Roadmap & Known Gaps](#roadmap--known-gaps)
+12. [Reference Files & Further Reading](#reference-files--further-reading)
 
 ---
 
 ## Overview
 
-CoreEDU is a comprehensive educational platform built for schools, teachers, and students. It provides interactive learning tools across multiple subjects with a focus on Computer Science education. The platform features curriculum-aligned challenges, classroom management tools, and gamified learning experiences.
+CoreEDU is a role-aware learning environment built with Next.js 15. It serves three primary audiences:
 
-### Key Capabilities
+- **Students**: Interactive learning via flashcards, coding puzzles, games, and homework tracking.
+- **Teachers**: Class management, homework authoring, and seating-plan tooling.
+- **Administrators**: Content management flows for flashcards and coding challenges (subject to enabling admin claims).
 
-- **Multi-Subject Support**: Computer Science, Mathematics, Geography (extensible)
-- **Role-Based Access**: Students, Teachers, and Administrators
-- **Interactive Learning**: Drag-and-drop puzzles, flashcards, coding challenges
-- **Classroom Management**: Class creation, homework assignment, progress tracking
-- **Gamification**: Skills-based games with leaderboards
-- **Teacher Tools**: Seating plan generator, analytics dashboard
-- **AI Integration**: Avatar generation and educational assistance
+Key product areas:
 
----
-
-## Technology Stack
-
-### Frontend
-- **Framework**: Next.js 15.3.3 (App Router, React 18, TypeScript)
-- **Styling**: Tailwind CSS with ShadCN/UI component library
-- **UI Components**: Radix UI primitives for accessibility
-- **Fonts**: Inter (body), Lexend (headings)
-- **Icons**: Lucide React
-- **Drag & Drop**: @dnd-kit/core for interactive components
-- **Games**: Phaser.js for game development
-
-### Backend & Infrastructure
-- **Database**: Firebase Firestore (NoSQL document database)
-- **Authentication**: Firebase Auth with custom session management
-- **File Storage**: Firebase Storage
-- **Server**: Next.js API routes with Firebase Admin SDK
-- **Middleware**: Custom authentication middleware
-- **Security**: Firestore security rules, session cookies
-
-### AI & Enhancement
-- **AI Framework**: Genkit with Google AI (Gemini 2.0 Flash)
-- **Image Generation**: AI-powered avatar creation
-- **Code Editor**: Ace Editor for code input
-- **Export**: HTML-to-image for seating plan exports
-
-### Development Tools
-- **Build Tool**: Turbopack (development), Next.js (production)
-- **Type Safety**: TypeScript with strict configuration
-- **Linting**: ESLint with Next.js configuration
-- **Package Manager**: npm
+- **CoreCS** – Curriculum-aligned Computer Science content (flashcards, puzzles, concept challenges).
+- **CoreLabs** – Skill-building mini-games (binary conversions, typing, mouse precision).
+- **CoreTools** – Teacher utilities (seating plan generator, additional tools in progress).
+- **Dashboards & Homework** – Role-specific dashboards, homework assignment creation, and completion tracking.
+- **Account & Profile** – Personalisation, password changes, and optional AI avatar generation.
 
 ---
 
-## Architecture & Data Flow
+## Quick Start
 
-### High-Level Architecture
+### Prerequisites
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Client (Web)  │◄──►│  Next.js App    │◄──►│   Firebase      │
-│                 │    │                 │    │                 │
-│ - React Pages   │    │ - API Routes    │    │ - Firestore     │
-│ - Components    │    │ - Middleware    │    │ - Auth          │
-│ - Hooks         │    │ - Server Logic  │    │ - Storage       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+- Node.js 18 or later
+- npm (project uses `package-lock.json`)
+- Firebase project (Auth + Firestore + optional Storage)
+- Firebase service account credentials for Admin SDK
+- (Optional) Google AI Studio key for Genkit avatar generation
 
-### Authentication Flow
+### Initial Setup
 
-1. **Client Login**: User signs in via Firebase Auth on client side
-2. **Token Exchange**: Client sends ID token to `/api/auth/session`
-3. **Server Verification**: Server verifies token with Firebase Admin SDK
-4. **Session Cookie**: Server sets secure `session` cookie (5-day expiry)
-5. **Middleware Protection**: Middleware checks session cookie for protected routes
-6. **Client Protection**: `ProtectedRoute` component provides additional client-side checks
-
-### Data Flow Patterns
-
-1. **Read Operations**: Client → Firestore (with real-time listeners where needed)
-2. **Write Operations**: Client → Firestore (secured by Firestore rules)
-3. **Session Management**: Client → API Routes → Firebase Admin SDK
-4. **File Uploads**: Client → Firebase Storage
-5. **AI Operations**: Client → API Routes → Genkit → Google AI
-
----
-
-## Project Structure
-
-### Root Directory Structure
-
-```
-CoreEDU/
-├── src/                      # Source code
-│   ├── app/                  # Next.js App Router pages
-│   ├── components/           # Reusable React components
-│   ├── hooks/                # Custom React hooks
-│   ├── lib/                  # Utility libraries and configurations
-│   ├── providers/            # React context providers
-│   ├── ai/                   # AI/Genkit configuration
-│   └── middleware.ts         # Next.js middleware for auth
-├── docs/                     # Documentation
-├── firebase.json             # Firebase configuration
-├── firestore.rules          # Database security rules
-├── next.config.ts           # Next.js configuration
-├── package.json             # Dependencies and scripts
-├── tailwind.config.ts       # Tailwind CSS configuration
-└── tsconfig.json            # TypeScript configuration
+```bash
+git clone <repo-url>
+cd CoreEDU
+npm install
 ```
 
-### App Router Structure (`src/app/`)
+Create `./.env.local` (and `.env` for server actions if desired) with the required settings:
 
-```
-src/app/
-├── (auth)/                   # Public authentication routes
-│   ├── login/page.tsx        # Login page
-│   └── signup/page.tsx       # Registration page
-├── admin/                    # Admin content management
-│   ├── components/           # Admin-specific components
-│   ├── hooks/                # Admin-specific hooks
-│   └── page.tsx              # Main admin dashboard
-├── api/                      # API routes
-│   └── auth/session/route.ts # Session management API
-├── corecs/                   # Computer Science hub
-│   ├── gcse/                 # GCSE-specific content
-│   ├── binary/page.tsx       # Binary conversion tool
-│   ├── hex/page.tsx          # Hexadecimal tool
-│   ├── concept-detective/    # Concept application game
-│   └── python/               # Python challenges
-├── corelabs/                 # Skills-based games
-│   ├── binary-game/          # Binary falling blocks game
-│   ├── denary-game/          # Denary conversion game
-│   ├── keyboard-ninja/       # Typing/shortcuts game
-│   └── mouse-skills/         # Mouse accuracy game
-├── coretools/                # Teacher utilities
-│   └── seating-plan/         # Classroom seating tool
-├── dashboard/                # Role-based dashboards
-│   ├── student/              # Student dashboard
-│   └── teacher/              # Teacher dashboard
-├── homework/                 # Homework system
-│   └── attempt/[id]/         # Student homework attempts
-├── account/page.tsx          # User account management
-├── layout.tsx                # Root application layout
-├── page.tsx                  # Landing/home page
-└── globals.css               # Global styles and CSS variables
-```
-
----
-
-## Authentication & Session Management
-
-### Session Flow Implementation
-
-#### 1. Client-Side Authentication (`src/providers/UserProvider.tsx`)
-
-```typescript
-// Listens to Firebase Auth state changes
-onAuthStateChanged(auth, async (firebaseUser) => {
-  if (firebaseUser) {
-    // Fetch user profile from Firestore
-    // Check admin claims from token
-    // Merge Firebase user with profile data
-    // Cache results for performance
-  }
-});
-```
-
-**Key Features**:
-- Global auth state via React Context
-- Automatic profile fetching and caching
-- Admin claim verification
-- Real-time auth state updates
-- Secure logout with cache clearing
-
-#### 2. Server-Side Session Management (`src/app/api/auth/session/route.ts`)
-
-```typescript
-// POST: Create session
-const decodedToken = await adminAuth.verifyIdToken(idToken);
-const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
-
-// DELETE: Clear session
-response.cookies.set('session', '', { maxAge: 0 });
-```
-
-**Security Features**:
-- HttpOnly cookies (XSS protection)
-- Secure flag in production (HTTPS only)
-- SameSite=Lax (CSRF protection)
-- 5-day expiration
-- Server-side token verification
-
-#### 3. Middleware Protection (`src/middleware.ts`)
-
-```typescript
-// Check session cookie for protected routes
-const sessionCookie = request.cookies.get('session')?.value;
-const isAuthenticated = !!sessionCookie;
-
-// Route-based protection
-if (pathname.startsWith('/dashboard') && !isAuthenticated) {
-  return NextResponse.redirect(new URL('/login', request.url));
-}
-```
-
-**Protected Routes**:
-- `/dashboard/*` - Requires authentication
-- `/admin/*` - Requires authentication (admin check on client)
-- `/account/*` - Requires authentication
-- `/homework/*` - Requires authentication
-
-#### 4. Client-Side Route Protection (`src/components/auth/ProtectedRoute.tsx`)
-
-```typescript
-// Additional client-side protection
-if (!isAuthenticated) {
-  router.push('/login');
-  return null;
-}
-
-// Role-based access control
-if (requireRole && user?.role !== requireRole) {
-  router.push('/');
-  return null;
-}
-```
-
----
-
-## Database Schema & Security
-
-### Firestore Collections
-
-#### Core Collections
-
-1. **`users/{uid}`** - User profiles
-   ```typescript
-   {
-     uid: string;
-     email: string;
-     firstName: string;
-     lastName: string;
-     role: 'student' | 'teacher';
-     schoolId: string;
-     corebinStats?: { binaryFall: { highScore: number }; ... };
-   }
-   ```
-
-2. **`classes/{classId}`** - Class information
-   ```typescript
-   {
-     className: string;
-     subject: 'Computer Science' | 'Geography' | 'Maths';
-     classCode: string;
-     teacherIds: string[];
-     studentUids: string[];
-     periods?: Period[];
-   }
-   ```
-
-3. **`homework/{homeworkId}`** - Homework assignments
-   ```typescript
-   {
-     classId: string;
-     teacherId: string;
-     title: string;
-     instructions?: string;
-     tasks: HomeworkTask[];
-     dueDate?: Timestamp;
-   }
-   ```
-
-4. **`studentHomeworks/{id}`** - Student homework progress
-   ```typescript
-   {
-     studentId: string;
-     homeworkId: string;
-     classId: string;
-     status: 'not-started' | 'in-progress' | 'completed';
-     progress: { completedTaskIds: string[]; };
-   }
-   ```
-
-#### Content Collections
-
-5. **`flashcards/{id}`** - Learning flashcards
-   ```typescript
-   {
-     subject: string;
-     examBoard: string;
-     topic: string;
-     subTopic: string;
-     term: string;
-     definition: string;
-     examples: string[];
-     hints: string[];
-   }
-   ```
-
-6. **`puzzles/{id}`** - Coding jigsaw puzzles
-   ```typescript
-   {
-     title: string;
-     sectionId: string;
-     challengeLevel: number;
-     codeSnippet: string;
-     initialBlocks: string[];
-     solution: string[];
-     expectedOutput: string;
-   }
-   ```
-
-7. **`fillInTheBlanksChallenges/{id}`** - Code completion challenges
-   ```typescript
-   {
-     title: string;
-     sectionId: string;
-     challengeLevel: number;
-     codeParts: (string | null)[];
-     solution: string[];
-     expectedOutput: string;
-   }
-   ```
-
-### Security Rules (`firestore.rules`)
-
-#### Role-Based Access Control
-
-```javascript
-// Helper functions
-function isSignedIn() { return request.auth != null; }
-function isTeacher() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher'; }
-function isStudent() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'student'; }
-function isAdmin() { return request.auth != null && request.auth.token.admin == true; }
-function isClassTeacher(classId) { return request.auth.uid in get(/databases/$(database)/documents/classes/$(classId)).data.teacherIds; }
-```
-
-#### Access Patterns
-
-1. **User Profiles**: Users can read/update their own profile; teachers can read students in their school
-2. **Classes**: Teachers manage their classes; students read classes they're in
-3. **Homework**: Teachers create/manage homework for their classes; students read their assignments
-4. **Content**: All signed-in users can read; only admins can write
-5. **Ratings**: Users can only manage their own ratings
-
----
-
-## Core Features
-
-### 1. Flashcard System
-
-**Location**: `src/components/features/flashcards/`
-
-**Components**:
-- `flashcard-client.tsx` - Main controller component
-- `flashcard-renderer.tsx` - Card display with flip animation
-- `flashcard-controls.tsx` - Navigation and progress controls
-- `flashcard-sidebar.tsx` - Filtering and settings panel
-- `flashcard-filter-dialog.tsx` - Topic/confidence filtering
-- `flashcard-settings-dialog.tsx` - Display preferences
-- `flashcard-confidence-dialog.tsx` - Rating interface
-
-**Key Features**:
-- **3D Flip Animation**: CSS-based card flipping with perspective
-- **Smart Filtering**: By topic, subtopic, and confidence level
-- **Progress Tracking**: User confidence ratings saved to Firestore
-- **Keyboard Navigation**: Arrow keys and spacebar support
-- **Shuffle Mode**: Randomized card order
-- **Auto-progression**: Configurable automatic advancement
-
-**Data Flow**:
-1. `useFlashcardData()` - Fetches flashcards from Firestore
-2. `useFlashcardNavigation()` - Handles card cycling and state
-3. `useFlashcardProgress()` - Manages ratings and statistics
-4. Cards filtered by topic/confidence and displayed with controls
-
-### 2. Python Challenge System
-
-**Location**: `src/components/features/puzzles/`
-
-#### A. Jigsaw Puzzles (`puzzle-client.tsx`)
-- **Drag & Drop**: Powered by @dnd-kit/core
-- **Code Blocks**: Draggable code segments to arrange
-- **Validation**: Real-time solution checking
-- **Hints**: Progressive hint system
-- **Auto-completion**: Smart block placement
-
-#### B. Fill-in-the-Blanks (`fill-in-the-blanks-client.tsx`)
-- **Interactive Gaps**: Click-to-edit code sections
-- **Syntax Highlighting**: Ace Editor integration
-- **Dynamic Challenges**: Variable-based problems
-- **Input Validation**: Real-time answer checking
-
-**Data Models**:
-```typescript
-// Jigsaw Puzzle
-{
-  initialBlocks: string[];  // Scrambled code blocks
-  solution: string[];       // Correct order
-  expectedOutput: string;   // Program output
-  isDynamic: boolean;       // Variable input required
-}
-
-// Fill-in-the-Blanks
-{
-  codeParts: (string | null)[]; // Code with null gaps
-  solution: string[];           // Answers for gaps
-  expectedOutput: string;       // Expected result
-}
-```
-
-### 3. Homework Management System
-
-**Location**: `src/components/features/homework/`
-
-#### Teacher Workflow (`HomeworkManagement.tsx`)
-1. **Creation Wizard**: Multi-step homework creation
-   - `OverviewStep.tsx` - Title, instructions, due date
-   - `AddTasksStep.tsx` - Select flashcards/puzzles with filtering
-   - `PreviewStep.tsx` - Review and confirm
-2. **Progress Monitoring**: Real-time completion tracking
-3. **Class Analytics**: Student performance overview
-
-#### Student Workflow (`homework-flash-card-client.tsx`)
-1. **Assignment Viewing**: Real-time homework feed
-2. **Task Completion**: Interactive task runner
-3. **Progress Tracking**: Automatic progress updates
-
-**Task Types**:
-- **Flashcard Tasks**: Confidence rating challenges
-- **Puzzle Tasks**: Code arrangement/completion
-- **Mixed Assignments**: Combined task types
-
-### 4. Seating Plan Generator
-
-**Location**: `src/app/coretools/seating-plan/`
-
-**Core Components**:
-- `SeatingPlanTool.tsx` - Main application
-- `components/DraggableItem.tsx` - Desk/furniture components
-- `components/StudentsPanel.tsx` - Student management
-- `components/GroupControl.tsx` - Table grouping tools
-- `components/RulesPanel.tsx` - Separation rules
-
-**Hooks**:
-- `useSeatingPlan.ts` - Main state management
-- `useDragAndDrop.ts` - Drag & drop handling
-- `useStudentAssignment.ts` - Auto-assignment algorithm
-- `useExport.ts` - Image export functionality
-
-**Key Features**:
-- **Drag & Drop Layout**: Visual desk arrangement
-- **Auto-Assignment**: Intelligent student placement
-- **Separation Rules**: Keep specific students apart
-- **Gender Balancing**: Alternate seating by gender
-- **Group Management**: Color-coded table groups
-- **Export Options**: PNG/JPEG with styling options
-- **Responsive Scaling**: Adapts to container size
-
-**Assignment Algorithm**:
-1. **Constraint Processing**: Apply separation rules
-2. **Preference Sorting**: Fill from front, gender alternating
-3. **Conflict Resolution**: Automatic rule satisfaction
-4. **Visual Feedback**: Real-time assignment preview
-
-### 5. Gaming Platform (CoreLabs)
-
-**Location**: `src/app/corelabs/`
-
-#### A. Binary Falling Blocks (`binary-game/page.tsx`)
-- **Game Mechanics**: Tetris-inspired binary conversion
-- **Progressive Difficulty**: Speed increases with level
-- **Power-ups**: Bomb items to clear stacks
-- **Score Persistence**: High scores saved to user profile
-
-#### B. Denary Conversion (`denary-game/page.tsx`)
-- **Binary Input**: Click bits to build binary numbers
-- **Time Pressure**: Countdown timer for each challenge
-- **Life System**: Multiple chances with visual feedback
-- **Special Blocks**: Bonus/life power-ups
-
-#### C. Keyboard Ninja (`keyboard-ninja/page.tsx`)
-- **Phaser.js Integration**: Full game engine
-- **Dual Modes**: Shortcuts vs. typing practice
-- **Difficulty Scaling**: Adaptive speed and complexity
-- **Visual Learning**: Color-coded keyboard rows
-
-#### D. Mouse Skills (`mouse-skills/page.tsx`)
-- **Multiple Modes**: Classic clicking, tracking, following
-- **Precision Training**: Accuracy and speed metrics
-- **Fullscreen Support**: Immersive experience
-- **Trail Visualization**: Mouse movement tracking
-
-### 6. Admin Content Management
-
-**Location**: `src/app/admin/`
-
-**Content Types**:
-- **Flashcards**: CRUD operations with bulk import
-- **Puzzles**: Code challenge management
-- **Analytics**: Content distribution statistics
-
-**Bulk Import Features**:
-- **JSON Upload**: Batch content creation
-- **Validation**: Format checking and error reporting
-- **Preview**: Review before import
-- **Error Handling**: Detailed failure reports
-
----
-
-## File-by-File Breakdown
-
-### Core Application Files
-
-#### `src/app/layout.tsx`
-**Purpose**: Root application layout and provider setup
-**Exports**: Default React component
-**Key Features**:
-- Font configuration (Inter, Lexend)
-- Provider nesting (UserProvider, FirestoreMonitorProvider)
-- Global layout wrapper (MainLayout)
-- Toast notification system
-**Dependencies**: 
-- Providers: `UserProvider`, `FirestoreMonitorProvider`
-- Components: `MainLayout`, `Toaster`
-- Fonts: `Inter`, `Lexend` from Google Fonts
-
-#### `src/app/page.tsx`
-**Purpose**: Landing page with authentication-aware redirects
-**Exports**: Default React component
-**Key Features**:
-- Welcome screen for new visitors
-- Auto-redirect based on user role
-- Marketing content for unauthenticated users
-- Product showcase (CoreCS, CoreLabs, CoreTools)
-**Authentication Flow**:
-```typescript
-useEffect(() => {
-  if (isAuthenticated && user) {
-    if (isAdmin) router.replace('/admin');
-    else if (user.role === 'teacher') router.replace('/dashboard/teacher');
-    else router.replace('/dashboard/student');
-  }
-}, [user, isAuthenticated, isAdmin]);
-```
-
-#### `src/middleware.ts`
-**Purpose**: Server-side route protection and authentication
-**Exports**: `middleware` function, `config` object
-**Protected Routes**:
-- `/dashboard/*` - All dashboard pages
-- `/admin/*` - Admin panel
-- `/account/*` - User account pages
-**Cookie Handling**:
-```typescript
-const sessionCookie = request.cookies.get('session')?.value;
-const isAuthenticated = !!sessionCookie;
-```
-
-### Authentication System
-
-#### `src/app/api/auth/session/route.ts`
-**Purpose**: Session cookie management API
-**Exports**: `POST`, `DELETE` handlers
-**POST Handler**:
-- Verifies Firebase ID token with Admin SDK
-- Creates secure session cookie (5-day expiry)
-- Returns user data and success status
-**DELETE Handler**:
-- Clears session cookie
-- Handles logout requests
-**Security Features**:
-- HttpOnly cookies (XSS protection)
-- Secure flag in production
-- SameSite=Lax (CSRF protection)
-
-#### `src/providers/UserProvider.tsx`
-**Purpose**: Global authentication state management
-**Exports**: `UserProvider` component, `useAuth` hook
-**Key Features**:
-- Firebase Auth state listener
-- User profile fetching and caching
-- Admin claim verification
-- Secure logout function
-**Context Interface**:
-```typescript
-interface AuthContextType {
-  user: AppUser;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  logout: () => Promise<void>;
-}
-```
-
-#### `src/components/auth/ProtectedRoute.tsx`
-**Purpose**: Client-side route protection wrapper
-**Exports**: `ProtectedRoute` component
-**Props Interface**:
-```typescript
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requireRole?: 'teacher' | 'student';
-  redirectTo?: string;
-}
-```
-**Features**:
-- Authentication checking
-- Role-based access control
-- Loading state handling
-- Automatic redirects
-
-### Database Layer
-
-#### `src/lib/firebase.ts`
-**Purpose**: Client-side Firebase SDK initialization
-**Exports**: `app`, `auth`, `db`, `storage`
-**Configuration**: Uses `NEXT_PUBLIC_*` environment variables
-**Usage**: Imported by all client-side components needing Firebase
-
-#### `src/lib/firebase-admin.ts`
-**Purpose**: Server-side Firebase Admin SDK setup
-**Exports**: `adminApp`, `adminAuth`, `adminDb`
-**Security**: Server-only imports with 'server-only'
-**Configuration**: Uses service account credentials
-**Error Handling**: Fails fast with helpful error messages
-
-#### `src/lib/types.ts`
-**Purpose**: TypeScript type definitions for the entire application
-**Exports**: All type definitions used across the platform
-**Key Types**:
-- `UserProfile` - User account information
-- `ClassInfo` - Classroom data structure
-- `HomeworkAssignment` - Assignment definitions
-- `Flashcard` - Learning card structure
-- `Puzzle` - Code challenge definition
-
-#### `firestore.rules`
-**Purpose**: Database security rules
-**Key Functions**:
-- Role-based access control
-- Ownership validation
-- Admin privilege checking
-- Class membership verification
-**Security Patterns**:
-```javascript
-// Users can only read their own profile
-allow read: if isSignedIn() && isOwner(userId);
-
-// Teachers manage their classes
-allow write: if isSignedIn() && isClassTeacher(resource.data.id);
-
-// Content is read-only except for admins
-allow read: if isSignedIn();
-allow write: if isAdmin();
-```
-
----
-
-## Component Architecture
-
-### Layout Components (`src/components/layout/`)
-
-#### `main-layout.tsx`
-**Purpose**: Application shell with conditional header/footer
-**Features**:
-- Game page detection (no header/footer for games)
-- Responsive layout structure
-- Navigation integration
-
-#### `header.tsx`
-**Purpose**: Main navigation bar
-**Features**:
-- User authentication status
-- Role-based navigation
-- UserNav integration
-- Responsive design
-
-#### `footer.tsx`
-**Purpose**: Site footer with links and information
-
-### Shared Components (`src/components/shared/`)
-
-#### `UserSearchDialog.tsx`
-**Purpose**: User lookup and selection interface
-**Used By**: Teacher dashboards, student management
-**Features**:
-- Real-time search
-- Role filtering
-- Selection interface
-
-#### `ConfirmationDialog.tsx`
-**Purpose**: Reusable confirmation modal
-**Props**: Title, description, action handlers
-**Usage**: Delete operations, destructive actions
-
-#### `FirestoreStats.tsx`
-**Purpose**: Development tool for monitoring database operations
-**Features**:
-- Read/write counters
-- Performance monitoring
-- Debug information
-
-### Feature Components
-
-#### Dashboard Components (`src/components/dashboard/`)
-
-**Teacher Components**:
-- `ClassCard.tsx` - Class overview cards
-- `CreateClassDialog.tsx` - Class creation modal
-- `StudentManagement.tsx` - Class roster management
-- `JoinRequestPanel.tsx` - Student join request handling
-- `WeeklyTimetable.tsx` - Schedule visualization
-
-**Student Components**:
-- `JoinClassDialog.tsx` - Class joining interface
-
----
-
-## Hooks & State Management
-
-### Flashcard Hooks (`src/hooks/flashcard/`)
-
-#### `use-flashcard-data.tsx`
-**Purpose**: Flashcard data fetching and management
-**Returns**: Flashcards array, loading state, error handling
-**Features**:
-- Real-time Firestore subscriptions
-- Caching for performance
-- Filter support
-
-#### `use-flashcard-navigation.tsx`
-**Purpose**: Card navigation and display state
-**Returns**: Current card, navigation functions, progress tracking
-**Features**:
-- Keyboard navigation
-- Shuffle mode
-- Progress calculation
-
-#### `use-flashcard-progress.tsx`
-**Purpose**: User progress and rating management
-**Returns**: Rating functions, save state, statistics
-**Features**:
-- Confidence rating storage
-- Progress analytics
-- Auto-save functionality
-
-### Teacher Hooks (`src/hooks/teacher/`)
-
-#### `use-class-data.ts`
-**Purpose**: Single class data management
-**Parameters**: `classId`
-**Returns**: Class info, students, homework, loading states
-**Features**:
-- Comprehensive class data fetching
-- Real-time updates
-- Error handling
-
-#### `use-homework-management.ts`
-**Purpose**: Homework CRUD operations
-**Returns**: Create, update, delete functions
-**Features**:
-- Assignment creation
-- Progress tracking
-- Validation
-
-#### `use-join-requests.ts`
-**Purpose**: Student join request management
-**Returns**: Requests array, approval/denial functions
-**Features**:
-- Real-time request monitoring
-- Batch operations
-- Notification integration
-
-### Shared Hooks (`src/hooks/shared/`)
-
-#### `use-toast.ts`
-**Purpose**: Toast notification system
-**Returns**: Toast function for displaying messages
-**Features**:
-- Success/error/warning types
-- Auto-dismiss
-- Queue management
-
-#### `use-user-search.ts`
-**Purpose**: User search functionality
-**Returns**: Search function, results, loading state
-**Features**:
-- Debounced search
-- Role filtering
-- Pagination support
-
----
-
-## Deployment & Configuration
-
-### Environment Variables
-
-#### Client-Side (Public)
-Required for Firebase client SDK:
 ```env
+# Firebase client SDK
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
-```
 
-#### Server-Side (Private)
-Required for Firebase Admin SDK:
-```env
+# Firebase Admin SDK (escape newlines in the private key)
 FIREBASE_PROJECT_ID=
 FIREBASE_CLIENT_EMAIL=
-FIREBASE_PRIVATE_KEY=  # Use \n for newlines in Vercel
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# Optional – unlock AI avatar generation
+GOOGLE_AI_API_KEY=
 ```
 
-#### AI Configuration
-```env
-GOOGLE_AI_API_KEY=  # For Genkit integration
-```
+Start the development server (Turbopack on port 9002) and iterate:
 
-### Deployment Platforms
-
-#### Vercel (Recommended)
-1. **Connect Repository**: Link GitHub repository
-2. **Environment Variables**: Add all required variables
-3. **Build Settings**: Use default Next.js settings
-4. **Domain Configuration**: Set up custom domain
-5. **Analytics**: Enable Web Analytics
-
-**Build Configuration**:
-```json
-{
-  "buildCommand": "next build",
-  "outputDirectory": ".next",
-  "installCommand": "npm install"
-}
-```
-
-#### Firebase Hosting (Alternative)
-1. **Initialize Project**: `firebase init hosting`
-2. **Build Application**: `npm run build`
-3. **Deploy**: `firebase deploy --only hosting`
-
----
-
-## Development Guide
-
-### Local Setup
-
-#### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Firebase account
-- Git
-
-#### Installation
 ```bash
-# Clone repository
-git clone <repository-url>
-cd CoreEDU
-
-# Install dependencies
-npm install
-
-# Environment setup
-cp .env.example .env.local
-# Edit .env.local with your Firebase credentials
-
-# Start development server
 npm run dev
 ```
 
-#### Development Scripts
-```bash
-npm run dev          # Development server (Turbopack)
-npm run build        # Production build
-npm run start        # Production server
-npm run lint         # ESLint checking
-npm run typecheck    # TypeScript validation
-npm run genkit:dev   # AI development server
-```
+Optional auxiliary scripts:
 
-### Code Organization Principles
+- `npm run lint` – Next.js lint rules
+- `npm run typecheck` – Strict TypeScript checks
+- `npm run genkit:dev` – Launches the Genkit dev server (only needed when using AI flows)
 
-#### Component Structure
-```typescript
-// Component file organization
-import { /* React imports */ } from 'react';
-import { /* UI components */ } from '@/components/ui/';
-import { /* Custom hooks */ } from '@/hooks/';
-import { /* Types */ } from '@/lib/types';
-
-interface ComponentProps {
-  // Props definition
-}
-
-export function Component({ prop1, prop2 }: ComponentProps) {
-  // Component implementation
-}
-```
-
-#### Hook Patterns
-```typescript
-// Custom hook structure
-export function useFeature(param: string) {
-  const [state, setState] = useState();
-  
-  // Effects and logic
-  
-  return {
-    // Exposed state and functions
-    data: state,
-    loading: isLoading,
-    error: error,
-    actions: { create, update, delete }
-  };
-}
-```
+Populate Firestore collections (`users`, `classes`, `flashcards`, `puzzles`, etc.) before exercising authenticated areas.
 
 ---
 
-## Troubleshooting
+## Architecture & Stack
 
-### Common Issues
+### Core Technologies
 
-#### Authentication Problems
+- **Framework**: Next.js 15 (App Router, React 18, TypeScript, Turbopack)
+- **State & Data**: Firebase Auth, Firestore (client SDK + Admin SDK), custom React hooks
+- **UI System**: Tailwind CSS, shadcn/ui component library, Lucide icons, Inter & Lexend fonts
+- **Games & Interaction**: Custom React games, Phaser (Keyboard Ninja), @dnd-kit for drag-and-drop, html-to-image for exports
+- **AI Integration**: Genkit with Google Gemini 2.0 Flash (only the avatar flow is currently active)
+- **Security**: Server-side session cookies, middleware rate limiting, hardened Firestore security rules
 
-**Issue**: "Session cookie not set"
-**Solutions**:
-1. Verify all environment variables are set
-2. Check Firebase service account credentials
-3. Ensure HTTPS in production for secure cookies
-4. Validate cookie settings in browser dev tools
+### High-Level Flow
 
-**Issue**: "Firebase Admin SDK errors"
-**Solutions**:
-1. Re-download service account JSON
-2. Verify project ID matches Firebase console
-3. Check private key format (escape newlines for Vercel)
+```
+┌─────────────┐     ┌─────────────────┐     ┌─────────────────────┐
+│   Browser   │ ──► │ Next.js (AppDir)│ ──► │ Firebase Services   │
+│ (React 18)  │     │  API routes     │     │ - Auth              │
+│             │ ◄── │  Middleware     │ ◄── │ - Firestore         │
+└─────────────┘     │  Server actions │     │ - Storage (optional)│
+                     └─────────────────┘     └─────────────────────┘
+```
 
-#### Database Access Issues
-
-**Issue**: "Permission denied" in Firestore
-**Solutions**:
-1. Check Firestore rules in Firebase console
-2. Verify user profile exists in `users` collection
-3. Confirm user role field is set correctly
-4. Test rules in Firebase rules playground
-
-#### Performance Issues
-
-**Issue**: "Slow page loads"
-**Solutions**:
-1. Analyze bundle with Next.js bundle analyzer
-2. Implement caching for frequently accessed data
-3. Create Firestore indexes for complex queries
-4. Use pagination for large datasets
-
-#### Deployment Issues
-
-**Issue**: "Build failures on Vercel"
-**Solutions**:
-1. Run `npm run typecheck` locally
-2. Verify all environment variables in Vercel dashboard
-3. Clear npm cache and reinstall dependencies
-4. Check build logs for specific errors
-
-### Debug Tools
-
-#### Development Tools
-- **Firestore Monitor**: Real-time database operation tracking
-- **React DevTools**: Component hierarchy and state inspection
-- **Next.js DevTools**: Performance and bundle analysis
-
-#### Production Monitoring
-- **Vercel Analytics**: Performance metrics
-- **Firebase Console**: Database usage and errors
-- **Browser DevTools**: Network and performance analysis
+- Client components authenticate with Firebase Auth, then swap tokens for a secure session cookie via `/api/auth/session`.
+- Middleware attaches security headers, throttles requests, and protects `/dashboard`, `/account`, `/admin`, and `/homework`.
+- Server components/actions (e.g., `src/lib/auth/server.ts`) use the `session` cookie plus Firebase Admin to fetch user data securely.
 
 ---
 
-## Conclusion
+## Product Surface
 
-CoreEDU represents a comprehensive educational platform built with modern web technologies and best practices. The modular architecture allows for easy extension and maintenance, while the robust authentication and database systems ensure security and scalability.
+### CoreCS (`src/app/corecs`)
 
-The platform's strength lies in its integration of multiple educational tools under a unified interface, providing value for both educators and students. The combination of interactive learning tools, classroom management features, and gamified experiences creates an engaging educational environment.
+- **Landing (`page.tsx`)** – Module cards powered by `ActivityCard`.
+- **Python Challenges (`python/page.tsx`)** – `PuzzlesClient` surfaces drag-and-drop jigsaw puzzles and fill-in-the-blank challenges pulled from Firestore (`puzzles`, `puzzleSections`, `fillInTheBlanks*` collections). Uses `@dnd-kit`, Ace Editor, and real-time validation.
+- **Concept Detective (`concept-detective/page.tsx`)** – Scenario-based flashcard quiz that synthesizes distractors and timers. Depends on rich flashcard metadata (`flashcards` collection).
+- **Binary & Hex Tools (`binary/page.tsx`, `hex/page.tsx`)** – Number conversion helpers with practice tasks.
+- **GCSE Hub (`gcse/`)** – Subject-specific navigation scaffolding (expects flashcard content per topic).
 
-For developers working on the platform, this documentation provides the necessary context to understand the system architecture, make modifications, and extend functionality while maintaining the platform's integrity and performance standards.
+### CoreLabs (`src/app/corelabs`)
+
+- **Binary Game (Binary Fall)** – Arcade-style stacking game; stores high scores in `users.corebinStats.binaryFall`.
+- **Denary Game** – Reverse conversion challenge with timers and power-ups.
+- **Keyboard Ninja** – Phaser-powered typing/shortcut trainer with dynamic spawning and accessibility-friendly colour coding.
+- **Mouse Skills** – Precision and tracking trainer with multiple modes, cursor trails, and adaptive difficulty.
+- All games render inside the shared `GameContainer` so the app sidebar/topbar remain consistent.
+
+### CoreTools (`src/app/coretools`)
+
+- **Seating Plan (`seating-plan/`)** – Full-featured classroom layout tool:
+  - Drag-and-drop desks, students, and groups.
+  - Auto-assignment with separation rules, gender balancing, and conflict resolution (`hooks/useStudentAssignment.ts`).
+  - Canvas export via `html-to-image`.
+- Additional utilities (grade calculator, attendance, reports) are scaffolded as “Coming Soon” cards.
+
+### Dashboards & Homework
+
+- **Student Dashboard (`src/app/dashboard/student/page.tsx`)**
+  - Uses `useSubscriptionManager` to manage Firestore listeners.
+  - Displays homework progress, quick links, and onboarding prompts (Join Class dialog).
+- **Teacher Dashboard (`src/app/dashboard/teacher/page.tsx`)**
+  - Class creation (`CreateClassDialog`), weekly timetable, and join-request moderation with cooldowns.
+  - Depends on `useTeacherClasses`, `useJoinRequests`, and class metadata stored in Firestore.
+- **Homework Experience**
+  - Homework creation flows live under `src/components/features/homework/creation/`.
+  - Student attempt UI (`src/app/homework/attempt/[studentHomeworkId]/page.tsx`) orchestrates mixed flashcard/puzzle tasks, tracks progress, and updates status (`studentHomeworks` collection).
+
+### Account & Profile (`src/app/account/page.tsx`)
+
+- Profile editing with Firestore-backed fields (`firstName`, `lastName`, avatar colours).
+- Password changes via Firebase Auth `updatePassword`.
+- Rewards codes unlock optional features (e.g., AI avatar generator).
+- AI Avatar generation calls `generateAvatar` (Genkit + Gemini 2.0) and stores returned image URLs; requires `GOOGLE_AI_API_KEY`.
+
+### Admin Console (`src/app/admin`)
+
+- CRUD tooling for flashcards and puzzles (`useAdminFlashcards`, `useAdminPuzzles`), JSON imports, and lightweight analytics.
+- Access is gated by the `isAdmin` flag from custom claims; note that `UserProvider` currently hard-codes `isAdmin` to `false` (see [Known Gaps](#roadmap--known-gaps)).
+
+### Additional Surfaces
+
+- **Landing Page (`src/app/page.tsx`)** – Marketing-style hero, feature list, module highlights, and call-to-action buttons.
+- **Help (`src/app/help/page.tsx`)** – Static support cards for documentation, contact, and feedback.
+- **Quick Quiz (`src/app/quick-quiz/page.tsx`)** – Placeholder “Coming Soon” screen.
+- **Settings (`src/app/settings/page.tsx`)** – Placeholder messaging; preferences not yet implemented.
+- **Authentication routes** – Located under `src/app/(auth)/login` and `signup`.
+
+---
+
+## Data & Security Model
+
+### Firestore Collections (see `firestore.rules`)
+
+- `users/{uid}` – Profile data (`role`, `schoolId`, avatar preferences, `corebinStats`, unlocked features). Students and teachers may only mutate constrained fields; admins can full-access.
+- `classes/{classId}` – Class metadata (teacher IDs, student UIDs, timetable periods).
+- `classJoinRequests/{id}` – Pending join approvals linked to classes and students.
+- `homework/{id}` – Assignments (title, due date, tasks array referencing flashcards/puzzles).
+- `studentHomeworks/{id}` – Per-student homework status and completed task IDs.
+- `flashcards/{id}` – Curriculum-aligned flashcards with definitions, hints, and examples.
+- `userFlashcardRatings/{id}` – Per-user confidence ratings and attempt stats.
+- `puzzles/{id}` / `puzzleSections/{id}` – Coding jigsaw content.
+- `fillInTheBlanksChallenges/{id}` / `fillInTheBlanksSections/{id}` – Code completion exercises.
+- `sandbox_items/{id}` – Placeholder for future sandbox content.
+
+### Security Highlights
+
+- Helper functions enforce role checks (`isTeacher`, `isStudent`, `isAdmin`), class membership validation, and email/role validation.
+- Strict create/update checks prevent privilege escalation (e.g., students cannot change their role or class assignments).
+- List queries validate `request.query` parameters to keep scans narrow.
+- Admin actions are reserved for users with the `admin` custom claim.
+- `firebase.json` references `storage.rules`, but that file is not present in the repository—add one before deploying Storage.
+
+---
+
+## Authentication & Sessions
+
+- **Client Auth (`src/providers/UserProvider.tsx`)**
+  - Subscribes to Firebase Auth, fetches `users/{uid}`, and exposes `useAuth()` with `user`, `isAuthenticated`, and `logout`.
+  - `isAdmin` is currently hard-coded to `false`; customise this to read custom claims if admin flows are required.
+- **Session Exchange (`src/app/api/auth/session/route.ts`)**
+  - Validates ID tokens, applies a 5-attempt/15-minute rate limit, and mints a 5-day `session` cookie (HTTP-only, `SameSite=Lax`).
+  - DELETE handler revokes refresh tokens and clears cookies.
+- **Middleware (`src/middleware.ts`)**
+  - Global rate limiting (100 req/min per IP).
+  - Injects strict security headers (CSP, HSTS, XSS protection).
+  - Protects `/dashboard`, `/admin`, `/account`, `/homework`, and non-auth API routes.
+- **Server Utilities (`src/lib/auth/server.ts`)**
+  - `getCurrentUser()` verifies the session cookie via Firebase Admin and hydrates server components with user role info.
+
+---
+
+## UI & Experience System
+
+- **App Layout (`src/components/app-layout`)**
+  - `AppLayout` wraps authenticated screens with `AppSidebar` and `AppTopBar`.
+  - Sidebar navigation is role-aware (teachers see “My Classes”, students see “My Homework”).
+  - Layout is skipped for public/auth routes via an allowlist.
+- **Design Language**
+  - Tailwind theme configured in `tailwind.config.ts` with CSS variable-driven colours and font families (`--font-inter`, `--font-lexend`).
+  - shadcn/ui components live in `src/components/ui`; configuration documented in `components.json`.
+  - Iconography from `lucide-react`.
+- **Reusable Building Blocks**
+  - `ActivityCard` and `ContentSection` provide consistent dashboard and catalog layouts.
+  - `GameContainer` standardises game presentation within the main shell (no browser fullscreen).
+  - `DueDateBadge`, `UserSearchDialog`, `ConfirmationDialog`, and other shared components reduce duplication.
+- **Developer Tooling**
+  - `FirestoreMonitorProvider` + `FirestoreStats` overlay (dev-only) tracks Firestore reads/writes per page.
+  - `SubscriptionManager` utility (and hook variant) prevents Firestore listener leaks in long-lived components.
+
+---
+
+## Development Workflow
+
+1. **Configure Firebase** – Create a project with Auth (email/password), Firestore, and (optionally) Storage. Download service account credentials.
+2. **Seed Data** – Add baseline documents: at minimum `users` (with `role`, `schoolId`), `flashcards`, `puzzles`, and sample `classes`. Without data many pages will appear empty.
+3. **Run the App**
+   ```bash
+   npm run dev
+   ```
+   - Runs Next.js in development mode on `http://localhost:9002`.
+   - The app auto-redirects authenticated users to role-specific dashboards; unauthenticated users see the marketing landing page.
+4. **AI Features (optional)**
+   - Set `GOOGLE_AI_API_KEY` and run `npm run genkit:dev` if you plan to exercise the avatar generator locally.
+   - Other Genkit flows (`generate-personalized-hint`, etc.) are intentionally disabled to avoid paid usage.
+5. **Lint / Typecheck**
+   ```bash
+   npm run lint
+   npm run typecheck
+   ```
+6. **Project Conventions**
+   - Path aliases use the `@/` prefix (`tsconfig.json`).
+   - Client components start with `"use client";` declarations.
+   - Avoid importing `firebase-admin` utilities into client modules—`firebase-admin.ts` is server-only.
+
+---
+
+## Deployment Notes
+
+### Environment Variables
+
+- Supply all Firebase client + Admin variables in hosting providers (Vercel, Firebase Hosting, etc.).
+- For `FIREBASE_PRIVATE_KEY`, replace literal newlines with `\n`.
+- Provide `GOOGLE_AI_API_KEY` only if AI avatar generation should be live.
+
+### Vercel
+
+1. Connect the GitHub repository.
+2. Configure environment variables in the Vercel dashboard.
+3. `npm run build` will produce a standard Next.js output; no custom build steps required.
+4. Ensure custom domains use HTTPS so cookies marked `secure` work correctly.
+
+### Firebase Hosting / App Hosting
+
+- `firebase.json` already points to `firestore.rules`; run:
+  ```bash
+  firebase deploy --only hosting
+  ```
+- To use Firebase App Hosting, update `apphosting.yaml` (currently limits to 1 instance).
+- Add a `storage.rules` file or remove the storage block if Storage is unused.
+- Remember to upload Firestore indexes (`firestore.indexes.json`) if complex queries require them.
+
+---
+
+## Testing & Quality
+
+- There is **no automated test suite** in this repository (`__tests__`, Jest, Playwright, etc. are absent).
+- Consider adding:
+  - Unit tests for hooks (`useSubscriptionManager`, `useTeacherClasses`).
+  - Integration tests for Firestore-driven flows (using the Firebase emulator suite).
+  - End-to-end smoke tests covering login, dashboard redirects, and homework completion.
+- Manual QA checklist: authentication, class creation, homework assignment, game score persistence, seating plan export, and admin CRUD (once enabled).
+
+---
+
+## Roadmap & Known Gaps
+
+- **Admin Access** – `UserProvider` sets `isAdmin` to `false`; adjust to read custom claims or explicit profile flags before using the admin console.
+- **Placeholder Routes** – Quick Quiz, Settings, and several CoreTools items are marked “Coming Soon”.
+- **AI Flows** – Hint-generation flows are stubbed out to avoid paid APIs. Re-enable as needed in `src/ai/flows`.
+- **Storage Rules** – `firebase.json` references `storage.rules`, but the file is missing. Add appropriate rules before deploying Storage-backed features (e.g., avatar uploads).
+- **Firestore Indexes** – Dynamic `where(..., 'in', ...)` queries may require composite indexes; generate `firestore.indexes.json` via the Firebase CLI.
+- **Data Dependencies** – Many pages assume seeded content (flashcards with examples for Concept Detective, puzzle sections, etc.).
+- **Logging** – Development consoles output verbose logs (e.g., subscription manager). Trim or guard with environment checks for production.
+
+---
+
+## Reference Files & Further Reading
+
+- `CONSISTENCY_UPDATE.md` – Historical context for UI/UX refactors and game integration.
+- `firestore.rules` – Authoritative source for security policies and access patterns.
+- `components.json` – shadcn/ui configuration and path aliases.
+- `apphosting.yaml` – Firebase App Hosting defaults.
+- `src/lib/security/rate-limit.ts` – In-memory rate limiter used by middleware and auth APIs.
+- This document – `docs/README.md` (update alongside major feature or architectural changes).
+
+---
+
+Happy building! Reach out to the CoreEDU maintainers before introducing breaking schema changes or enabling new paid services.

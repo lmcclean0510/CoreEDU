@@ -8,6 +8,7 @@ import type { UserProfile } from '@/lib/types';
 
 type AppUser = UserProfile & {
   firebaseUser: User;
+  isAdmin: boolean;
 };
 
 interface AuthContextType {
@@ -31,10 +32,12 @@ export function useAuth() {
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const logout = useCallback(async () => {
     try {
       setUser(null);
+      setIsAdmin(false);
       
       // Call logout API
       try {
@@ -58,6 +61,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         try {
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
+          let adminClaim = false;
+
+          try {
+            const tokenResult = await firebaseUser.getIdTokenResult();
+            adminClaim = !!tokenResult.claims?.admin;
+          } catch (error) {
+            console.error('Error fetching admin claim:', error);
+          }
+          setIsAdmin(adminClaim);
           
           if (userDoc.exists()) {
             const profileData = userDoc.data() as Omit<UserProfile, 'uid'>;
@@ -67,17 +79,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
               photoURL: firebaseUser.photoURL,
               ...profileData,
               firebaseUser,
+              isAdmin: adminClaim,
             };
             
             setUser(appUser);
           } else {
+            setIsAdmin(false);
             setUser(null);
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
+          setIsAdmin(false);
           setUser(null);
         }
       } else {
+        setIsAdmin(false);
         setUser(null);
       }
       setIsLoading(false);
@@ -88,8 +104,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       unsubscribe();
     };
   }, []); // Empty dependency array - only run once
-
-  const isAdmin = false; // Simplified for now
 
   return (
     <AuthContext.Provider value={{
