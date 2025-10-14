@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Grid3X3, Shuffle, RotateCcw, CheckCircle, Download, EyeOff, ZoomIn, ZoomOut, Maximize2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Grid3X3, Shuffle, RotateCcw, CheckCircle, Download, EyeOff, ZoomIn, ZoomOut, Maximize2, ChevronDown, ChevronUp, Plus, Settings, Users, ShieldAlert, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DndContext,
@@ -15,6 +15,11 @@ import {
   closestCenter,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // Components
 import DraggableItem from './components/DraggableItem';
@@ -45,6 +50,8 @@ const SeatingPlanTool = () => {
   // Zoom state
   const [zoom, setZoom] = useState(1);
   const [isControlsCollapsed, setIsControlsCollapsed] = useState(false);
+  const [furniturePopoverOpen, setFurniturePopoverOpen] = useState(false);
+  const [layoutSettingsOpen, setLayoutSettingsOpen] = useState(false);
 
   const {
     // State
@@ -219,6 +226,11 @@ const SeatingPlanTool = () => {
     setHoveredGroupId(null);
   }, [setHoveredGroupId]);
 
+  const handleAddFurniture = useCallback((template: any) => {
+    addFurniture(template);
+    setFurniturePopoverOpen(false);
+  }, [addFurniture]);
+
   return (
     <div className="h-[calc(100vh-57px)] flex flex-col">
       <style jsx global>{`
@@ -236,7 +248,7 @@ const SeatingPlanTool = () => {
       {isClient && (
         <DndContext onDragEnd={onDragEnd} sensors={dndSensors}>
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Top Controls Bar */}
+            {/* Top Action Bar */}
             <div className="border-b bg-card px-4 py-3 flex-shrink-0">
               <div className="flex items-center justify-between gap-4">
                 {/* Left: Stats */}
@@ -252,7 +264,7 @@ const SeatingPlanTool = () => {
                     <>
                       <span className="text-muted-foreground">•</span>
                       <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">
-                        {unassignedStudentCount} unassigned students
+                        {unassignedStudentCount} unassigned
                       </span>
                     </>
                   )}
@@ -314,7 +326,7 @@ const SeatingPlanTool = () => {
                     disabled={isAssigning}
                   >
                     <RotateCcw className="w-4 h-4 mr-2" />
-                    Clear All
+                    Clear
                   </Button>
                   
                   <Button
@@ -324,7 +336,7 @@ const SeatingPlanTool = () => {
                     disabled={isExporting}
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    {isExporting ? 'Exporting...' : 'Export'}
+                    Export
                   </Button>
 
                   <div className="flex items-center space-x-2 border-l pl-2">
@@ -342,16 +354,25 @@ const SeatingPlanTool = () => {
               </div>
             </div>
 
-            {/* Collapsible Controls Panel */}
+            {/* Compact Horizontal Controls Bar */}
             {!isControlsCollapsed && (
               <div className="border-b bg-card flex-shrink-0">
-                <div className="px-4 pt-3">
+                <div className="px-4 py-3">
                   <Tabs defaultValue="layout" className="w-full" onValueChange={setActiveTab}>
                     <div className="flex items-center justify-between mb-3">
                       <TabsList>
-                        <TabsTrigger value="layout">Layout</TabsTrigger>
-                        <TabsTrigger value="students">Students</TabsTrigger>
-                        <TabsTrigger value="rules">Rules</TabsTrigger>
+                        <TabsTrigger value="layout" className="flex items-center gap-2">
+                          <LayoutGrid className="w-4 h-4" />
+                          Layout
+                        </TabsTrigger>
+                        <TabsTrigger value="students" className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Students
+                        </TabsTrigger>
+                        <TabsTrigger value="rules" className="flex items-center gap-2">
+                          <ShieldAlert className="w-4 h-4" />
+                          Rules
+                        </TabsTrigger>
                       </TabsList>
                       
                       <Button
@@ -360,73 +381,154 @@ const SeatingPlanTool = () => {
                         onClick={() => setIsControlsCollapsed(true)}
                       >
                         <ChevronUp className="w-4 h-4 mr-2" />
-                        Hide Controls
+                        Hide
                       </Button>
                     </div>
                     
-                    <div className="pb-4 max-h-[300px] overflow-y-auto">
-                      <TabsContent value="layout" className="mt-0">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                          <div className="lg:col-span-2">
-                            <LayoutPanel
-                              groups={groups}
-                              desks={desks}
-                              furnitureTemplates={furnitureTemplates}
-                              isGridVisible={isGridVisible}
-                              isWhiteBackground={isWhiteBackground}
-                              isBlackAndWhite={isBlackAndWhite}
-                              isPresetDialogOpen={isPresetDialogOpen}
-                              dndSensors={dndSensors}
-                              onAddFurniture={addFurniture}
-                              onLoadPreset={loadComputerRoomPreset}
-                              onRenameGroup={handleRenameGroup}
-                              onAutoRenumber={autoRenumberDesks}
-                              onAutoAlign={onAutoAlign}
-                              onDeskOrderDragEnd={onDeskOrderDragEnd}
-                              setIsGridVisible={setIsGridVisible}
-                              setIsWhiteBackground={setIsWhiteBackground}
-                              setIsBlackAndWhite={setIsBlackAndWhite}
-                              setIsPresetDialogOpen={setIsPresetDialogOpen}
-                            />
+                    {/* Horizontal Compact Controls */}
+                    <TabsContent value="layout" className="mt-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Pick Preset Button */}
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsPresetDialogOpen(true)}
+                        >
+                          <Grid3X3 className="w-4 h-4 mr-2" />
+                          Pick a Preset
+                        </Button>
+
+                        {/* Add Furniture Popover */}
+                        <Popover open={furniturePopoverOpen} onOpenChange={setFurniturePopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add Furniture
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64" align="start">
+                            <div className="space-y-2">
+                              <h4 className="font-semibold text-sm mb-3">Add Furniture</h4>
+                              {furnitureTemplates.map((template) => (
+                                <Button
+                                  key={template.id}
+                                  variant="ghost"
+                                  className="w-full justify-start"
+                                  onClick={() => handleAddFurniture(template)}
+                                >
+                                  <span className="mr-2">{template.icon}</span>
+                                  {template.name}
+                                </Button>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
+                        {/* Layout Settings Popover */}
+                        <Popover open={layoutSettingsOpen} onOpenChange={setLayoutSettingsOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline">
+                              <Settings className="w-4 h-4 mr-2" />
+                              Layout Settings
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72" align="start">
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-sm mb-3">Layout Settings</h4>
+                              
+                              <div className="flex items-center justify-between">
+                                <Label htmlFor="grid-toggle" className="text-sm cursor-pointer">Show Grid</Label>
+                                <Switch
+                                  id="grid-toggle"
+                                  checked={isGridVisible}
+                                  onCheckedChange={setIsGridVisible}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <Label htmlFor="white-bg-toggle" className="text-sm cursor-pointer">White Background</Label>
+                                <Switch
+                                  id="white-bg-toggle"
+                                  checked={isWhiteBackground}
+                                  onCheckedChange={setIsWhiteBackground}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <Label htmlFor="bw-toggle" className="text-sm cursor-pointer">Black & White Mode</Label>
+                                <Switch
+                                  id="bw-toggle"
+                                  checked={isBlackAndWhite}
+                                  onCheckedChange={setIsBlackAndWhite}
+                                />
+                              </div>
+
+                              <div className="border-t pt-3 space-y-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full justify-start"
+                                  onClick={onAutoAlign}
+                                >
+                                  Auto Align to Grid
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full justify-start"
+                                  onClick={autoRenumberDesks}
+                                >
+                                  Renumber Desks
+                                </Button>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
+                        {/* Quick Stats */}
+                        <div className="ml-auto flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{stats.availableDesks}</span>
+                            <span>available</span>
                           </div>
-                          <div>
-                            <StatsCard stats={stats} unassignedStudentCount={unassignedStudentCount} />
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-primary">{stats.totalStudents}</span>
+                            <span>students</span>
                           </div>
                         </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="students" className="mt-0">
-                        <StudentsPanel
-                          students={students}
-                          studentInput={studentInput}
-                          isLoading={isAssigning}
-                          fileInputRef={fileInputRef}
-                          onStudentInputChange={setStudentInput}
-                          onParseStudents={parseStudents}
-                          onFileUpload={handleFileUpload}
-                          onRemoveStudent={removeStudent}
-                          onUpdateStudentGender={updateStudentGender}
-                          onUpdateStudentSEND={updateStudentSEND}
-                        />
-                      </TabsContent>
-                      
-                      <TabsContent value="rules" className="mt-0">
-                        <RulesPanel
-                          desks={desks}
-                          separationRules={separationRules}
-                          doNotUseDeskIds={doNotUseDeskIds}
-                          fillFromFront={fillFromFront}
-                          alternateGender={alternateGender}
-                          newRuleStudents={newRuleStudents}
-                          onFillFromFrontChange={setFillFromFront}
-                          onAlternateGenderChange={setAlternateGender}
-                          onNewRuleStudentsChange={setNewRuleStudents}
-                          onAddSeparationRule={addSeparationRule}
-                          onRemoveSeparationRule={removeSeparationRule}
-                          onToggleDoNotUseDesk={handleToggleDoNotUseDesk}
-                        />
-                      </TabsContent>
-                    </div>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="students" className="mt-0">
+                      <StudentsPanel
+                        students={students}
+                        studentInput={studentInput}
+                        isLoading={isAssigning}
+                        fileInputRef={fileInputRef}
+                        onStudentInputChange={setStudentInput}
+                        onParseStudents={parseStudents}
+                        onFileUpload={handleFileUpload}
+                        onRemoveStudent={removeStudent}
+                        onUpdateStudentGender={updateStudentGender}
+                        onUpdateStudentSEND={updateStudentSEND}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="rules" className="mt-0">
+                      <RulesPanel
+                        desks={desks}
+                        separationRules={separationRules}
+                        doNotUseDeskIds={doNotUseDeskIds}
+                        fillFromFront={fillFromFront}
+                        alternateGender={alternateGender}
+                        newRuleStudents={newRuleStudents}
+                        onFillFromFrontChange={setFillFromFront}
+                        onAlternateGenderChange={setAlternateGender}
+                        onNewRuleStudentsChange={setNewRuleStudents}
+                        onAddSeparationRule={addSeparationRule}
+                        onRemoveSeparationRule={removeSeparationRule}
+                        onToggleDoNotUseDesk={handleToggleDoNotUseDesk}
+                      />
+                    </TabsContent>
                   </Tabs>
                 </div>
               </div>
@@ -528,7 +630,7 @@ const SeatingPlanTool = () => {
                         </div>
                         <p className="text-lg font-medium">Empty Classroom</p>
                         <p className="text-sm max-w-xs">
-                          Add furniture from the Layout tab or pick a preset to get started.
+                          Click "Pick a Preset" or "Add Furniture" above to get started.
                         </p>
                       </div>
                     </div>
@@ -537,6 +639,36 @@ const SeatingPlanTool = () => {
               </div>
             </div>
           </div>
+
+          {/* Preset Dialog */}
+          {isPresetDialogOpen && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={() => setIsPresetDialogOpen(false)}>
+              <Card className="w-96" onClick={(e) => e.stopPropagation()}>
+                <CardHeader>
+                  <CardTitle>Choose a Preset Layout</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start h-auto py-4"
+                    onClick={loadComputerRoomPreset}
+                  >
+                    <div className="text-left">
+                      <div className="font-semibold">Computer Room</div>
+                      <div className="text-xs text-muted-foreground mt-1">32 desks in 8 groups (4 rows of 4+4)</div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setIsPresetDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </DndContext>
       )}
     </div>
