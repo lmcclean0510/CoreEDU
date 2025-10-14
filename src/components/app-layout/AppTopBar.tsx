@@ -1,8 +1,7 @@
 "use client";
 
 import { usePathname } from 'next/navigation';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/providers/UserProvider';
 
 // Map paths to readable page titles
@@ -33,7 +32,9 @@ export function AppTopBar() {
   const pathname = usePathname();
 
   const getInitials = () => {
-    if (!user?.firstName || !user?.lastName) return 'U';
+    if (!user?.firstName || !user?.lastName) {
+      return user?.email?.substring(0, 2).toUpperCase() || 'U';
+    }
     return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
   };
 
@@ -72,27 +73,24 @@ export function AppTopBar() {
         {getPageTitle()}
       </h1>
 
-      {/* Right: Date + User Info */}
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-muted-foreground hidden sm:inline-block">
+      {/* Right: Date + Avatar only */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-muted-foreground">
           {getCurrentDate()}
         </span>
         
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
-              {getInitials()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden md:block">
-            <p className="text-sm font-medium leading-none">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <Badge variant="secondary" className="mt-1 capitalize text-xs py-0 px-2">
-              {user?.role}
-            </Badge>
-          </div>
-        </div>
+        <Avatar className="h-9 w-9 border-2" style={{ borderColor: user?.avatarOutlineColor || '#0f766e' }}>
+          <AvatarImage src={user?.photoURL || undefined} alt="User Avatar" />
+          <AvatarFallback 
+            className="text-sm font-semibold"
+            style={{ 
+              backgroundColor: user?.photoURL ? undefined : (user?.avatarBgColor || '#14b8a6'),
+              color: user?.photoURL ? undefined : (user?.avatarTextColor || '#000000')
+            }}
+          >
+            {getInitials()}
+          </AvatarFallback>
+        </Avatar>
       </div>
     </div>
   );
