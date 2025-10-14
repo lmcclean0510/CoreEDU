@@ -6,7 +6,7 @@ import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTempla
 
 const CANVAS_WIDTH = 1403;
 const CANVAS_HEIGHT = 1003;
-const SAFE_MARGIN = 60; // Increased margin for safety
+const SAFE_MARGIN = 60;
 
 export const useSeatingPlan = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
@@ -105,32 +105,24 @@ export const useSeatingPlan = () => {
     const newGroups: Group[] = [];
     const baseId = Date.now();
     
-    // Use the actual usable canvas dimensions
     const usableWidth = CANVAS_WIDTH - (SAFE_MARGIN * 2);
     const usableHeight = CANVAS_HEIGHT - (SAFE_MARGIN * 2);
     
-    // Desk dimensions - make them slightly smaller to ensure fit
     const deskWidth = 120;
     const deskHeight = 80;
-    
-    // Calculate what we can actually fit
     const horizontalGap = 80;
     const verticalGap = 70;
     
-    // 4 rows, 2 groups per row, 4 desks per group
     const desksPerGroup = 4;
     const groupsPerRow = 2;
     const rows = 4;
     
-    // Calculate total width needed
-    const singleGroupWidth = desksPerGroup * deskWidth; // 480
-    const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap; // 480 + 480 + 80 = 1040
+    const singleGroupWidth = desksPerGroup * deskWidth;
+    const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap;
     
-    // Calculate starting position (centered, with margin)
     const startX = SAFE_MARGIN + ((usableWidth - totalContentWidth) / 2);
-    const startY = 180; // Below teacher desk
+    const startY = 180;
     
-    // Verify we have space
     if (totalContentWidth > usableWidth) {
       console.error('Preset too wide for canvas!');
       return;
@@ -139,19 +131,16 @@ export const useSeatingPlan = () => {
     for (let row = 0; row < rows; row++) {
       const yPos = startY + (row * (deskHeight + verticalGap));
       
-      // Check if this row fits
       if (yPos + deskHeight > CANVAS_HEIGHT - SAFE_MARGIN) {
         console.warn(`Row ${row} would exceed canvas bounds, stopping`);
         break;
       }
       
-      // Left group
       const leftGroupDeskIds: number[] = [];
       for (let i = 0; i < desksPerGroup; i++) {
         const deskId = baseId + (row * desksPerGroup * groupsPerRow) + i;
         const xPos = startX + (i * deskWidth);
         
-        // Double-check bounds
         if (xPos + deskWidth > CANVAS_WIDTH - SAFE_MARGIN) {
           console.warn(`Desk would exceed right bound at x=${xPos}, skipping`);
           break;
@@ -178,7 +167,6 @@ export const useSeatingPlan = () => {
         });
       }
 
-      // Right group
       const rightGroupDeskIds: number[] = [];
       const rightGroupStartX = startX + singleGroupWidth + horizontalGap;
       
@@ -186,7 +174,6 @@ export const useSeatingPlan = () => {
         const deskId = baseId + (row * desksPerGroup * groupsPerRow) + desksPerGroup + i;
         const xPos = rightGroupStartX + (i * deskWidth);
         
-        // Double-check bounds
         if (xPos + deskWidth > CANVAS_WIDTH - SAFE_MARGIN) {
           console.warn(`Right group desk would exceed bound at x=${xPos}, skipping`);
           break;
@@ -220,7 +207,6 @@ export const useSeatingPlan = () => {
     setDesks(newDesks);
     setGroups(newGroups);
     
-    // Center teacher desk at top with margin
     const teacherDeskWidth = 160;
     const teacherDeskHeight = 80;
     setTeacherDesk({ 
@@ -250,16 +236,39 @@ export const useSeatingPlan = () => {
     setGroups(prev => prev.filter(g => g.id !== groupId));
   }, [groups]);
 
-  // Furniture management with bounds checking
+  // Furniture management with PROPER centering
   const addFurniture = useCallback((template: FurnitureTemplate) => {
     const baseId = Date.now();
-    const centerX = CANVAS_WIDTH / 2;
-    const centerY = CANVAS_HEIGHT / 2;
     
-    const newDesks = template.desks.map((desk, index) => {
-      // Calculate position relative to center
-      let x = centerX + desk.x;
-      let y = centerY + desk.y;
+    // Calculate the bounding box of the template
+    const templateDesks = template.desks;
+    if (templateDesks.length === 0) return;
+    
+    // Find the bounds of the template
+    const minTemplateX = Math.min(...templateDesks.map(d => d.x));
+    const maxTemplateX = Math.max(...templateDesks.map(d => d.x + d.width));
+    const minTemplateY = Math.min(...templateDesks.map(d => d.y));
+    const maxTemplateY = Math.max(...templateDesks.map(d => d.y + d.height));
+    
+    const templateWidth = maxTemplateX - minTemplateX;
+    const templateHeight = maxTemplateY - minTemplateY;
+    
+    // Calculate where to place the template so it's centered on canvas
+    const canvasCenterX = CANVAS_WIDTH / 2;
+    const canvasCenterY = CANVAS_HEIGHT / 2;
+    
+    // This is the top-left corner of the template's bounding box, positioned to center it
+    const templateOriginX = canvasCenterX - (templateWidth / 2);
+    const templateOriginY = canvasCenterY - (templateHeight / 2);
+    
+    // Offset to align the template's local origin with the canvas position
+    const offsetX = templateOriginX - minTemplateX;
+    const offsetY = templateOriginY - minTemplateY;
+    
+    const newDesks = templateDesks.map((desk, index) => {
+      // Position the desk by applying the offset
+      let x = desk.x + offsetX;
+      let y = desk.y + offsetY;
       
       // Constrain to canvas bounds with margin
       x = Math.max(SAFE_MARGIN, Math.min(x, CANVAS_WIDTH - desk.width - SAFE_MARGIN));
