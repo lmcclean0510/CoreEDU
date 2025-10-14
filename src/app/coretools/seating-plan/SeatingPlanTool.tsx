@@ -1,11 +1,10 @@
-
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Grid3X3, Shuffle, RotateCcw, CheckCircle, Download, EyeOff } from 'lucide-react';
+import { Grid3X3, Shuffle, RotateCcw, CheckCircle, Download, EyeOff, ZoomIn, ZoomOut, Maximize2, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DndContext,
@@ -28,47 +27,24 @@ import RulesPanel from './components/RulesPanel';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
-
 // Hooks
 import { useSeatingPlan } from './hooks/useSeatingPlan';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useStudentAssignment } from './hooks/useStudentAssignment';
 import { useExport } from './hooks/useExport';
 
-// New hook for handling resizing
-const useResponsiveScaling = (containerRef: React.RefObject<HTMLDivElement>) => {
-    const [scale, setScale] = useState(1);
-
-    const updateScale = useCallback(() => {
-        if (containerRef.current) {
-            const containerWidth = containerRef.current.offsetWidth;
-            const contentWidth = 1403; // The fixed width of your content
-            if (containerWidth < contentWidth) {
-                setScale(containerWidth / contentWidth);
-            } else {
-                setScale(1);
-            }
-        }
-    }, [containerRef]);
-
-    useEffect(() => {
-        updateScale();
-        window.addEventListener('resize', updateScale);
-        return () => window.removeEventListener('resize', updateScale);
-    }, [updateScale]);
-
-    return scale;
-};
-
+const CANVAS_WIDTH = 1403;
+const CANVAS_HEIGHT = 1003;
 
 const SeatingPlanTool = () => {
   const [isClient, setIsClient] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   
-  const responsiveContainerRef = useRef<HTMLDivElement>(null);
-  const scale = useResponsiveScaling(responsiveContainerRef);
-
+  // Zoom state
+  const [zoom, setZoom] = useState(1);
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
   const {
     // State
@@ -134,9 +110,23 @@ const SeatingPlanTool = () => {
     furnitureTemplates,
   } = useSeatingPlan();
 
-  const { handleDragEnd, handleDeskOrderDragEnd, handleAutoAlign } = useDragAndDrop(scale);
+  const { handleDragEnd, handleDeskOrderDragEnd, handleAutoAlign } = useDragAndDrop(zoom);
   const { isLoading: isAssigning, autoAssignStudents, clearAssignments } = useStudentAssignment();
   const { isExporting, handleExport } = useExport(containerRef);
+
+  // Auto-fit zoom on mount and when panel collapses
+  useEffect(() => {
+    if (canvasContainerRef.current) {
+      const containerWidth = canvasContainerRef.current.offsetWidth;
+      const containerHeight = canvasContainerRef.current.offsetHeight;
+      
+      const scaleX = (containerWidth - 32) / CANVAS_WIDTH; // 32px for padding
+      const scaleY = (containerHeight - 32) / CANVAS_HEIGHT;
+      const fitScale = Math.min(scaleX, scaleY, 1); // Don't zoom in beyond 100%
+      
+      setZoom(fitScale);
+    }
+  }, [isPanelCollapsed]);
 
   useEffect(() => {
     setIsClient(true);
@@ -149,6 +139,28 @@ const SeatingPlanTool = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Zoom controls
+  const handleZoomIn = useCallback(() => {
+    setZoom(prev => Math.min(prev + 0.1, 2));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoom(prev => Math.max(prev - 0.1, 0.3));
+  }, []);
+
+  const handleFitToScreen = useCallback(() => {
+    if (canvasContainerRef.current) {
+      const containerWidth = canvasContainerRef.current.offsetWidth;
+      const containerHeight = canvasContainerRef.current.offsetHeight;
+      
+      const scaleX = (containerWidth - 32) / CANVAS_WIDTH;
+      const scaleY = (containerHeight - 32) / CANVAS_HEIGHT;
+      const fitScale = Math.min(scaleX, scaleY, 1);
+      
+      setZoom(fitScale);
+    }
+  }, []);
 
   const handleAutoAssign = useCallback(() => {
     autoAssignStudents(
@@ -208,7 +220,7 @@ const SeatingPlanTool = () => {
   }, [setHoveredGroupId]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="h-[calc(100vh-57px)] flex flex-col">
       <style jsx global>{`
           .export-bw .desk-bw, .export-bw .teacher-desk-bw {
             background-color: white !important;
@@ -220,243 +232,296 @@ const SeatingPlanTool = () => {
             background-color: black !important;
           }
       `}</style>
-      <div className="w-full py-8 px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4 border border-primary/20">
-            <Grid3X3 className="h-4 w-4" />
-            Teacher Tools
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Collapsible */}
+        {!isPanelCollapsed && (
+          <div className="w-80 border-r bg-card flex-shrink-0 overflow-y-auto">
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Classroom Builder</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsPanelCollapsed(true)}
+                  title="Collapse panel"
+                >
+                  <PanelLeftClose className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <Tabs defaultValue="layout" className="w-full" onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="layout">Layout</TabsTrigger>
+                  <TabsTrigger value="students">Students</TabsTrigger>
+                  <TabsTrigger value="rules">Rules</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="layout" className="space-y-4">
+                  <LayoutPanel
+                    groups={groups}
+                    desks={desks}
+                    furnitureTemplates={furnitureTemplates}
+                    isGridVisible={isGridVisible}
+                    isWhiteBackground={isWhiteBackground}
+                    isBlackAndWhite={isBlackAndWhite}
+                    isPresetDialogOpen={isPresetDialogOpen}
+                    dndSensors={dndSensors}
+                    onAddFurniture={addFurniture}
+                    onLoadPreset={loadComputerRoomPreset}
+                    onRenameGroup={handleRenameGroup}
+                    onAutoRenumber={autoRenumberDesks}
+                    onAutoAlign={onAutoAlign}
+                    onDeskOrderDragEnd={onDeskOrderDragEnd}
+                    setIsGridVisible={setIsGridVisible}
+                    setIsWhiteBackground={setIsWhiteBackground}
+                    setIsBlackAndWhite={setIsBlackAndWhite}
+                    setIsPresetDialogOpen={setIsPresetDialogOpen}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="students" className="space-y-4">
+                  <StudentsPanel
+                    students={students}
+                    studentInput={studentInput}
+                    isLoading={isAssigning}
+                    fileInputRef={fileInputRef}
+                    onStudentInputChange={setStudentInput}
+                    onParseStudents={parseStudents}
+                    onFileUpload={handleFileUpload}
+                    onRemoveStudent={removeStudent}
+                    onUpdateStudentGender={updateStudentGender}
+                    onUpdateStudentSEND={updateStudentSEND}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="rules" className="space-y-4">
+                  <RulesPanel
+                    desks={desks}
+                    separationRules={separationRules}
+                    doNotUseDeskIds={doNotUseDeskIds}
+                    fillFromFront={fillFromFront}
+                    alternateGender={alternateGender}
+                    newRuleStudents={newRuleStudents}
+                    onFillFromFrontChange={setFillFromFront}
+                    onAlternateGenderChange={setAlternateGender}
+                    onNewRuleStudentsChange={setNewRuleStudents}
+                    onAddSeparationRule={addSeparationRule}
+                    onRemoveSeparationRule={removeSeparationRule}
+                    onToggleDoNotUseDesk={handleToggleDoNotUseDesk}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              {/* Stats Card */}
+              <StatsCard stats={stats} unassignedStudentCount={unassignedStudentCount} />
+            </div>
           </div>
-          
-          <h1 className="text-4xl font-bold tracking-tighter text-foreground mb-2">
-            <span className="text-foreground">Core</span>
-            <span className="text-primary">TOOLS</span>
-            <span className="text-muted-foreground text-2xl font-normal ml-2">Seating Plan Generator</span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Create optimized classroom seating arrangements with intelligent conflict resolution and flexible layouts.
-          </p>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Control Panel */}
-          <div className="lg:col-span-1 space-y-4">
-            <Tabs defaultValue="layout" className="w-full" onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="layout">Layout</TabsTrigger>
-                <TabsTrigger value="students">Students</TabsTrigger>
-                <TabsTrigger value="rules">Rules</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="layout" className="space-y-4">
-                <LayoutPanel
-                  groups={groups}
-                  desks={desks}
-                  furnitureTemplates={furnitureTemplates}
-                  isGridVisible={isGridVisible}
-                  isWhiteBackground={isWhiteBackground}
-                  isBlackAndWhite={isBlackAndWhite}
-                  isPresetDialogOpen={isPresetDialogOpen}
-                  dndSensors={dndSensors}
-                  onAddFurniture={addFurniture}
-                  onLoadPreset={loadComputerRoomPreset}
-                  onRenameGroup={handleRenameGroup}
-                  onAutoRenumber={autoRenumberDesks}
-                  onAutoAlign={onAutoAlign}
-                  onDeskOrderDragEnd={onDeskOrderDragEnd}
-                  setIsGridVisible={setIsGridVisible}
-                  setIsWhiteBackground={setIsWhiteBackground}
-                  setIsBlackAndWhite={setIsBlackAndWhite}
-                  setIsPresetDialogOpen={setIsPresetDialogOpen}
-                />
-              </TabsContent>
-              
-              <TabsContent value="students" className="space-y-4">
-                <StudentsPanel
-                  students={students}
-                  studentInput={studentInput}
-                  isLoading={isAssigning}
-                  fileInputRef={fileInputRef}
-                  onStudentInputChange={setStudentInput}
-                  onParseStudents={parseStudents}
-                  onFileUpload={handleFileUpload}
-                  onRemoveStudent={removeStudent}
-                  onUpdateStudentGender={updateStudentGender}
-                  onUpdateStudentSEND={updateStudentSEND}
-                />
-              </TabsContent>
-              
-              <TabsContent value="rules" className="space-y-4">
-                <RulesPanel
-                  desks={desks}
-                  separationRules={separationRules}
-                  doNotUseDeskIds={doNotUseDeskIds}
-                  fillFromFront={fillFromFront}
-                  alternateGender={alternateGender}
-                  newRuleStudents={newRuleStudents}
-                  onFillFromFrontChange={setFillFromFront}
-                  onAlternateGenderChange={setAlternateGender}
-                  onNewRuleStudentsChange={setNewRuleStudents}
-                  onAddSeparationRule={addSeparationRule}
-                  onRemoveSeparationRule={removeSeparationRule}
-                  onToggleDoNotUseDesk={handleToggleDoNotUseDesk}
-                />
-              </TabsContent>
-            </Tabs>
-
-            {/* Stats Card */}
-            <StatsCard stats={stats} unassignedStudentCount={unassignedStudentCount} />
-          </div>
-
-          {/* Main Layout Area */}
-          <div className="lg:col-span-3">
-            {isClient && (
-              <DndContext onDragEnd={onDragEnd} sensors={dndSensors}>
-                <Card className="overflow-hidden">
-                  <CardHeader>
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <CardTitle className="text-xl">Classroom Layout</CardTitle>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button 
-                          onClick={handleAutoAssign} 
-                          size="sm"
-                          disabled={isAssigning || students.length === 0 || desks.length === 0}
-                        >
-                          {isAssigning ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                          ) : (
-                            <Shuffle className="w-4 h-4 mr-2" />
-                          )}
-                          Auto Assign
-                        </Button>
-                        <Button 
-                          onClick={handleClearAssignments} 
-                          variant="outline" 
-                          size="sm"
-                          disabled={isAssigning}
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Clear All
-                        </Button>
+        {/* Main Canvas Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {isClient && (
+            <DndContext onDragEnd={onDragEnd} sensors={dndSensors}>
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Top Controls */}
+                <div className="border-b bg-card px-4 py-3 flex-shrink-0">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      {isPanelCollapsed && (
                         <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onExport}
-                            disabled={isExporting}
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setIsPanelCollapsed(false)}
+                          title="Show panel"
                         >
-                            <Download className="w-4 h-4 mr-2" />
-                            {isExporting ? 'Exporting...' : 'Export as Image'}
+                          <PanelLeft className="w-4 h-4" />
                         </Button>
-                        <div className="flex items-center space-x-2 border-l pl-2 ml-2">
-                          <Switch
-                            id="show-indicators-toggle"
-                            checked={areIndicatorsVisible}
-                            onCheckedChange={setAreIndicatorsVisible}
-                          />
-                          <Label htmlFor="show-indicators-toggle" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
-                            <EyeOff className="w-4 h-4" />
-                            Show Indicators
-                          </Label>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center gap-1">
-                          <CheckCircle className="w-4 h-4 text-success" />
-                          <span>{stats.assignedDesks} assigned</span>
-                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span className="font-medium">{stats.assignedDesks} assigned</span>
                         <span>•</span>
                         <span>{stats.totalDesks} total desks</span>
                       </div>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <div ref={responsiveContainerRef} className="w-full">
-                        <div
-                          ref={containerRef}
-                          className={cn(
-                            "relative border-2 border-dashed border-muted-foreground/30 overflow-hidden rounded-lg mx-auto",
-                            isBlackAndWhite && 'export-bw',
-                            isWhiteBackground ? 'bg-white' : 'bg-gradient-to-br from-background via-muted/10 to-muted/20'
-                          )}
-                           style={{
-                                width: '1403px',
-                                height: '1003px',
-                                transform: `scale(${scale})`,
-                                transformOrigin: 'top left',
-                           }}
-                          onMouseLeave={handleMouseLeave}
-                        >
-                          {/* Grid pattern */}
-                          {isGridVisible && (
-                            <div
-                              className="export-grid-bg absolute inset-0 opacity-60"
-                              style={{
-                                backgroundImage: `
-                                  linear-gradient(to right, hsl(var(--primary) / 0.5) 1px, transparent 1px),
-                                  linear-gradient(to bottom, hsl(var(--primary) / 0.5) 1px, transparent 1px)
-                                `,
-                                backgroundSize: '40px 40px'
-                              }}
-                            />
-                          )}
-                          
-                          {/* Teacher's desk */}
-                          <DraggableTeacherDesk {...teacherDesk} isLayoutMode={activeTab === 'layout'} />
-                          
-                          {/* Student desks */}
-                          <div onMouseOver={handleMouseOver}>
-                              {desksWithGroups.map((desk, index) => (
-                                 <div key={desk.id} data-desk-id={desk.id}>
-                                    <DraggableItem
-                                       desk={desk} 
-                                       deskIndex={index}
-                                       group={desk.group}
-                                       unassignedStudents={unassignedStudents}
-                                       onRemove={() => removeDesk(desk.id)}
-                                       onToggleExclude={() => handleToggleDoNotUseDesk(desk.id)}
-                                       onManualAssign={handleManualAssign}
-                                       isLayoutMode={activeTab === 'layout'}
-                                       isRulesMode={activeTab === 'rules'}
-                                       isExcluded={doNotUseDeskIds.has(desk.id)}
-                                       areIndicatorsVisible={areIndicatorsVisible}
-                                     />
-                                 </div>
-                              ))}
-                          </div>
-
-                          {/* Group Controls */}
-                          {groupLayouts.map((group) => (
-                            <GroupControl
-                              key={`control-${group!.id}`}
-                              group={group!}
-                              isVisible={hoveredGroupId === group!.id}
-                              onRename={handleRenameGroup}
-                              onSetColor={handleSetGroupColor}
-                              onDelete={handleDeleteGroup}
-                            />
-                          ))}
-                          
-                          {/* Empty state */}
-                          {desks.length === 0 && (
-                            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                              <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto">
-                                  <Grid3X3 className="w-8 h-8 opacity-50" />
-                                </div>
-                                <p className="text-lg font-medium">Empty Classroom</p>
-                                <p className="text-sm max-w-xs">
-                                  Add furniture from the Layout tab or pick a preset to get started building your classroom.
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </DndContext>
-            )}
-          </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Zoom Controls */}
+                      <div className="flex items-center gap-1 border-r pr-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleZoomOut}
+                          disabled={zoom <= 0.3}
+                          title="Zoom out"
+                        >
+                          <ZoomOut className="w-4 h-4" />
+                        </Button>
+                        <span className="text-xs font-medium px-2 min-w-[3rem] text-center">
+                          {Math.round(zoom * 100)}%
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleZoomIn}
+                          disabled={zoom >= 2}
+                          title="Zoom in"
+                        >
+                          <ZoomIn className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleFitToScreen}
+                          title="Fit to screen"
+                        >
+                          <Maximize2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <Button 
+                        onClick={handleAutoAssign} 
+                        size="sm"
+                        disabled={isAssigning || students.length === 0 || desks.length === 0}
+                      >
+                        {isAssigning ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        ) : (
+                          <Shuffle className="w-4 h-4 mr-2" />
+                        )}
+                        Auto Assign
+                      </Button>
+                      
+                      <Button 
+                        onClick={handleClearAssignments} 
+                        variant="outline" 
+                        size="sm"
+                        disabled={isAssigning}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Clear All
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onExport}
+                        disabled={isExporting}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        {isExporting ? 'Exporting...' : 'Export as Image'}
+                      </Button>
+
+                      <div className="flex items-center space-x-2 border-l pl-2">
+                        <Switch
+                          id="show-indicators-toggle"
+                          checked={areIndicatorsVisible}
+                          onCheckedChange={setAreIndicatorsVisible}
+                        />
+                        <Label htmlFor="show-indicators-toggle" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                          <EyeOff className="w-4 h-4" />
+                          Show Indicators
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Canvas */}
+                <div 
+                  ref={canvasContainerRef}
+                  className="flex-1 overflow-auto p-4 bg-muted/30"
+                >
+                  <div className="flex items-center justify-center min-h-full">
+                    <div
+                      ref={containerRef}
+                      className={cn(
+                        "relative border-2 border-dashed border-muted-foreground/30 rounded-lg",
+                        isBlackAndWhite && 'export-bw',
+                        isWhiteBackground ? 'bg-white' : 'bg-gradient-to-br from-background via-muted/10 to-muted/20'
+                      )}
+                      style={{
+                        width: `${CANVAS_WIDTH}px`,
+                        height: `${CANVAS_HEIGHT}px`,
+                        transform: `scale(${zoom})`,
+                        transformOrigin: 'center',
+                        transition: 'transform 0.2s ease-out',
+                      }}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      {/* Grid pattern */}
+                      {isGridVisible && (
+                        <div
+                          className="export-grid-bg absolute inset-0 opacity-60"
+                          style={{
+                            backgroundImage: `
+                              linear-gradient(to right, hsl(var(--primary) / 0.5) 1px, transparent 1px),
+                              linear-gradient(to bottom, hsl(var(--primary) / 0.5) 1px, transparent 1px)
+                            `,
+                            backgroundSize: '40px 40px'
+                          }}
+                        />
+                      )}
+                      
+                      {/* Teacher's desk */}
+                      <DraggableTeacherDesk {...teacherDesk} isLayoutMode={activeTab === 'layout'} />
+                      
+                      {/* Student desks */}
+                      <div onMouseOver={handleMouseOver}>
+                        {desksWithGroups.map((desk, index) => (
+                          <div key={desk.id} data-desk-id={desk.id}>
+                            <DraggableItem
+                              desk={desk} 
+                              deskIndex={index}
+                              group={desk.group}
+                              unassignedStudents={unassignedStudents}
+                              onRemove={() => removeDesk(desk.id)}
+                              onToggleExclude={() => handleToggleDoNotUseDesk(desk.id)}
+                              onManualAssign={handleManualAssign}
+                              isLayoutMode={activeTab === 'layout'}
+                              isRulesMode={activeTab === 'rules'}
+                              isExcluded={doNotUseDeskIds.has(desk.id)}
+                              areIndicatorsVisible={areIndicatorsVisible}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Group Controls */}
+                      {groupLayouts.map((group) => (
+                        <GroupControl
+                          key={`control-${group!.id}`}
+                          group={group!}
+                          isVisible={hoveredGroupId === group!.id}
+                          onRename={handleRenameGroup}
+                          onSetColor={handleSetGroupColor}
+                          onDelete={handleDeleteGroup}
+                        />
+                      ))}
+                      
+                      {/* Empty state */}
+                      {desks.length === 0 && (
+                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                          <div className="text-center space-y-4">
+                            <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto">
+                              <Grid3X3 className="w-8 h-8 opacity-50" />
+                            </div>
+                            <p className="text-lg font-medium">Empty Classroom</p>
+                            <p className="text-sm max-w-xs">
+                              Add furniture from the Layout tab or pick a preset to get started.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DndContext>
+          )}
         </div>
       </div>
     </div>
