@@ -14,6 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { JoinClassDialog } from '@/components/dashboard/student/JoinClassDialog';
 import { DueDateBadge } from '@/components/shared/DueDateBadge';
 import { useSubscriptionManager } from '@/lib/utils/subscription-manager';
+import { ActivityCard, ContentSection } from '@/components/shared/content';
 
 type EnrichedHomework = {
   assignment: HomeworkAssignment;
@@ -176,63 +177,38 @@ export default function StudentDashboardPage() {
     );
   }
 
-  // Quick access cards
-  const quickAccessCards = [
-    {
-      title: 'CoreCS',
-      description: 'Practice Python & algorithms',
-      icon: BookOpen,
-      href: '/corecs',
-      color: 'bg-blue-500',
-    },
-    {
-      title: 'CoreLabs',
-      description: 'Play educational games',
-      icon: Trophy,
-      href: '/corelabs',
-      color: 'bg-purple-500',
-    },
-  ];
-
   return (
-    <div className="space-y-6">
-      {/* Quick Access Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setIsJoinClassOpen(true)}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Join a Class</CardTitle>
-                <CardDescription>Enter a class code</CardDescription>
-              </div>
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <UserPlus className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-
-        {quickAccessCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Link key={card.href} href={card.href}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{card.title}</CardTitle>
-                      <CardDescription>{card.description}</CardDescription>
-                    </div>
-                    <div className={`w-12 h-12 ${card.color}/10 rounded-lg flex items-center justify-center`}>
-                      <Icon className={`h-6 w-6 text-${card.color}`} />
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
-          );
-        })}
-      </div>
+    <div className="space-y-8">
+      {/* Quick Access Section */}
+      <ContentSection 
+        title="Quick Access"
+        description="Jump into learning or join a class"
+      >
+        <div onClick={() => setIsJoinClassOpen(true)} className="cursor-pointer">
+          <ActivityCard
+            title="Join a Class"
+            description="Enter a class code to join your teacher's class"
+            href="#"
+            icon={UserPlus}
+            badge="Available"
+            badgeVariant="default"
+          />
+        </div>
+        <ActivityCard
+          title="CoreCS"
+          description="Practice Python & algorithms"
+          href="/corecs"
+          icon={BookOpen}
+          badge="Popular"
+          badgeVariant="default"
+        />
+        <ActivityCard
+          title="CoreLabs"
+          description="Play educational games"
+          href="/corelabs"
+          icon={Trophy}
+        />
+      </ContentSection>
 
       {/* Homework Section */}
       <Card>

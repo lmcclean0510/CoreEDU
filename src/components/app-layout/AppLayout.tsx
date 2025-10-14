@@ -10,7 +10,7 @@ interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-// Pages that should NOT use the app layout (public pages, auth pages, games)
+// Pages that should NOT use the app layout (public pages, auth pages)
 const excludedPaths = [
   '/',
   '/login',
@@ -19,23 +19,13 @@ const excludedPaths = [
   '/terms',
 ];
 
-// Game pages that need full screen
-const fullScreenPaths = [
-  '/corelabs/binary-game',
-  '/corelabs/denary-game',
-  '/corelabs/keyboard-ninja',
-  '/corelabs/mouse-skills',
-];
-
 export function AppLayout({ children }: AppLayoutProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
   // Check if current path should use app layout
-  const shouldUseAppLayout = isAuthenticated && 
-    !excludedPaths.includes(pathname) &&
-    !fullScreenPaths.some(path => pathname.startsWith(path));
+  const shouldUseAppLayout = isAuthenticated && !excludedPaths.includes(pathname);
 
   // Redirect unauthenticated users trying to access protected pages
   useEffect(() => {
@@ -56,7 +46,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     );
   }
 
-  // Don't use app layout for excluded or full-screen pages
+  // Don't use app layout for excluded pages
   if (!shouldUseAppLayout) {
     return <>{children}</>;
   }
