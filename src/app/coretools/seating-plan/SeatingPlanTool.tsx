@@ -209,6 +209,13 @@ const SeatingPlanTool = () => {
   const onExport = useCallback(() => {
     handleExport(isGridVisible, isWhiteBackground, setIsGridVisible);
   }, [handleExport, isGridVisible, isWhiteBackground, setIsGridVisible]);
+  const getCanvasSize = useCallback(() => {
+    const el = containerRef.current;
+    return {
+      width: el?.offsetWidth ?? CANVAS_WIDTH,
+      height: el?.offsetHeight ?? CANVAS_HEIGHT,
+    };
+  }, [containerRef]);
 
   // Memoized mouse handlers
   const handleMouseOver = useCallback((e: React.MouseEvent) => {
@@ -225,9 +232,9 @@ const SeatingPlanTool = () => {
   }, [setHoveredGroupId]);
 
   const handleAddFurniture = useCallback((template: any) => {
-    addFurniture(template);
+    addFurniture(template, getCanvasSize());
     setFurniturePopoverOpen(false);
-  }, [addFurniture]);
+  }, [addFurniture, getCanvasSize]);
 
   return (
     <div className="flex h-[calc(100vh-57px)] flex-col bg-muted/10">
@@ -642,7 +649,7 @@ const SeatingPlanTool = () => {
                   <Button
                     variant="outline"
                     className="w-full justify-start h-auto py-4"
-                    onClick={loadComputerRoomPreset}
+                    onClick={() => loadComputerRoomPreset(getCanvasSize())}
                   >
                     <div className="text-left">
                       <div className="font-semibold">Computer Room</div>

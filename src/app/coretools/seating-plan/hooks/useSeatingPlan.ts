@@ -8,6 +8,8 @@ const CANVAS_WIDTH = 1403;
 const CANVAS_HEIGHT = 1003;
 const SAFE_MARGIN = 60;
 
+type CanvasSize = { width: number; height: number };
+
 export const useSeatingPlan = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -100,13 +102,15 @@ export const useSeatingPlan = () => {
   }, [groups, desks]);
 
   // Preset loading with proper bounds - FIT WITHIN ACTUAL USABLE SPACE
-  const loadComputerRoomPreset = useCallback(() => {
+  const loadComputerRoomPreset = useCallback((canvasSize?: CanvasSize) => {
+    const width = canvasSize?.width ?? CANVAS_WIDTH;
+    const height = canvasSize?.height ?? CANVAS_HEIGHT;
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
     const baseId = Date.now();
     
-    const usableWidth = CANVAS_WIDTH - (SAFE_MARGIN * 2);
-    const usableHeight = CANVAS_HEIGHT - (SAFE_MARGIN * 2);
+    const usableWidth = width - (SAFE_MARGIN * 2);
+    const usableHeight = height - (SAFE_MARGIN * 2);
     
     const deskWidth = 120;
     const deskHeight = 80;
@@ -120,18 +124,21 @@ export const useSeatingPlan = () => {
     const singleGroupWidth = desksPerGroup * deskWidth;
     const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap;
     
-    const startX = SAFE_MARGIN + ((usableWidth - totalContentWidth) / 2);
-    const startY = 180;
-    
-    if (totalContentWidth > usableWidth) {
+    if (totalContentWidth > width - (SAFE_MARGIN * 2)) {
       console.error('Preset too wide for canvas!');
       return;
     }
 
+    const startX = Math.max(SAFE_MARGIN, (width - totalContentWidth) / 2);
+
+    const totalContentHeight = (rows * deskHeight) + ((rows - 1) * verticalGap);
+    const centeredStartY = (height - totalContentHeight) / 2;
+    const startY = Math.max(SAFE_MARGIN + 120, centeredStartY);
+
     for (let row = 0; row < rows; row++) {
       const yPos = startY + (row * (deskHeight + verticalGap));
       
-      if (yPos + deskHeight > CANVAS_HEIGHT - SAFE_MARGIN) {
+      if (yPos + deskHeight > height - SAFE_MARGIN) {
         console.warn(`Row ${row} would exceed canvas bounds, stopping`);
         break;
       }
@@ -141,7 +148,7 @@ export const useSeatingPlan = () => {
         const deskId = baseId + (row * desksPerGroup * groupsPerRow) + i;
         const xPos = startX + (i * deskWidth);
         
-        if (xPos + deskWidth > CANVAS_WIDTH - SAFE_MARGIN) {
+        if (xPos + deskWidth > width - SAFE_MARGIN) {
           console.warn(`Desk would exceed right bound at x=${xPos}, skipping`);
           break;
         }
@@ -174,7 +181,7 @@ export const useSeatingPlan = () => {
         const deskId = baseId + (row * desksPerGroup * groupsPerRow) + desksPerGroup + i;
         const xPos = rightGroupStartX + (i * deskWidth);
         
-        if (xPos + deskWidth > CANVAS_WIDTH - SAFE_MARGIN) {
+        if (xPos + deskWidth > width - SAFE_MARGIN) {
           console.warn(`Right group desk would exceed bound at x=${xPos}, skipping`);
           break;
         }
@@ -209,9 +216,11 @@ export const useSeatingPlan = () => {
     
     const teacherDeskWidth = 160;
     const teacherDeskHeight = 80;
+    const teacherDeskY = Math.max(SAFE_MARGIN, startY - teacherDeskHeight - verticalGap);
+
     setTeacherDesk({ 
-      x: (CANVAS_WIDTH - teacherDeskWidth) / 2, 
-      y: SAFE_MARGIN, 
+      x: (width - teacherDeskWidth) / 2, 
+      y: teacherDeskY, 
       width: teacherDeskWidth, 
       height: teacherDeskHeight 
     });
@@ -237,8 +246,10 @@ export const useSeatingPlan = () => {
   }, [groups]);
 
   // Furniture management with PROPER centering
-  const addFurniture = useCallback((template: FurnitureTemplate) => {
+  const addFurniture = useCallback((template: FurnitureTemplate, canvasSize?: CanvasSize) => {
     const baseId = Date.now();
+    const width = canvasSize?.width ?? CANVAS_WIDTH;
+    const height = canvasSize?.height ?? CANVAS_HEIGHT;
     
     // Calculate the bounding box of the template
     const templateDesks = template.desks;
@@ -254,8 +265,8 @@ export const useSeatingPlan = () => {
     const templateHeight = maxTemplateY - minTemplateY;
     
     // Calculate where to place the template so it's centered on canvas
-    const canvasCenterX = CANVAS_WIDTH / 2;
-    const canvasCenterY = CANVAS_HEIGHT / 2;
+    const canvasCenterX = width / 2;
+    const canvasCenterY = height / 2;
     
     // This is the top-left corner of the template's bounding box, positioned to center it
     const templateOriginX = canvasCenterX - (templateWidth / 2);
@@ -271,8 +282,8 @@ export const useSeatingPlan = () => {
       let y = desk.y + offsetY;
       
       // Constrain to canvas bounds with margin
-      x = Math.max(SAFE_MARGIN, Math.min(x, CANVAS_WIDTH - desk.width - SAFE_MARGIN));
-      y = Math.max(SAFE_MARGIN, Math.min(y, CANVAS_HEIGHT - desk.height - SAFE_MARGIN));
+      x = Math.max(SAFE_MARGIN, Math.min(x, width - desk.width - SAFE_MARGIN));
+      y = Math.max(SAFE_MARGIN, Math.min(y, height - desk.height - SAFE_MARGIN));
       
       return {
         id: baseId + index,
