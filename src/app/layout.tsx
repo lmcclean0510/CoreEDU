@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter, Lexend } from 'next/font/google';
 import { cn } from '@/lib/utils';
-import { MainLayout } from '@/components/layout/main-layout';
+import { AppLayout } from '@/components/app-layout/AppLayout';
 import { UserProvider } from '@/providers/UserProvider';
 import { FirestoreMonitorProvider } from '@/providers/FirestoreMonitorProvider';
 
@@ -30,10 +30,10 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={cn("h-full", inter.variable, lexend.variable)}>
-      <body className="font-body antialiased flex flex-col h-full">
+      <body className="font-body antialiased h-full">
         <UserProvider>
           <FirestoreMonitorProvider>
-            <MainLayout>{children}</MainLayout>
+            <AppLayout>{children}</AppLayout>
           </FirestoreMonitorProvider>
         </UserProvider>
         <Toaster />

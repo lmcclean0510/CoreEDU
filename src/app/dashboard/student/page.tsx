@@ -5,7 +5,7 @@ import { useAuth } from '@/providers/UserProvider';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import type { HomeworkAssignment, StudentHomework, ClassInfo } from '@/lib/types';
-import { LoaderCircle, ClipboardCheck, CheckCircle, UserPlus } from 'lucide-react';
+import { LoaderCircle, ClipboardCheck, CheckCircle, UserPlus, BookOpen, Trophy } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -125,7 +125,7 @@ export default function StudentDashboardPage() {
               studentData: sh,
               classInfo: classInfos[sh.classId],
             }))
-            .filter(item => item.assignment && item.classInfo) // This filters out deleted homework
+            .filter(item => item.assignment && item.classInfo)
             .sort((a, b) => b.assignment.createdAt.seconds - a.assignment.createdAt.seconds);
 
           console.log(`✅ Updated homework list: ${enrichedData.length} assignments`);
@@ -176,30 +176,78 @@ export default function StudentDashboardPage() {
     );
   }
 
+  // Quick access cards
+  const quickAccessCards = [
+    {
+      title: 'CoreCS',
+      description: 'Practice Python & algorithms',
+      icon: BookOpen,
+      href: '/corecs',
+      color: 'bg-blue-500',
+    },
+    {
+      title: 'CoreLabs',
+      description: 'Play educational games',
+      icon: Trophy,
+      href: '/corelabs',
+      color: 'bg-purple-500',
+    },
+  ];
+
   return (
-    <div className="container mx-auto max-w-4xl py-8 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold tracking-tighter text-foreground">Student Dashboard</h1>
-        <JoinClassDialog 
-          isOpen={isJoinClassOpen} 
-          onOpenChange={setIsJoinClassOpen} 
-          triggerButton={
-            <Button variant="outline">
-              <UserPlus className="mr-2" /> Join a Class
-            </Button>
-          } 
-        />
+    <div className="space-y-6">
+      {/* Quick Access Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setIsJoinClassOpen(true)}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Join a Class</CardTitle>
+                <CardDescription>Enter a class code</CardDescription>
+              </div>
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <UserPlus className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {quickAccessCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Link key={card.href} href={card.href}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{card.title}</CardTitle>
+                      <CardDescription>{card.description}</CardDescription>
+                    </div>
+                    <div className={`w-12 h-12 ${card.color}/10 rounded-lg flex items-center justify-center`}>
+                      <Icon className={`h-6 w-6 text-${card.color}`} />
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
 
+      {/* Homework Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <ClipboardCheck className="text-primary"/>
-            Your Homework
-          </CardTitle>
-          <CardDescription>
-            Here are the tasks assigned to you by your teachers.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-3">
+                <ClipboardCheck className="text-primary"/>
+                Your Homework
+              </CardTitle>
+              <CardDescription>
+                Tasks assigned to you by your teachers
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {homeworks.length > 0 ? (
@@ -262,12 +310,20 @@ export default function StudentDashboardPage() {
               ))}
             </Accordion>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">You have no assigned homework. Great job!</p>
+            <div className="text-center py-12">
+              <ClipboardCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No homework assigned yet</p>
+              <p className="text-sm text-muted-foreground mt-2">Check back later or explore learning materials</p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Join Class Dialog */}
+      <JoinClassDialog 
+        isOpen={isJoinClassOpen} 
+        onOpenChange={setIsJoinClassOpen} 
+      />
     </div>
   );
 }
