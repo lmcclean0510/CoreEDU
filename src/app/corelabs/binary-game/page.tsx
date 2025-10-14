@@ -20,16 +20,15 @@ interface Block {
 const MAX_STACK_SIZE = 8;
 const INITIAL_SPEED_MS = 10000;
 const SPECIAL_BLOCK_DURATION_MS = 10000;
-const SPECIAL_BLOCK_COOLDOWN_MS = 60000; // 1 minute
+const SPECIAL_BLOCK_COOLDOWN_MS = 60000;
 
-// Helper to generate a random binary number
 const generateBinary = (level: number) => {
   const bitLength = Math.min(4 + Math.floor(level / 2), 8);
   let binary = '';
   for (let i = 0; i < bitLength; i++) {
     binary += Math.round(Math.random());
   }
-  return binary.padStart(8, '0'); // Pad to 8 bits
+  return binary.padStart(8, '0');
 };
 
 export default function BinaryGamePage() {
@@ -52,7 +51,6 @@ export default function BinaryGamePage() {
   const isGameActive = gameState === 'playing';
   const binaryPlaceValues = [128, 64, 32, 16, 8, 4, 2, 1];
 
-  // Save high score on game over
   useEffect(() => {
     if (gameState === 'gameOver' && user && score > 0) {
       const updateUserHighScore = async () => {
@@ -111,7 +109,6 @@ export default function BinaryGamePage() {
     });
   }, [level]);
 
-  // Special block timeout management
   useEffect(() => {
     const activeTimers = specialBlockTimersRef.current;
     
@@ -134,7 +131,6 @@ export default function BinaryGamePage() {
     }
   }, [stack]);
 
-  // Game loop management
   useEffect(() => {
     if (gameState !== 'playing') {
       clearAllTimers();
@@ -156,7 +152,6 @@ export default function BinaryGamePage() {
     };
   }, [gameState, gameSpeed, tick, stack.length]);
   
-  // Feedback timer
   useEffect(() => {
     if (feedback) {
       const timer = setTimeout(() => setFeedback(null), 300);
@@ -197,7 +192,6 @@ export default function BinaryGamePage() {
     setInputValue('');
   }, []);
 
-  // Auto-submit on correct answer
   useEffect(() => {
     if (gameState !== 'playing' || !inputValue.trim() || stack.length === 0) return;
 
@@ -340,21 +334,18 @@ export default function BinaryGamePage() {
     );
   }
 
-  // Fullscreen gameplay
+  // Game view (stays in app layout)
   return (
-    <GameContainer 
-      isActive={isGameActive}
-      onFullscreenExit={() => setGameState('gameOver')}
-    >
-      <div className="w-full h-full p-2 flex flex-col gap-2 bg-gradient-to-b from-gray-900 to-black text-white">
+    <GameContainer isPlaying={isGameActive}>
+      <div className="w-full h-full p-4 flex flex-col gap-4 bg-gradient-to-b from-gray-900 to-black text-white">
         {/* Game Info Header */}
-        <div className="flex justify-between items-center bg-gray-800/50 border border-gray-700 rounded-lg p-2 sm:p-3 backdrop-blur-sm">
+        <div className="flex justify-between items-center bg-gray-800/50 border border-gray-700 rounded-lg p-3 backdrop-blur-sm">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-lg sm:text-xl font-bold">
+            <div className="flex items-center gap-2 text-lg font-bold">
               <Trophy className="w-6 h-6 text-yellow-400" />
               <span className="font-mono">{score}</span>
             </div>
-            <div className="flex items-center gap-2 text-lg sm:text-xl font-bold">
+            <div className="flex items-center gap-2 text-lg font-bold">
               <Flame className="w-6 h-6 text-orange-500" />
               <span className="font-mono">{level}</span>
             </div>
@@ -369,7 +360,7 @@ export default function BinaryGamePage() {
                 className="text-red-500 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Use Bomb"
               >
-                <Bomb className="w-7 h-7 sm:w-8 sm:h-8" />
+                <Bomb className="w-8 h-8" />
               </Button>
               {bombs > 0 && (
                 <div className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
@@ -389,7 +380,6 @@ export default function BinaryGamePage() {
           "bg-black/50 border-4 rounded-lg overflow-hidden flex flex-col flex-grow transition-colors duration-300",
           isDanger ? 'border-red-500 animate-pulse-border' : 'border-gray-700'
         )}>
-          {/* Header for place values */}
           <div className="grid grid-cols-8 text-center p-2 border-b-2 border-gray-600">
             {binaryPlaceValues.map((val) => (
               <div key={val} className="font-mono font-bold text-cyan-400 text-xs sm:text-sm md:text-base">
@@ -398,7 +388,6 @@ export default function BinaryGamePage() {
             ))}
           </div>
           
-          {/* Game Area with stack */}
           <div className="relative flex-grow flex flex-col-reverse p-2 gap-2 overflow-hidden">
             <div
               className="absolute top-0 left-0 w-full bg-red-600/50 z-10 transition-all duration-300 ease-linear"
@@ -439,7 +428,6 @@ export default function BinaryGamePage() {
           />
         </form>
         
-        {/* Animations */}
         <style jsx>{`
           @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }

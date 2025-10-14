@@ -3,11 +3,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crosshair, Timer, Trophy, MousePointerClick, Gamepad2, Move, StopCircle, ChevronRight, Settings } from 'lucide-react';
+import { Crosshair, Timer, Trophy, MousePointerClick, Gamepad2, Move, StopCircle, ChevronRight } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { GameContainer } from '@/components/games/GameContainer';
 
@@ -49,7 +47,6 @@ export default function MouseSkillsPage() {
   const [trackingDifficulty, setTrackingDifficulty] = useState<'easy' | 'normal' | 'hard'>('easy');
   const [leftClickEnabled, setLeftClickEnabled] = useState(true);
   const [rightClickEnabled, setRightClickEnabled] = useState(false);
-  const [isFullscreenEnabled, setIsFullscreenEnabled] = useState(true);
   
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const movementTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -391,11 +388,11 @@ export default function MouseSkillsPage() {
   const accuracy = hits + misses > 0 ? ((hits / (hits + misses)) * 100).toFixed(1) : "0.0";
   const disableStart = gameMode !== 'follow' && !leftClickEnabled && !rightClickEnabled;
 
-  // Setup page - uses dashboard layout
+  // Setup page
   if (gameState === 'start') {
     return (
       <Card className="max-w-3xl mx-auto">
-        <CardHeader className="relative">
+        <CardHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
               <Crosshair className="w-6 h-6 text-primary" />
@@ -406,35 +403,6 @@ export default function MouseSkillsPage() {
                 Test and improve your mouse precision
               </CardDescription>
             </div>
-          </div>
-          <div className="absolute top-4 right-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Settings className="w-5 h-5" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Settings</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Configure how the game behaves
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border p-3">
-                    <Label htmlFor="fullscreen-toggle" className="font-medium cursor-pointer">
-                      Auto Fullscreen
-                    </Label>
-                    <Switch 
-                      id="fullscreen-toggle" 
-                      checked={isFullscreenEnabled} 
-                      onCheckedChange={setIsFullscreenEnabled} 
-                    />
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -597,16 +565,12 @@ export default function MouseSkillsPage() {
     );
   }
 
-  // Fullscreen gameplay
+  // Game view (stays in app layout now, no fullscreen)
   return (
-    <GameContainer 
-      isActive={isGameActive}
-      enableFullscreen={isFullscreenEnabled}
-      onFullscreenExit={() => setGameState('gameOver')}
-    >
-      <div className="w-full h-full p-2 flex flex-col gap-2">
+    <GameContainer isPlaying={isGameActive}>
+      <div className="w-full h-full p-4 flex flex-col gap-4">
         {/* Stats Bar */}
-        <div className="flex flex-wrap justify-between items-center gap-2 p-2 bg-card rounded-lg border">
+        <div className="flex flex-wrap justify-between items-center gap-2 p-3 bg-card rounded-lg border shadow-sm">
           {gameMode === 'follow' ? (
             <div className="flex items-center gap-2 text-sm font-bold">
               <Timer className="w-4 h-4 text-primary" />
@@ -647,7 +611,7 @@ export default function MouseSkillsPage() {
           onMouseMove={gameMode === 'follow' ? handleFollowMouseMove : undefined}
           onMouseEnter={gameMode === 'follow' ? () => { hasMouseEnteredRef.current = true; } : undefined}
           onMouseLeave={gameMode === 'follow' ? handleFollowMouseLeave : undefined}
-          className="relative flex-1 bg-card border-2 border-dashed border-primary rounded-lg overflow-hidden cursor-crosshair"
+          className="relative flex-1 bg-muted/30 border-2 border-dashed border-primary rounded-lg overflow-hidden cursor-crosshair"
         >
           {/* Countdown Overlay */}
           {gameState === 'countdown' && (

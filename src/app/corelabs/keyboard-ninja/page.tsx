@@ -1,15 +1,13 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Keyboard, StopCircle, Trophy, Heart, Flame, CaseSensitive, Slice, Palette, Bomb } from 'lucide-react';
+import { Keyboard, StopCircle, Trophy, Heart, Flame, CaseSensitive, Slice, Palette, LoaderCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { GameContainer } from '@/components/games/GameContainer';
 
 const shortcutsList = [
     { keys: ['control', 'c'], display: 'Ctrl + C', description: 'Copy' },
@@ -39,7 +37,6 @@ const normalizeKey = (key: string): string => {
 
 const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
-// --- Site Colors ---
 const COLORS = {
     background: '#f0f0f0',
     primary: '#14b8a6',
@@ -51,6 +48,7 @@ const COLORS = {
     destructive: '#ef4444',
     textOnColoredBg: '#ffffff',
 };
+
 const COLORS_HEX = {
     primary: 0x14b8a6,
     primaryDark: 0x0f766e,
@@ -62,11 +60,10 @@ const COLORS_HEX = {
     textOnColoredBg: 0xffffff,
 };
 
-// Accessible colors for keyboard rows
 const ACCESSIBLE_COLORS = {
-    topRow: 0x0072B2,    // A strong blue
-    middleRow: 0xD55E00, // A reddish-orange
-    bottomRow: 0x009E73, // A bluish-green
+    topRow: 0x0072B2,
+    middleRow: 0xD55E00,
+    bottomRow: 0x009E73,
 };
 
 const KEYBOARD_ROWS = {
@@ -74,7 +71,6 @@ const KEYBOARD_ROWS = {
     middle: 'asdfghjkl'.split(''),
     bottom: 'zxcvbnm'.split(''),
 };
-
 
 export default function KeyboardNinjaPage() {
     const [gameState, setGameState] = useState<'start' | 'countdown' | 'playing' | 'gameOver'>('start');
@@ -84,8 +80,6 @@ export default function KeyboardNinjaPage() {
     const [showShortcutInAction, setShowShortcutInAction] = useState(true);
     const [colorCodeRows, setColorCodeRows] = useState(true);
     const [score, setScore] = useState(0);
-    const [lives, setLives] = useState(3);
-    const [level, setLevel] = useState(1);
     const [finalScore, setFinalScore] = useState(0);
     const gameRef = useRef<any | null>(null);
     const gameContainerRef = useRef<HTMLDivElement>(null);
@@ -139,7 +133,6 @@ export default function KeyboardNinjaPage() {
                 private activeKeys: Set<string> = new Set();
                 private isMac: boolean = false;
                 
-                // Game mode states
                 private mainGameMode: 'shortcuts' | 'typing' = 'shortcuts';
                 private shortcutSubMode: 'shortcut' | 'action' = 'shortcut';
                 private difficulty: 'easy' | 'normal' | 'hard' = 'normal';
@@ -199,7 +192,6 @@ export default function KeyboardNinjaPage() {
                         });
                     }
 
-                    // Reset and notify React of initial state
                     this.score = 0;
                     this.lives = 3;
                     this.level = 1;
@@ -250,7 +242,6 @@ export default function KeyboardNinjaPage() {
                     this.activeKeys.delete(releasedKey);
                 }
 
-
                 update(time: number) {
                     if (!this.isGameActive) return;
 
@@ -287,7 +278,7 @@ export default function KeyboardNinjaPage() {
                     const graphics = this.add.graphics();
                     let backgroundColor = COLORS_HEX.card;
                     let textColor = COLORS.foreground;
-                    let textColorHex = COLORS_HEX.foreground; // For underline graphics
+                    let textColorHex = COLORS_HEX.foreground;
 
                     if (this.colorCodeRows) {
                         textColor = COLORS.textOnColoredBg;
@@ -350,7 +341,7 @@ export default function KeyboardNinjaPage() {
                     if (this.shortcutSubMode === 'shortcut') {
                         mainTextContent = shortcutData.display;
                         descTextContent = shortcutData.description;
-                    } else { // Action Mode
+                    } else {
                         mainTextContent = shortcutData.description;
                         if (this.showShortcutInAction) {
                             descTextContent = shortcutData.display;
@@ -413,9 +404,6 @@ export default function KeyboardNinjaPage() {
                         if (pressedKey === targetKey) {
                             const isTargetUpperCase = targetKey >= 'A' && targetKey <= 'Z';
                             
-                            // To correctly hit an uppercase letter, shift MUST be pressed.
-                            // To correctly hit a lowercase letter, shift must NOT be pressed.
-                            // This correctly handles Caps Lock being on/off.
                             if ((isTargetUpperCase && event.shiftKey) || (!isTargetUpperCase && !event.shiftKey)) {
                                 this.handleSuccessfulHit(item);
                                 matchFound = true;
@@ -553,7 +541,6 @@ export default function KeyboardNinjaPage() {
     }, [gameState, mainGameMode, shortcutSubMode, difficulty, showShortcutInAction, colorCodeRows, handleGameOver]);
 
     useEffect(() => {
-        // Cleanup on game over or when component unmounts
         if (gameState === 'gameOver' || gameState === 'start') {
             if (gameRef.current) {
                 gameRef.current.destroy(true);
@@ -564,234 +551,230 @@ export default function KeyboardNinjaPage() {
     
     if (gameState === 'start') {
         return (
-          <>
-            <Header />
-            <div className="w-full flex-1 flex flex-col items-center justify-center container mx-auto py-8 px-4">
-                <div className="w-full max-w-3xl mx-auto">
-                  <Card className="w-full text-center">
-                    <CardHeader className="relative pb-6">
-                      <CardTitle className="text-4xl font-bold font-headline flex items-center justify-center gap-3">
-                        <Keyboard className="w-10 h-10 text-primary" />
-                        Keyboard Ninja
-                      </CardTitle>
-                      <CardDescription className="text-lg mt-2">
-                        Test your keyboard mastery. Select a game to begin.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-8">
-                        <div>
-                          <Label className="text-base font-semibold mb-4 block">1. Choose Game Mode</Label>
-                          <div className="flex justify-center flex-col sm:flex-row gap-4">
-                            <Button 
-                              variant={mainGameMode === 'shortcuts' ? 'default' : 'outline'} 
-                              onClick={() => setMainGameMode('shortcuts')} 
-                              className="flex-1 transition-transform hover:scale-[1.02]"
-                            >
-                               <Slice className="mr-2" /> Shortcut Slicer
-                            </Button>
-                            <Button 
-                              variant={mainGameMode === 'typing' ? 'default' : 'outline'} 
-                              onClick={() => setMainGameMode('typing')} 
-                              className="flex-1 transition-transform hover:scale-[1.02]"
-                            >
-                               <CaseSensitive className="mr-2" /> Typing Ninja
-                            </Button>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-3 min-h-[2.5rem] flex items-center justify-center px-4">
-                            {mainGameMode === 'shortcuts' && 'Slice the correct keyboard shortcuts before they disappear!'}
-                            {mainGameMode === 'typing' && 'Type the correct upper and lower case letters as they fly by!'}
-                          </p>
-                        </div>
-                        
-                        {mainGameMode === 'shortcuts' && (
-                            <div className="flex flex-col items-center gap-4 p-4 border rounded-lg animate-fade-in">
-                                <Label className="text-base font-semibold">Shortcut Slicer Options</Label>
-                                <div className="flex flex-col sm:flex-row items-center gap-4">
-                                    <div className="flex items-center space-x-2 rounded-md bg-muted p-1">
-                                        <Button 
-                                            variant={shortcutSubMode === 'shortcut' ? 'tab' : 'ghost'} 
-                                            data-state={shortcutSubMode === 'shortcut' ? 'active' : 'inactive'}
-                                            onClick={() => setShortcutSubMode('shortcut')} 
-                                            className="flex-1 justify-center px-3 py-1.5"
-                                        >
-                                            Shortcut Mode
-                                        </Button>
-                                        <Button 
-                                            variant={shortcutSubMode === 'action' ? 'tab' : 'ghost'} 
-                                            data-state={shortcutSubMode === 'action' ? 'active' : 'inactive'}
-                                            onClick={() => setShortcutSubMode('action')} 
-                                            className="flex-1 justify-center px-3 py-1.5"
-                                        >
-                                            Action Mode
-                                        </Button>
-                                    </div>
-                                    {shortcutSubMode === 'action' && (
-                                        <div className="flex items-center space-x-3 pl-4 sm:pl-0 sm:border-l sm:ml-4 sm:pl-4 animate-fade-in">
-                                            <Switch id="show-shortcut-toggle" checked={showShortcutInAction} onCheckedChange={setShowShortcutInAction} />
-                                            <Label htmlFor="show-shortcut-toggle" className="text-sm cursor-pointer">Show Hint</Label>
-                                        </div>
-                                    )}
-                                </div>
-                                <p className="text-xs text-muted-foreground text-center">
-                                    {shortcutSubMode === 'action' 
-                                        ? 'In Action Mode, you see the action (e.g., "Copy") and must press the keys.' 
-                                        : 'In Shortcut Mode, you see the keys (e.g., "Ctrl + C") and must press them.'
-                                    }
-                                </p>
-                            </div>
-                        )}
-
-                        {mainGameMode === 'typing' && (
-                           <div className="flex flex-col items-center gap-4 p-4 border rounded-lg animate-fade-in">
-                                <Label className="text-base font-semibold">Typing Ninja Options</Label>
-                                <div className="flex items-center justify-center space-x-3">
-                                    <Switch id="color-code-toggle" checked={colorCodeRows} onCheckedChange={setColorCodeRows} />
-                                    <Label htmlFor="color-code-toggle" className="text-sm cursor-pointer flex items-center gap-2">
-                                      <Palette className="w-5 h-5 text-primary" />
-                                      Color-Code Rows
-                                    </Label>
-                                </div>
-                                {colorCodeRows && (
-                                  <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs animate-fade-in text-muted-foreground">
-                                      <div className="flex items-center gap-2">
-                                          <div className="w-3 h-3 rounded-full border" style={{ backgroundColor: '#0072B2' }} />
-                                          <span>Top</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                          <div className="w-3 h-3 rounded-full border" style={{ backgroundColor: '#D55E00' }} />
-                                          <span>Middle</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                          <div className="w-3 h-3 rounded-full border" style={{ backgroundColor: '#009E73' }} />
-                                          <span>Bottom</span>
-                                      </div>
-                                  </div>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="animate-fade-in">
-                          <Label className="text-base font-semibold mb-4 block">
-                             2. Choose Difficulty
-                          </Label>
-                          <div className="flex justify-center flex-col sm:flex-row gap-4">
-                              <Button
-                                  variant={difficulty === 'easy' ? 'default' : 'outline'}
-                                  onClick={() => setDifficulty('easy')}
-                                  className="flex-1"
-                              >
-                                  Easy
-                              </Button>
-                              <Button
-                                  variant={difficulty === 'normal' ? 'default' : 'outline'}
-                                  onClick={() => setDifficulty('normal')}
-                                  className="flex-1"
-                              >
-                                  Normal
-                              </Button>
-                              <Button
-                                  variant={difficulty === 'hard' ? 'default' : 'outline'}
-                                  onClick={() => setDifficulty('hard')}
-                                  className="flex-1"
-                              >
-                                  Hard
-                              </Button>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-3 min-h-10 flex items-center justify-center px-4">
-                            {difficulty === 'easy' && 'A relaxed pace with plenty of time to react. Perfect for learning the ropes!'}
-                            {difficulty === 'normal' && 'The standard challenge. A good test of your skills without being overwhelming.'}
-                            {difficulty === 'hard' && 'Maximum intensity! Any wrong move costs a life. Only for true ninjas!'}
-                          </p>
-                        </div>
-
-                        <Button size="lg" onClick={startGame} className="mt-6">
-                          Start Game
-                        </Button>
-                    </CardContent>
-                  </Card>
+          <Card className="max-w-3xl mx-auto">
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Keyboard className="w-6 h-6 text-primary" />
                 </div>
-            </div>
-            <Footer />
-          </>
+                <div>
+                  <CardTitle className="text-2xl">Keyboard Ninja</CardTitle>
+                  <CardDescription className="mt-1">
+                    Test your keyboard mastery
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">Choose Game Mode</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant={mainGameMode === 'shortcuts' ? 'default' : 'outline'} 
+                    onClick={() => setMainGameMode('shortcuts')} 
+                    className="h-auto py-4 flex-col"
+                  >
+                    <Slice className="h-5 w-5 mb-2" />
+                    <span className="text-sm font-medium">Shortcut Slicer</span>
+                  </Button>
+                  <Button 
+                    variant={mainGameMode === 'typing' ? 'default' : 'outline'} 
+                    onClick={() => setMainGameMode('typing')} 
+                    className="h-auto py-4 flex-col"
+                  >
+                    <CaseSensitive className="h-5 w-5 mb-2" />
+                    <span className="text-sm font-medium">Typing Ninja</span>
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground text-center min-h-[2.5rem] flex items-center justify-center px-4">
+                  {mainGameMode === 'shortcuts' && 'Slice keyboard shortcuts before they disappear!'}
+                  {mainGameMode === 'typing' && 'Type the correct letters as they fly by!'}
+                </p>
+              </div>
+              
+              {mainGameMode === 'shortcuts' && (
+                <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+                  <Label className="text-base font-semibold">Shortcut Options</Label>
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="flex items-center space-x-2 rounded-md bg-muted p-1 w-full sm:w-auto">
+                      <Button 
+                        variant={shortcutSubMode === 'shortcut' ? 'default' : 'ghost'} 
+                        onClick={() => setShortcutSubMode('shortcut')} 
+                        className="flex-1 justify-center px-3 py-1.5"
+                        size="sm"
+                      >
+                        Shortcut Mode
+                      </Button>
+                      <Button 
+                        variant={shortcutSubMode === 'action' ? 'default' : 'ghost'} 
+                        onClick={() => setShortcutSubMode('action')} 
+                        className="flex-1 justify-center px-3 py-1.5"
+                        size="sm"
+                      >
+                        Action Mode
+                      </Button>
+                    </div>
+                    {shortcutSubMode === 'action' && (
+                      <div className="flex items-center space-x-3">
+                        <Switch 
+                          id="show-hint" 
+                          checked={showShortcutInAction} 
+                          onCheckedChange={setShowShortcutInAction} 
+                        />
+                        <Label htmlFor="show-hint" className="text-sm cursor-pointer">
+                          Show Hint
+                        </Label>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {mainGameMode === 'typing' && (
+                <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+                  <Label className="text-base font-semibold">Typing Options</Label>
+                  <div className="flex items-center space-x-3">
+                    <Switch 
+                      id="color-code" 
+                      checked={colorCodeRows} 
+                      onCheckedChange={setColorCodeRows} 
+                    />
+                    <Label htmlFor="color-code" className="text-sm cursor-pointer flex items-center gap-2">
+                      <Palette className="w-4 h-4" />
+                      Color-Code Rows
+                    </Label>
+                  </div>
+                  {colorCodeRows && (
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0072B2' }} />
+                        <span>Top</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#D55E00' }} />
+                        <span>Middle</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#009E73' }} />
+                        <span>Bottom</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">Difficulty</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <Button
+                    variant={difficulty === 'easy' ? 'default' : 'outline'}
+                    onClick={() => setDifficulty('easy')}
+                    className="h-auto py-3"
+                  >
+                    Easy
+                  </Button>
+                  <Button
+                    variant={difficulty === 'normal' ? 'default' : 'outline'}
+                    onClick={() => setDifficulty('normal')}
+                    className="h-auto py-3"
+                  >
+                    Normal
+                  </Button>
+                  <Button
+                    variant={difficulty === 'hard' ? 'default' : 'outline'}
+                    onClick={() => setDifficulty('hard')}
+                    className="h-auto py-3"
+                  >
+                    Hard
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  {difficulty === 'easy' && 'Relaxed pace, perfect for learning'}
+                  {difficulty === 'normal' && 'Standard challenge for most players'}
+                  {difficulty === 'hard' && 'Maximum intensity - any wrong move costs a life!'}
+                </p>
+              </div>
+
+              <Button size="lg" onClick={startGame} className="w-full">
+                Start Game
+              </Button>
+            </CardContent>
+          </Card>
         );
     }
     
     if (gameState === 'gameOver') {
         return (
-          <>
-            <Header />
-            <div className="w-full flex-1 flex flex-col items-center justify-center container mx-auto py-8 px-4">
-                <Card className="w-full max-w-2xl text-center">
-                    <CardHeader>
-                        <CardTitle className="text-4xl sm:text-5xl font-bold font-headline flex items-center justify-center gap-3">
-                            <Bomb className="w-10 h-10 text-destructive" />
-                            Game Over!
-                        </CardTitle>
-                        <CardDescription>You ran out of lives!</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
-                            <div>
-                                <p className="text-muted-foreground text-sm uppercase">Final Score</p>
-                                <p className="text-5xl font-bold text-primary">{finalScore}</p>
-                            </div>
-                            <div>
-                                <p className="text-muted-foreground text-sm uppercase">Level Reached</p>
-                                <p className="text-5xl font-bold">{hudState.level}</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6">
-                            <Button size="lg" onClick={startGame}>
-                                Play Again
-                            </Button>
-                            <Button size="lg" onClick={handleChangeMode} variant="outline">
-                                Change Mode
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            <Footer />
-          </>
+          <Card className="max-w-2xl mx-auto">
+            <CardHeader>
+              <CardTitle className="text-3xl font-bold flex items-center justify-center gap-3 text-destructive">
+                <Heart className="w-10 h-10" />
+                Game Over!
+              </CardTitle>
+              <CardDescription className="text-center mt-2">
+                You ran out of lives!
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-6 text-center">
+                <div>
+                  <p className="text-sm text-muted-foreground uppercase mb-2">Final Score</p>
+                  <p className="text-5xl font-bold text-primary">{finalScore}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground uppercase mb-2">Level Reached</p>
+                  <p className="text-5xl font-bold">{hudState.level}</p>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-center">
+                <Button size="lg" onClick={startGame}>
+                  Play Again
+                </Button>
+                <Button size="lg" onClick={handleChangeMode} variant="outline">
+                  Change Mode
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )
     }
 
     if (isGameActive || gameState === 'countdown') {
         return (
-            <div className="w-full h-full flex flex-col gap-2 bg-background">
-                <div className="flex flex-wrap justify-between items-center gap-2 p-1 bg-card rounded-lg border">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-sm font-bold">
-                            <Trophy className="w-4 h-4 text-yellow-500" />
-                            <span>Score: {hudState.score}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-sm font-bold">
-                            <Heart className="w-4 h-4 text-destructive" />
-                            <span>Lives: {hudState.lives}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-sm font-bold">
-                            <Flame className="w-4 h-4 text-primary" />
-                            <span>Level: {hudState.level}</span>
-                        </div>
+            <GameContainer isPlaying={true}>
+              <div className="w-full h-full flex flex-col gap-2 p-4">
+                <div className="flex flex-wrap justify-between items-center gap-2 p-3 bg-card rounded-lg border shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-sm font-bold">
+                      <Trophy className="w-4 h-4 text-yellow-500" />
+                      <span>Score: {hudState.score}</span>
                     </div>
-                    <Button onClick={() => handleGameOver(hudState.score)} variant="destructive" size="sm">
-                      <StopCircle className="mr-1.5" />
-                      End Game
-                    </Button>
+                    <div className="flex items-center gap-2 text-sm font-bold">
+                      <Heart className="w-4 h-4 text-destructive" />
+                      <span>Lives: {hudState.lives}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-bold">
+                      <Flame className="w-4 h-4 text-primary" />
+                      <span>Level: {hudState.level}</span>
+                    </div>
+                  </div>
+                  <Button onClick={() => handleGameOver(hudState.score)} variant="destructive" size="sm">
+                    <StopCircle className="mr-1.5" />
+                    End Game
+                  </Button>
                 </div>
-                <div ref={gameContainerRef} className="relative flex-1 bg-card border-2 border-dashed border-primary rounded-lg overflow-hidden">
-                    {gameState === 'countdown' && countdown !== null && (
-                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 text-white">
-                            <p className="text-9xl font-bold animate-pulse">{countdown}</p>
-                        </div>
-                    )}
-                    <div id="phaser-game-container" key={`${mainGameMode}-${shortcutSubMode}-${difficulty}-${showShortcutInAction}-${colorCodeRows}-${gameState}`} className="w-full h-full" />
+                <div ref={gameContainerRef} className="relative flex-1 bg-muted/30 border-2 border-dashed border-primary rounded-lg overflow-hidden">
+                  {gameState === 'countdown' && countdown !== null && (
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 text-white">
+                      <p className="text-9xl font-bold animate-pulse">{countdown}</p>
+                    </div>
+                  )}
+                  <div id="phaser-game-container" className="w-full h-full" />
                 </div>
-            </div>
+              </div>
+            </GameContainer>
         );
     }
     
     return null;
 }
-
-    
