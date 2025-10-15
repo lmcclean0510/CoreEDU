@@ -3,8 +3,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-// Optimized canvas size - 40 grid squares wide gives ~60-65% zoom which is very readable
-const CANVAS_WIDTH = 1280;  // 40 grid squares - good balance of width and readability
+// Optimized canvas size - 35 grid squares wide gives ~75-80% zoom which is very readable
+const CANVAS_WIDTH = 1120;  // 35 grid squares - tight but still fits Computer Room layout
 const CANVAS_HEIGHT = 640;   // 20 grid squares
 const GRID_SIZE = 32;
 
