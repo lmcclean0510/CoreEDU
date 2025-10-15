@@ -19,10 +19,11 @@ export const useSeatingPlan = () => {
   const [alternateGender, setAlternateGender] = useState(false);
   const [newRuleStudents, setNewRuleStudents] = useState('');
   const [studentInput, setStudentInput] = useState('');
-  const [isGridVisible, setIsGridVisible] = useState(true); // Changed to true
+  const [isGridVisible, setIsGridVisible] = useState(true);
   const [isBlackAndWhite, setIsBlackAndWhite] = useState(false);
-  const [isWhiteBackground, setIsWhiteBackground] = useState(true); // Changed to true
+  const [isWhiteBackground, setIsWhiteBackground] = useState(true);
   const [hoveredGroupId, setHoveredGroupId] = useState<number | null>(null);
+  const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
   const [areIndicatorsVisible, setAreIndicatorsVisible] = useState(true);
 
   // Memoized group lookup map for better performance
@@ -97,23 +98,21 @@ export const useSeatingPlan = () => {
     }).filter(Boolean);
   }, [groups, desks]);
 
-  // Preset loading with proper bounds - FIT WITHIN ACTUAL USABLE SPACE
-  const loadComputerRoomPreset = useCallback((canvasSize?: CanvasSize) => {
-    const width = canvasSize?.width ?? CANVAS_WIDTH;
-    const height = canvasSize?.height ?? CANVAS_HEIGHT;
+  // Preset loading - ALWAYS use constants, not passed canvasSize
+  const loadComputerRoomPreset = useCallback(() => {
+    // ALWAYS use constants directly
+    const width = CANVAS_WIDTH;
+    const height = CANVAS_HEIGHT;
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
     const baseId = Date.now();
-    
-    const usableWidth = width - (SAFE_MARGIN * 2);
-    const usableHeight = height - (SAFE_MARGIN * 2);
     
     const deskWidth = 128;
     const deskHeight = 80;
     const horizontalGap = 160;
     const verticalGap = 64;
     
-    const desksPerGroup = 4;
+    const desksPerGroup = 6; // Increased from 4 to use wider canvas
     const groupsPerRow = 2;
     const rows = 4;
     
@@ -204,6 +203,7 @@ export const useSeatingPlan = () => {
     }
 
     console.log(`Created ${newDesks.length} desks in ${newGroups.length} groups`);
+    console.log(`Canvas dimensions: ${width}x${height}`);
     console.log(`Layout spans from x=${Math.min(...newDesks.map(d => d.x))} to x=${Math.max(...newDesks.map(d => d.x + d.width))}`);
 
     setDesks(newDesks);
@@ -220,6 +220,7 @@ export const useSeatingPlan = () => {
       height: teacherDeskHeight 
     });
     
+    setIsPresetDialogOpen(false);
   }, []);
 
   // Group management
@@ -427,6 +428,7 @@ export const useSeatingPlan = () => {
     isBlackAndWhite,
     isWhiteBackground,
     hoveredGroupId,
+    isPresetDialogOpen,
     areIndicatorsVisible,
 
     // Setters
@@ -441,6 +443,7 @@ export const useSeatingPlan = () => {
     setIsBlackAndWhite,
     setIsWhiteBackground,
     setHoveredGroupId,
+    setIsPresetDialogOpen,
     setAreIndicatorsVisible,
 
     // Computed values
