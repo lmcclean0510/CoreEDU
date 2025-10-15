@@ -244,7 +244,7 @@ const SeatingPlanTool = () => {
   }, [addFurniture, getCanvasSize]);
 
   return (
-    <div className="absolute inset-0 bg-background flex flex-col overflow-hidden -m-4 md:-m-6">
+    <div className="flex flex-col h-full bg-background">
       <style jsx global>{`
         .export-bw .desk-bw, .export-bw .teacher-desk-bw {
           background-color: white !important;
@@ -260,7 +260,7 @@ const SeatingPlanTool = () => {
       {isClient && (
         <DndContext onDragEnd={onDragEnd} sensors={dndSensors}>
           {/* Compact Top Toolbar */}
-          <div className="bg-card border-b border-border px-4 py-2 flex items-center justify-between shadow-sm z-30">
+          <div className="bg-card border-b border-border px-4 py-2 flex items-center justify-between shadow-sm z-30 flex-shrink-0">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <h1 className="font-semibold text-foreground">Seating Plan</h1>

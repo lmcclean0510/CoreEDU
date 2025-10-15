@@ -1,6 +1,9 @@
-// app/seating-plan/page.tsx
-import SeatingPlanTool from './SeatingPlanTool';  // ← Remove 'components/'
+import SeatingPlanTool from './SeatingPlanTool';
 
 export default function SeatingPlanPage() {
-  return <SeatingPlanTool />;
+  return (
+    <div className="absolute inset-0">
+      <SeatingPlanTool />
+    </div>
+  );
 }
