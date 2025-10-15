@@ -23,31 +23,64 @@ const SeatingPlanTool = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
   const [showGrid, setShowGrid] = useState(true);
 
+  // Check actual canvas size
+  useEffect(() => {
+    if (canvasRef.current) {
+      const actualWidth = canvasRef.current.offsetWidth;
+      const actualHeight = canvasRef.current.offsetHeight;
+      const computedStyle = window.getComputedStyle(canvasRef.current);
+      
+      console.log('🚨 ACTUAL CANVAS SIZE:', {
+        offsetWidth: actualWidth,
+        offsetHeight: actualHeight,
+        cssWidth: computedStyle.width,
+        cssHeight: computedStyle.height,
+        expectedWidth: CANVAS_WIDTH,
+        expectedHeight: CANVAS_HEIGHT,
+        PROBLEM: actualWidth !== CANVAS_WIDTH ? 'WIDTH MISMATCH!' : 'OK'
+      });
+    }
+  }, [canvasRef.current, desks]);
+
   // Auto-fit zoom
   useEffect(() => {
     const calculateZoom = () => {
-      if (containerRef.current) {
+      if (containerRef.current && canvasRef.current) {
         const containerWidth = containerRef.current.clientWidth;
         const containerHeight = containerRef.current.clientHeight;
+        const actualCanvasWidth = canvasRef.current.offsetWidth;
         
-        const padding = 96; // 48px each side
-        const scaleX = (containerWidth - padding) / CANVAS_WIDTH;
+        const padding = 96;
+        const scaleX = (containerWidth - padding) / actualCanvasWidth;
         const scaleY = (containerHeight - padding) / CANVAS_HEIGHT;
         const newZoom = Math.min(scaleX, scaleY, 1);
         
         setZoom(newZoom);
-        console.log('🎯 Zoom calculated:', { containerWidth, containerHeight, newZoom });
+        console.log('🎯 Zoom calculated:', { 
+          containerWidth, 
+          containerHeight, 
+          actualCanvasWidth,
+          expectedCanvasWidth: CANVAS_WIDTH,
+          newZoom 
+        });
       }
     };
 
-    calculateZoom();
+    const timer = setTimeout(calculateZoom, 100); // Small delay to ensure DOM is ready
     window.addEventListener('resize', calculateZoom);
-    return () => window.removeEventListener('resize', calculateZoom);
-  }, []);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', calculateZoom);
+    };
+  }, [canvasRef.current]);
 
   // Log canvas info on mount
   useEffect(() => {
-    console.log('🎯 Canvas dimensions:', { CANVAS_WIDTH, CANVAS_HEIGHT, gridSquares: { w: CANVAS_WIDTH / GRID_SIZE, h: CANVAS_HEIGHT / GRID_SIZE } });
+    console.log('🎯 EXPECTED Canvas dimensions:', { 
+      CANVAS_WIDTH, 
+      CANVAS_HEIGHT, 
+      gridSquares: { w: CANVAS_WIDTH / GRID_SIZE, h: CANVAS_HEIGHT / GRID_SIZE } 
+    });
   }, []);
 
   // Create simple preset - 3 rows of 8 desks
@@ -63,15 +96,15 @@ const SeatingPlanTool = () => {
     const rowGap = 48;
     
     // Calculate total width of layout
-    const leftGroupWidth = 4 * deskWidth; // 4 desks
-    const rightGroupWidth = 4 * deskWidth; // 4 desks
+    const leftGroupWidth = 4 * deskWidth;
+    const rightGroupWidth = 4 * deskWidth;
     const totalWidth = leftGroupWidth + gapBetweenDesks + rightGroupWidth;
     
     // Center the layout
     const startX = (CANVAS_WIDTH - totalWidth) / 2;
     const startY = 150;
     
-    console.log('🎯 Layout calc:', { totalWidth, startX, startY });
+    console.log('🎯 Layout calc:', { totalWidth, startX, startY, CANVAS_WIDTH });
     
     let id = 1;
     for (let row = 0; row < rows; row++) {
@@ -117,7 +150,7 @@ const SeatingPlanTool = () => {
       width: 128,
       height: 80,
     };
-    console.log('🎯 Adding desk at:', newDesk);
+    console.log('🎯 Adding desk at:', newDesk, 'for canvas width:', CANVAS_WIDTH);
     setDesks([...desks, newDesk]);
   };
 
@@ -129,7 +162,7 @@ const SeatingPlanTool = () => {
     <div className="flex flex-col h-full bg-background">
       {/* Simple Toolbar */}
       <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <h1 className="font-semibold text-lg">Seating Plan (Rebuilt)</h1>
+        <h1 className="font-semibold text-lg">Seating Plan (Debug Mode)</h1>
         
         <div className="flex items-center gap-2">
           <Button onClick={addSingleDesk} variant="outline" size="sm">
@@ -170,12 +203,14 @@ const SeatingPlanTool = () => {
               height: `${CANVAS_HEIGHT}px`,
               transform: `scale(${zoom})`,
               transformOrigin: 'center',
+              minWidth: `${CANVAS_WIDTH}px`, // Force minimum width
+              maxWidth: `${CANVAS_WIDTH}px`, // Force maximum width
             }}
           >
             {/* Grid */}
             {showGrid && (
               <div
-                className="absolute inset-0 opacity-30"
+                className="absolute inset-0 opacity-30 pointer-events-none"
                 style={{
                   backgroundImage: `
                     linear-gradient(to right, #14b8a6 1px, transparent 1px),
@@ -230,10 +265,10 @@ const SeatingPlanTool = () => {
       </div>
 
       {/* Debug Info */}
-      <div className="bg-card border-t border-border px-4 py-2 text-xs text-muted-foreground">
-        Canvas: {CANVAS_WIDTH}×{CANVAS_HEIGHT}px ({CANVAS_WIDTH / GRID_SIZE}×{CANVAS_HEIGHT / GRID_SIZE} squares) | 
-        Desks: {desks.length} | 
-        Zoom: {(zoom * 100).toFixed(1)}%
+      <div className="bg-card border-t border-border px-4 py-2 text-xs text-muted-foreground space-y-1">
+        <div>Expected Canvas: {CANVAS_WIDTH}×{CANVAS_HEIGHT}px ({CANVAS_WIDTH / GRID_SIZE}×{CANVAS_HEIGHT / GRID_SIZE} squares)</div>
+        <div>Desks: {desks.length} | Zoom: {(zoom * 100).toFixed(1)}%</div>
+        <div className="text-orange-600 font-semibold">⚠️ Open browser console (F12) to see canvas size debug info!</div>
       </div>
     </div>
   );
