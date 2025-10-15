@@ -16,11 +16,7 @@ import {
   Shuffle, 
   RotateCcw, 
   Download, 
-  ZoomIn, 
-  ZoomOut, 
-  Maximize2, 
   Plus, 
-  Settings, 
   Users, 
   ShieldAlert, 
   LayoutGrid,
@@ -55,7 +51,7 @@ const SeatingPlanTool = () => {
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   
   // UI state
-  const [zoom, setZoom] = useState(0.5); // Start with a reasonable default
+  const [zoom, setZoom] = useState(1); // Will be auto-calculated
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
@@ -156,6 +152,8 @@ const SeatingPlanTool = () => {
 
   useEffect(() => {
     setIsClient(true);
+    // Debug: Log canvas dimensions
+    console.log('Canvas dimensions (always auto-fit):', { CANVAS_WIDTH, CANVAS_HEIGHT, squares: { width: CANVAS_WIDTH / GRID_SIZE, height: CANVAS_HEIGHT / GRID_SIZE } });
   }, []);
 
   // Memoized sensors for DnD
@@ -166,27 +164,7 @@ const SeatingPlanTool = () => {
     })
   );
 
-  // Zoom controls
-  const handleZoomIn = useCallback(() => {
-    setZoom(prev => Math.min(prev + 0.1, 2));
-  }, []);
-
-  const handleZoomOut = useCallback(() => {
-    setZoom(prev => Math.max(prev - 0.1, 0.3));
-  }, []);
-
-  const handleFitToScreen = useCallback(() => {
-    if (canvasContainerRef.current) {
-      const containerWidth = canvasContainerRef.current.offsetWidth;
-      const containerHeight = canvasContainerRef.current.offsetHeight;
-      
-      const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
-      const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
-      const fitScale = Math.min(scaleX, scaleY, 1);
-      
-      setZoom(fitScale);
-    }
-  }, []);
+  // No manual zoom controls - always auto-fit
 
   const handleAutoAssign = useCallback(() => {
     autoAssignStudents(
@@ -314,38 +292,6 @@ const SeatingPlanTool = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Zoom Controls */}
-              <div className="flex items-center gap-1 bg-muted rounded px-2 py-1">
-                <Button 
-                  onClick={handleZoomOut}
-                  disabled={zoom <= 0.3}
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                >
-                  <ZoomOut size={14} />
-                </Button>
-                <span className="text-xs font-medium text-muted-foreground w-12 text-center">{Math.round(zoom * 100)}%</span>
-                <Button 
-                  onClick={handleZoomIn}
-                  disabled={zoom >= 2}
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                >
-                  <ZoomIn size={14} />
-                </Button>
-                <Button 
-                  onClick={handleFitToScreen}
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  title="Fit to screen"
-                >
-                  <Maximize2 size={14} />
-                </Button>
-              </div>
-
               {/* Action Buttons */}
               <Button
                 onClick={handleClearAssignments}
@@ -546,7 +492,7 @@ const SeatingPlanTool = () => {
             {/* Canvas Area */}
             <div 
               ref={canvasContainerRef}
-              className="flex-1 relative bg-muted/30 overflow-auto"
+              className="flex-1 relative bg-muted/30 overflow-hidden"
             >
               {/* Stats overlay */}
               <div className="absolute top-4 right-4 bg-card/90 backdrop-blur rounded-lg px-4 py-2 shadow-md text-sm z-10 border border-border">

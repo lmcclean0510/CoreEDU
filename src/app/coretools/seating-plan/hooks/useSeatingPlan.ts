@@ -112,7 +112,7 @@ export const useSeatingPlan = () => {
     const horizontalGap = 160;
     const verticalGap = 64;
     
-    const desksPerGroup = 6; // Increased from 4 to use wider canvas
+    const desksPerGroup = 4;
     const groupsPerRow = 2;
     const rows = 4;
     
