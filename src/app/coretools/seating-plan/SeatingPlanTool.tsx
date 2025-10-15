@@ -1,731 +1,240 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import {
-  Grid3X3, 
-  Shuffle, 
-  RotateCcw, 
-  Download, 
-  Plus, 
-  Users, 
-  ShieldAlert, 
-  LayoutGrid,
-  X,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 
-// Components
-import DraggableItem from './components/DraggableItem';
-import DraggableTeacherDesk from './components/DraggableTeacherDesk';
-import GroupControl from './components/GroupControl';
-import StudentsPanel from './components/StudentsPanel';
-import RulesPanel from './components/RulesPanel';
+// Simple constants - no calculations, just fixed numbers
+const CANVAS_WIDTH = 3200;  // 100 grid squares
+const CANVAS_HEIGHT = 640;   // 20 grid squares
+const GRID_SIZE = 32;
 
-// Hooks
-import { useSeatingPlan } from './hooks/useSeatingPlan';
-import { useDragAndDrop } from './hooks/useDragAndDrop';
-import { useStudentAssignment } from './hooks/useStudentAssignment';
-import { useExport } from './hooks/useExport';
-import { GRID_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT } from './utils/constants';
+interface Desk {
+  id: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 const SeatingPlanTool = () => {
-  const [isClient, setIsClient] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const canvasContainerRef = useRef<HTMLDivElement>(null);
-  
-  // UI state
-  const [zoom, setZoom] = useState(1); // Will be auto-calculated
-  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [fabOpen, setFabOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'layout' | 'students' | 'rules'>('layout');
+  const [zoom, setZoom] = useState(1);
+  const [desks, setDesks] = useState<Desk[]>([]);
+  const [showGrid, setShowGrid] = useState(true);
 
-  const {
-    // State
-    desks,
-    groups,
-    teacherDesk,
-    students,
-    separationRules,
-    doNotUseDeskIds,
-    fillFromFront,
-    alternateGender,
-    newRuleStudents,
-    studentInput,
-    isGridVisible,
-    isBlackAndWhite,
-    isWhiteBackground,
-    hoveredGroupId,
-    isPresetDialogOpen,
-    areIndicatorsVisible,
-
-    // Setters
-    setDesks,
-    setGroups,
-    setTeacherDesk,
-    setFillFromFront,
-    setAlternateGender,
-    setNewRuleStudents,
-    setStudentInput,
-    setIsGridVisible,
-    setIsBlackAndWhite,
-    setIsWhiteBackground,
-    setHoveredGroupId,
-    setIsPresetDialogOpen,
-    setAreIndicatorsVisible,
-
-    // Computed values
-    desksWithGroups,
-    stats,
-    unassignedStudentCount,
-    unassignedStudents,
-    groupLayouts,
-    getDeskGroup,
-
-    // Actions
-    loadComputerRoomPreset,
-    handleRenameGroup,
-    handleSetGroupColor,
-    handleDeleteGroup,
-    addFurniture,
-    removeDesk,
-    parseStudents,
-    removeStudent,
-    updateStudentGender,
-    updateStudentSEND,
-    handleFileUpload,
-    addSeparationRule,
-    removeSeparationRule,
-    handleToggleDoNotUseDesk,
-    handleManualAssign,
-    autoRenumberDesks,
-    furnitureTemplates,
-  } = useSeatingPlan();
-
-  const { handleDragEnd, handleAutoAlign } = useDragAndDrop(zoom);
-  const { isLoading: isAssigning, autoAssignStudents, clearAssignments } = useStudentAssignment();
-  const { isExporting, handleExport } = useExport(containerRef);
-
-  // Auto-fit zoom on mount and container resize
+  // Auto-fit zoom
   useEffect(() => {
-    const calculateFitZoom = () => {
-      if (canvasContainerRef.current) {
-        const containerWidth = canvasContainerRef.current.offsetWidth;
-        const containerHeight = canvasContainerRef.current.offsetHeight;
+    const calculateZoom = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        const containerHeight = containerRef.current.clientHeight;
         
-        // Padding is p-12 = 48px on each side = 96px total
-        const scaleX = (containerWidth - 96) / CANVAS_WIDTH;
-        const scaleY = (containerHeight - 96) / CANVAS_HEIGHT;
-        const fitScale = Math.min(scaleX, scaleY, 1);
+        const padding = 96; // 48px each side
+        const scaleX = (containerWidth - padding) / CANVAS_WIDTH;
+        const scaleY = (containerHeight - padding) / CANVAS_HEIGHT;
+        const newZoom = Math.min(scaleX, scaleY, 1);
         
-        setZoom(fitScale);
+        setZoom(newZoom);
+        console.log('🎯 Zoom calculated:', { containerWidth, containerHeight, newZoom });
       }
     };
 
-    // Calculate immediately
-    calculateFitZoom();
-
-    // Also recalculate on window resize
-    const handleResize = () => {
-      calculateFitZoom();
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    calculateZoom();
+    window.addEventListener('resize', calculateZoom);
+    return () => window.removeEventListener('resize', calculateZoom);
   }, []);
 
+  // Log canvas info on mount
   useEffect(() => {
-    setIsClient(true);
-    console.log('🎯 Seating Plan Canvas:', { 
-      width: CANVAS_WIDTH, 
-      height: CANVAS_HEIGHT, 
-      gridSquares: { width: CANVAS_WIDTH / GRID_SIZE, height: CANVAS_HEIGHT / GRID_SIZE } 
-    });
+    console.log('🎯 Canvas dimensions:', { CANVAS_WIDTH, CANVAS_HEIGHT, gridSquares: { w: CANVAS_WIDTH / GRID_SIZE, h: CANVAS_HEIGHT / GRID_SIZE } });
   }, []);
 
-  // Memoized sensors for DnD
-  const dndSensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  // No manual zoom controls - always auto-fit
-
-  const handleAutoAssign = useCallback(() => {
-    autoAssignStudents(
-      students,
-      desks,
-      doNotUseDeskIds,
-      separationRules,
-      fillFromFront,
-      alternateGender,
-      getDeskGroup,
-      setDesks
-    );
-  }, [students, desks, doNotUseDeskIds, separationRules, fillFromFront, alternateGender, getDeskGroup, setDesks, autoAssignStudents]);
-
-  const handleClearAssignments = useCallback(() => {
-    clearAssignments(setDesks);
-  }, [clearAssignments, setDesks]);
-
-  // Memoized drag handlers
-  const onDragEnd = useCallback((event: any) => {
-    handleDragEnd(
-      event,
-      desks,
-      groups,
-      containerRef,
-      getDeskGroup,
-      setDesks,
-      setGroups,
-      setTeacherDesk
-    );
-  }, [desks, groups, getDeskGroup, setDesks, setGroups, setTeacherDesk, handleDragEnd]);
-
-  const onAutoAlign = useCallback(() => {
-    handleAutoAlign(containerRef, setDesks, setTeacherDesk);
-  }, [handleAutoAlign, setDesks, setTeacherDesk]);
-
-  const onExport = useCallback(() => {
-    handleExport(isGridVisible, isWhiteBackground, setIsGridVisible);
-  }, [handleExport, isGridVisible, isWhiteBackground, setIsGridVisible]);
-
-  // Memoized mouse handlers
-  const handleMouseOver = useCallback((e: React.MouseEvent) => {
-    const deskEl = (e.target as HTMLElement).closest('[data-desk-id]');
-    if (deskEl) {
-      const deskId = Number(deskEl.getAttribute('data-desk-id'));
-      const group = getDeskGroup(deskId);
-      if (group) setHoveredGroupId(group.id);
+  // Create simple preset - 3 rows of 8 desks
+  const loadPreset = () => {
+    console.log('🎯 Loading preset...');
+    
+    const newDesks: Desk[] = [];
+    const deskWidth = 128;
+    const deskHeight = 80;
+    const rows = 3;
+    const desksPerRow = 8;
+    const gapBetweenDesks = 160;
+    const rowGap = 48;
+    
+    // Calculate total width of layout
+    const leftGroupWidth = 4 * deskWidth; // 4 desks
+    const rightGroupWidth = 4 * deskWidth; // 4 desks
+    const totalWidth = leftGroupWidth + gapBetweenDesks + rightGroupWidth;
+    
+    // Center the layout
+    const startX = (CANVAS_WIDTH - totalWidth) / 2;
+    const startY = 150;
+    
+    console.log('🎯 Layout calc:', { totalWidth, startX, startY });
+    
+    let id = 1;
+    for (let row = 0; row < rows; row++) {
+      const y = startY + (row * (deskHeight + rowGap));
+      
+      // Left group
+      for (let i = 0; i < 4; i++) {
+        newDesks.push({
+          id: id++,
+          x: startX + (i * deskWidth),
+          y,
+          width: deskWidth,
+          height: deskHeight,
+        });
+      }
+      
+      // Right group
+      const rightStartX = startX + leftGroupWidth + gapBetweenDesks;
+      for (let i = 0; i < 4; i++) {
+        newDesks.push({
+          id: id++,
+          x: rightStartX + (i * deskWidth),
+          y,
+          width: deskWidth,
+          height: deskHeight,
+        });
+      }
     }
-  }, [getDeskGroup, setHoveredGroupId]);
+    
+    console.log('🎯 Created desks:', newDesks.length);
+    console.log('🎯 First desk position:', newDesks[0]);
+    console.log('🎯 Last desk position:', newDesks[newDesks.length - 1]);
+    
+    setDesks(newDesks);
+  };
 
-  const handleMouseLeave = useCallback(() => {
-    setHoveredGroupId(null);
-  }, [setHoveredGroupId]);
+  // Add single desk in center
+  const addSingleDesk = () => {
+    const newDesk: Desk = {
+      id: Date.now(),
+      x: (CANVAS_WIDTH - 128) / 2,
+      y: (CANVAS_HEIGHT - 80) / 2,
+      width: 128,
+      height: 80,
+    };
+    console.log('🎯 Adding desk at:', newDesk);
+    setDesks([...desks, newDesk]);
+  };
 
-  const handleAddFurniture = useCallback((template: any) => {
-    addFurniture(template); // Don't pass getCanvasSize - use constants
-    setFabOpen(false);
-  }, [addFurniture]);
+  const clearAll = () => {
+    setDesks([]);
+  };
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <style jsx global>{`
-        .export-bw .desk-bw, .export-bw .teacher-desk-bw {
-          background-color: white !important;
-          border-color: black !important;
-          color: black !important;
-        }
-        .export-bw .teacher-desk-bw {
-          color: white !important;
-          background-color: black !important;
-        }
-      `}</style>
+      {/* Simple Toolbar */}
+      <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+        <h1 className="font-semibold text-lg">Seating Plan (Rebuilt)</h1>
+        
+        <div className="flex items-center gap-2">
+          <Button onClick={addSingleDesk} variant="outline" size="sm">
+            Add Single Desk
+          </Button>
+          <Button onClick={loadPreset} variant="outline" size="sm">
+            Load Computer Room
+          </Button>
+          <Button onClick={clearAll} variant="outline" size="sm">
+            Clear All
+          </Button>
+          <Button onClick={() => setShowGrid(!showGrid)} variant="outline" size="sm">
+            {showGrid ? 'Hide' : 'Show'} Grid
+          </Button>
+          <span className="text-sm text-muted-foreground ml-2">
+            Zoom: {Math.round(zoom * 100)}%
+          </span>
+        </div>
+      </div>
 
-      {isClient && (
-        <DndContext onDragEnd={onDragEnd} sensors={dndSensors}>
-          {/* Compact Top Toolbar */}
-          <div className="bg-card border-b border-border px-4 py-2 flex items-center justify-between shadow-sm z-30 flex-shrink-0">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <h1 className="font-semibold text-foreground">Seating Plan</h1>
-              </div>
-              
-              {/* Tabs */}
-              <div className="flex items-center gap-1">
-                {[
-                  { id: 'layout' as const, icon: LayoutGrid, label: 'Layout' },
-                  { id: 'students' as const, icon: Users, label: 'Students' },
-                  { id: 'rules' as const, icon: ShieldAlert, label: 'Rules' }
-                ].map(tab => (
-                  <Button
-                    key={tab.id}
-                    onClick={() => {
-                      setActiveTab(tab.id);
-                      if (tab.id === 'layout') {
-                        setLeftPanelOpen(true);
-                        setRightPanelOpen(false);
-                      } else if (tab.id === 'students') {
-                        setRightPanelOpen(true);
-                        setLeftPanelOpen(false);
-                      } else if (tab.id === 'rules') {
-                        setRightPanelOpen(true);
-                        setLeftPanelOpen(false);
-                      }
-                    }}
-                    variant={activeTab === tab.id ? 'secondary' : 'ghost'}
-                    size="sm"
-                    className={cn(
-                      "flex items-center gap-1.5",
-                      activeTab === tab.id && "bg-primary/10 text-primary hover:bg-primary/20"
-                    )}
-                  >
-                    <tab.icon size={16} />
-                    {tab.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
+      {/* Canvas Container */}
+      <div 
+        ref={containerRef}
+        className="flex-1 relative bg-muted/30 overflow-hidden"
+      >
+        {/* Stats */}
+        <div className="absolute top-4 right-4 bg-card/90 backdrop-blur rounded-lg px-4 py-2 shadow-md text-sm z-10 border">
+          <span className="font-semibold">{desks.length}</span> desks
+        </div>
 
-            <div className="flex items-center gap-2">
-              {/* Action Buttons */}
-              <Button
-                onClick={handleClearAssignments}
-                variant="outline"
-                size="sm"
-                disabled={isAssigning}
-                className="hidden sm:flex"
-              >
-                <RotateCcw className="mr-1.5 h-4 w-4" />
-                Clear
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onExport}
-                disabled={isExporting}
-                className="hidden sm:flex"
-              >
-                <Download className="mr-1.5 h-4 w-4" />
-                Export
-              </Button>
-              <Button
-                onClick={handleAutoAssign}
-                size="sm"
-                disabled={isAssigning || students.length === 0 || desks.length === 0}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                {isAssigning ? (
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
-                ) : (
-                  <Shuffle className="mr-1.5 h-4 w-4" />
-                )}
-                Auto Assign
-              </Button>
-            </div>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="flex-1 flex relative overflow-hidden">
-            {/* Left Sliding Panel - Furniture Library */}
-            <div
-              className={cn(
-                "absolute left-0 top-0 h-full bg-card border-r border-border shadow-lg transition-transform duration-300 z-20",
-                leftPanelOpen ? "translate-x-0" : "-translate-x-full"
-              )}
-              style={{ width: '320px' }}
-            >
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <h3 className="font-semibold text-foreground">Layout Tools</h3>
-                <Button
-                  onClick={() => setLeftPanelOpen(false)}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                >
-                  <X size={18} />
-                </Button>
-              </div>
-              
-              <ScrollArea className="h-[calc(100%-4rem)]">
-                <div className="p-4 space-y-4">
-                  {/* Presets */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-muted-foreground uppercase">Presets</Label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        loadComputerRoomPreset(); // Don't pass getCanvasSize - use constants
-                        setIsPresetDialogOpen(false);
-                      }}
-                      className="w-full justify-start"
-                    >
-                      <Grid3X3 className="mr-2 h-4 w-4" />
-                      Computer Room
-                    </Button>
-                  </div>
-
-                  {/* Add Furniture */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-muted-foreground uppercase">Add Furniture</Label>
-                    <div className="space-y-1">
-                      {furnitureTemplates.map((template) => (
-                        <Button
-                          key={template.id}
-                          variant="ghost"
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => handleAddFurniture(template)}
-                        >
-                          <span className="mr-2">{template.icon}</span>
-                          {template.name}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Layout Settings */}
-                  <div className="space-y-3 pt-2 border-t">
-                    <Label className="text-xs font-semibold text-muted-foreground uppercase">Settings</Label>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="grid-toggle" className="cursor-pointer text-sm">Show Grid</Label>
-                      <Switch
-                        id="grid-toggle"
-                        checked={isGridVisible}
-                        onCheckedChange={setIsGridVisible}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="white-bg-toggle" className="cursor-pointer text-sm">White Background</Label>
-                      <Switch
-                        id="white-bg-toggle"
-                        checked={isWhiteBackground}
-                        onCheckedChange={setIsWhiteBackground}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="bw-toggle" className="cursor-pointer text-sm">Black & White Mode</Label>
-                      <Switch
-                        id="bw-toggle"
-                        checked={isBlackAndWhite}
-                        onCheckedChange={setIsBlackAndWhite}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="indicators-toggle" className="cursor-pointer text-sm">Show Indicators</Label>
-                      <Switch
-                        id="indicators-toggle"
-                        checked={areIndicatorsVisible}
-                        onCheckedChange={setAreIndicatorsVisible}
-                      />
-                    </div>
-
-                    <div className="grid gap-2 pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="justify-start w-full"
-                        onClick={onAutoAlign}
-                      >
-                        Auto Align to Grid
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="justify-start w-full"
-                        onClick={autoRenumberDesks}
-                      >
-                        Renumber Desks
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Groups */}
-                  {groups.length > 0 && (
-                    <div className="space-y-2 pt-2 border-t">
-                      <Label className="text-xs font-semibold text-muted-foreground uppercase">Groups ({groups.length})</Label>
-                      <div className="space-y-2">
-                        {groups.map(group => (
-                          <div key={group.id} className="flex items-center p-2 bg-muted/50 rounded-lg" style={{ borderLeft: `4px solid ${group.color}` }}>
-                            <Input 
-                              type="text"
-                              value={group.name}
-                              onChange={(e) => handleRenameGroup(group.id, e.target.value)}
-                              className="text-xs font-medium h-7 border-none bg-transparent focus-visible:ring-1"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
-
-            {/* Toggle Button for Left Panel */}
-            {!leftPanelOpen && (
-              <Button
-                onClick={() => {
-                  setLeftPanelOpen(true);
-                  setRightPanelOpen(false);
-                  setActiveTab('layout');
+        {/* Canvas */}
+        <div className="absolute inset-0 flex items-center justify-center p-12">
+          <div
+            ref={canvasRef}
+            className="relative bg-white rounded-xl border-2 border-dashed border-muted-foreground/30 shadow-lg"
+            style={{
+              width: `${CANVAS_WIDTH}px`,
+              height: `${CANVAS_HEIGHT}px`,
+              transform: `scale(${zoom})`,
+              transformOrigin: 'center',
+            }}
+          >
+            {/* Grid */}
+            {showGrid && (
+              <div
+                className="absolute inset-0 opacity-30"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(to right, #14b8a6 1px, transparent 1px),
+                    linear-gradient(to bottom, #14b8a6 1px, transparent 1px)
+                  `,
+                  backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`
                 }}
-                variant="outline"
-                size="sm"
-                className="absolute left-4 top-4 z-10 h-9 px-3 shadow-md"
-                title="Open Layout Tools"
-              >
-                <ChevronRight size={16} className="mr-1" />
-                Layout
-              </Button>
+              />
             )}
 
-            {/* Canvas Area */}
-            <div 
-              ref={canvasContainerRef}
-              className="flex-1 relative bg-muted/30 overflow-hidden"
-            >
-              {/* Stats overlay */}
-              <div className="absolute top-4 right-4 bg-card/90 backdrop-blur rounded-lg px-4 py-2 shadow-md text-sm z-10 border border-border">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <span className="font-semibold text-foreground">{stats.assignedDesks}</span>
-                  <span>assigned</span>
-                  <span>•</span>
-                  <span className="font-semibold text-foreground">{stats.totalDesks}</span>
-                  <span>desks</span>
-                  <span>•</span>
-                  <span className="font-semibold text-foreground">{stats.totalStudents}</span>
-                  <span>students</span>
-                  {unassignedStudentCount > 0 && (
-                    <>
-                      <span>•</span>
-                      <span className="font-semibold text-orange-600">{unassignedStudentCount} unassigned</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              
-              {/* Canvas content */}
-              <div className="absolute inset-0 flex items-center justify-center p-12">
-                <div
-                  ref={containerRef}
-                  className={cn(
-                    "relative rounded-xl border-2 border-dashed border-muted-foreground/30 shadow-lg",
-                    isBlackAndWhite && 'export-bw',
-                    isWhiteBackground ? 'bg-white' : 'bg-gradient-to-br from-background via-muted/10 to-muted/20'
-                  )}
-                  style={{
-                    width: `${CANVAS_WIDTH}px`,
-                    height: `${CANVAS_HEIGHT}px`,
-                    transform: `scale(${zoom})`,
-                    transformOrigin: 'center',
-                    transition: 'transform 0.2s ease-out',
-                  }}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  {/* Grid pattern */}
-                  {isGridVisible && (
-                    <div
-                      className="export-grid-bg absolute inset-0 opacity-40"
-                      style={{
-                        backgroundImage: `
-                          linear-gradient(to right, hsl(var(--primary) / 0.3) 1px, transparent 1px),
-                          linear-gradient(to bottom, hsl(var(--primary) / 0.3) 1px, transparent 1px)
-                        `,
-                        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`
-                      }}
-                    />
-                  )}
-                  
-                  {/* Teacher's desk */}
-                  <DraggableTeacherDesk {...teacherDesk} isLayoutMode={activeTab === 'layout'} />
-                  
-                  {/* Student desks */}
-                  <div onMouseOver={handleMouseOver}>
-                    {desksWithGroups.map((desk, index) => (
-                      <div key={desk.id} data-desk-id={desk.id}>
-                        <DraggableItem
-                          desk={desk} 
-                          deskIndex={index}
-                          group={desk.group}
-                          unassignedStudents={unassignedStudents}
-                          onRemove={() => removeDesk(desk.id)}
-                          onToggleExclude={() => handleToggleDoNotUseDesk(desk.id)}
-                          onManualAssign={handleManualAssign}
-                          isLayoutMode={activeTab === 'layout'}
-                          isRulesMode={activeTab === 'rules'}
-                          isExcluded={doNotUseDeskIds.has(desk.id)}
-                          areIndicatorsVisible={areIndicatorsVisible}
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Group Controls */}
-                  {groupLayouts.map((group) => (
-                    <GroupControl
-                      key={`control-${group!.id}`}
-                      group={group!}
-                      isVisible={hoveredGroupId === group!.id}
-                      onRename={handleRenameGroup}
-                      onSetColor={handleSetGroupColor}
-                      onDelete={handleDeleteGroup}
-                    />
-                  ))}
-                  
-                  {/* Empty state */}
-                  {desks.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                      <div className="space-y-4 text-center">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
-                          <Grid3X3 className="h-8 w-8 opacity-50" />
-                        </div>
-                        <p className="text-lg font-medium">Empty Classroom</p>
-                        <p className="text-sm">
-                          Click the + button to add furniture or choose a preset.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Sliding Panel - Students & Rules */}
+            {/* Teacher Desk */}
             <div
-              className={cn(
-                "absolute right-0 top-0 h-full bg-card border-l border-border shadow-lg transition-transform duration-300 z-20",
-                rightPanelOpen ? "translate-x-0" : "translate-x-full"
-              )}
-              style={{ width: '380px' }}
+              className="absolute bg-primary text-primary-foreground rounded flex items-center justify-center text-xs font-medium"
+              style={{
+                left: `${(CANVAS_WIDTH - 192) / 2}px`,
+                top: '60px',
+                width: '192px',
+                height: '64px',
+              }}
             >
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <h3 className="font-semibold text-foreground">
-                  {activeTab === 'students' ? 'Students' : 'Rules'}
-                </h3>
-                <Button
-                  onClick={() => setRightPanelOpen(false)}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                >
-                  <X size={18} />
-                </Button>
+              Teacher's Desk
+            </div>
+
+            {/* Desks */}
+            {desks.map((desk) => (
+              <div
+                key={desk.id}
+                className="absolute bg-white border-2 border-primary rounded flex items-center justify-center text-xs"
+                style={{
+                  left: `${desk.x}px`,
+                  top: `${desk.y}px`,
+                  width: `${desk.width}px`,
+                  height: `${desk.height}px`,
+                }}
+              >
+                {desk.id}
               </div>
-              
-              <ScrollArea className="h-[calc(100%-4rem)]">
-                <div className="p-4">
-                  {activeTab === 'students' && (
-                    <StudentsPanel
-                      students={students}
-                      studentInput={studentInput}
-                      isLoading={isAssigning}
-                      fileInputRef={fileInputRef}
-                      onStudentInputChange={setStudentInput}
-                      onParseStudents={parseStudents}
-                      onFileUpload={handleFileUpload}
-                      onRemoveStudent={removeStudent}
-                      onUpdateStudentGender={updateStudentGender}
-                      onUpdateStudentSEND={updateStudentSEND}
-                    />
-                  )}
-                  {activeTab === 'rules' && (
-                    <RulesPanel
-                      desks={desks}
-                      separationRules={separationRules}
-                      doNotUseDeskIds={doNotUseDeskIds}
-                      fillFromFront={fillFromFront}
-                      alternateGender={alternateGender}
-                      newRuleStudents={newRuleStudents}
-                      onFillFromFrontChange={setFillFromFront}
-                      onAlternateGenderChange={setAlternateGender}
-                      onNewRuleStudentsChange={setNewRuleStudents}
-                      onAddSeparationRule={addSeparationRule}
-                      onRemoveSeparationRule={removeSeparationRule}
-                      onToggleDoNotUseDesk={handleToggleDoNotUseDesk}
-                    />
-                  )}
-                </div>
-              </ScrollArea>
-            </div>
+            ))}
 
-            {/* Toggle Button for Right Panel */}
-            {!rightPanelOpen && activeTab !== 'layout' && (
-              <Button
-                onClick={() => setRightPanelOpen(true)}
-                variant="outline"
-                size="sm"
-                className="absolute right-4 top-4 z-10 h-9 px-3 shadow-md"
-                title={activeTab === 'students' ? 'Open Students' : 'Open Rules'}
-              >
-                {activeTab === 'students' ? 'Students' : 'Rules'}
-                <ChevronLeft size={16} className="ml-1" />
-              </Button>
+            {/* Empty state */}
+            {desks.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                <div className="text-center space-y-2">
+                  <div className="text-5xl">📐</div>
+                  <p className="text-lg font-medium">Empty Classroom</p>
+                  <p className="text-sm">Click "Add Single Desk" or "Load Computer Room"</p>
+                </div>
+              </div>
             )}
-
-            {/* Floating Action Button (FAB) - Quick Add Menu */}
-            <div className="absolute bottom-6 right-6 z-30">
-              {/* Quick Add Menu */}
-              {fabOpen && (
-                <div className="absolute bottom-16 right-0 bg-card rounded-lg shadow-xl border border-border py-1 mb-2 w-56">
-                  {/* Furniture Items */}
-                  <div className="px-1 py-1">
-                    {furnitureTemplates.map((template) => (
-                      <Button
-                        key={template.id}
-                        variant="ghost"
-                        className="w-full justify-start px-3 py-2 h-9 text-sm font-normal"
-                        onClick={() => handleAddFurniture(template)}
-                      >
-                        <span className="mr-2 text-base">{template.icon}</span>
-                        <span>{template.name}</span>
-                      </Button>
-                    ))}
-                  </div>
-                  
-                  {/* Separator */}
-                  <Separator className="my-1" />
-                  
-                  {/* Presets */}
-                  <div className="px-1 py-1">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start px-3 py-2 h-9 text-sm font-normal"
-                      onClick={() => {
-                        setActiveTab('layout');
-                        setLeftPanelOpen(true);
-                        setRightPanelOpen(false);
-                        setFabOpen(false);
-                      }}
-                    >
-                      <LayoutGrid size={16} className="mr-2" />
-                      <span>Presets</span>
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              <Button
-                onClick={() => setFabOpen(!fabOpen)}
-                size="lg"
-                className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                {fabOpen ? <X size={24} /> : <Plus size={24} />}
-              </Button>
-            </div>
           </div>
+        </div>
+      </div>
 
-          {/* Help Overlay Hint */}
-          <div className="absolute bottom-6 left-6 bg-card/90 backdrop-blur rounded-lg px-3 py-2 text-xs text-muted-foreground shadow-md border border-border">
-            Press <kbd className="px-1.5 py-0.5 bg-muted rounded font-mono mx-1">?</kbd> for keyboard shortcuts
-          </div>
-        </DndContext>
-      )}
+      {/* Debug Info */}
+      <div className="bg-card border-t border-border px-4 py-2 text-xs text-muted-foreground">
+        Canvas: {CANVAS_WIDTH}×{CANVAS_HEIGHT}px ({CANVAS_WIDTH / GRID_SIZE}×{CANVAS_HEIGHT / GRID_SIZE} squares) | 
+        Desks: {desks.length} | 
+        Zoom: {(zoom * 100).toFixed(1)}%
+      </div>
     </div>
   );
 };
