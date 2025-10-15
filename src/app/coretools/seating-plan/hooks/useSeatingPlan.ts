@@ -110,7 +110,7 @@ export const useSeatingPlan = () => {
     
     const deskWidth = 128;
     const deskHeight = 80;
-    const horizontalGap = 128;
+    const horizontalGap = 160;
     const verticalGap = 64;
     
     const desksPerGroup = 4;
@@ -120,7 +120,11 @@ export const useSeatingPlan = () => {
     const singleGroupWidth = desksPerGroup * deskWidth;
     const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap;
     
-    const startX = Math.max(SAFE_MARGIN, (width - totalContentWidth) / 2);
+    const centerStartX = (width - totalContentWidth) / 2;
+    const minStartX = SAFE_MARGIN;
+    const maxStartX = width - SAFE_MARGIN - totalContentWidth;
+    const boundedStartX = Math.min(maxStartX, Math.max(minStartX, centerStartX));
+    const startX = boundedStartX;
 
     const totalContentHeight = (rows * deskHeight) + ((rows - 1) * verticalGap);
     const centeredStartY = (height - totalContentHeight) / 2;

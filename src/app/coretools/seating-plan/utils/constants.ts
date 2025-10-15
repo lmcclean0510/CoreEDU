@@ -1,14 +1,13 @@
 import type { FurnitureTemplate } from '../types';
 
-export const CANVAS_WIDTH = 1920;
+export const GRID_SIZE = 32;
+export const CANVAS_WIDTH = GRID_SIZE * 45; // 45 grid squares wide for additional space
 export const CANVAS_HEIGHT = 1003;
 
 export const GROUP_COLORS = [
   '#14b8a6', '#3b82f6', '#8b5cf6', '#d946ef', '#ef4444', '#f97316',
   '#eab308', '#22c55e', '#6366f1', '#06b6d4', '#84cc16', '#10b981',
 ];
-
-export const GRID_SIZE = 32;
 
 export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
   {
