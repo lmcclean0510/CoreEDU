@@ -220,12 +220,11 @@ const SeatingPlanTool = () => {
   }, [handleExport, isGridVisible, isWhiteBackground, setIsGridVisible]);
 
   const getCanvasSize = useCallback(() => {
-    const el = containerRef.current;
     return {
-      width: el?.offsetWidth ?? CANVAS_WIDTH,
-      height: el?.offsetHeight ?? CANVAS_HEIGHT,
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
     };
-  }, [containerRef]);
+  }, []);
 
   // Memoized mouse handlers
   const handleMouseOver = useCallback((e: React.MouseEvent) => {
