@@ -1,8 +1,9 @@
 import type { FurnitureTemplate } from '../types';
 
+// Canvas dimensions - 100 grid squares wide, 20 tall (reasonable size)
 export const GRID_SIZE = 32;
-export const CANVAS_WIDTH = GRID_SIZE * 150; // 150 grid squares wide = 4800px (VERY wide for auto-fit)
-export const CANVAS_HEIGHT = GRID_SIZE * 20; // 20 grid squares tall = 640px (shorter height)
+export const CANVAS_WIDTH = GRID_SIZE * 100; // 3200px - wider but not excessive
+export const CANVAS_HEIGHT = GRID_SIZE * 20; // 640px - short height
 
 export const GROUP_COLORS = [
   '#14b8a6', '#3b82f6', '#8b5cf6', '#d946ef', '#ef4444', '#f97316',
@@ -59,9 +60,10 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
   }
 ];
 
+// Teacher desk positioned at top center
 export const DEFAULT_TEACHER_DESK = {
   x: (CANVAS_WIDTH - 192) / 2,
-  y: 32, // Near top of shorter canvas
+  y: 32,
   width: 192,
   height: 64
 };

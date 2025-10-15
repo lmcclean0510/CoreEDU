@@ -4,10 +4,6 @@ import { parseStudentInput, validateSeparationRule } from '../utils/validation';
 import { sortDesksByPosition } from '../utils/calculations';
 import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTemplate, DeskWithGroup, Stats } from '../types';
 
-const SAFE_MARGIN = 60;
-
-type CanvasSize = { width: number; height: number };
-
 export const useSeatingPlan = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -98,131 +94,101 @@ export const useSeatingPlan = () => {
     }).filter(Boolean);
   }, [groups, desks]);
 
-  // Preset loading - ALWAYS use constants, not passed canvasSize
+  // Computer Room Preset - simplified and always centered
   const loadComputerRoomPreset = useCallback(() => {
-    // ALWAYS use constants directly
-    const width = CANVAS_WIDTH;
-    const height = CANVAS_HEIGHT;
-    console.log('🎯 Computer Room Preset - Using canvas dimensions:', { width, height });
+    console.log('🎯 Loading Computer Room Preset');
+    console.log('Canvas size:', CANVAS_WIDTH, 'x', CANVAS_HEIGHT);
     
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
     const baseId = Date.now();
     
+    // Layout configuration
     const deskWidth = 128;
     const deskHeight = 80;
-    const horizontalGap = 160;
-    const verticalGap = 48; // Reduced from 64 for shorter canvas
+    const desksPerRow = 8; // 4 left + 4 right
+    const rows = 3;
+    const gapBetweenGroups = 160; // Horizontal gap between left and right groups
+    const gapBetweenRows = 48; // Vertical gap
     
-    const desksPerGroup = 4;
-    const groupsPerRow = 2;
-    const rows = 3; // Reduced from 4 to fit shorter canvas
+    // Calculate total layout dimensions
+    const totalWidth = (desksPerRow * deskWidth) + gapBetweenGroups;
+    const totalHeight = (rows * deskHeight) + ((rows - 1) * gapBetweenRows);
     
-    const singleGroupWidth = desksPerGroup * deskWidth;
-    const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap;
-    console.log('🎯 Content width calculation:', { singleGroupWidth, totalContentWidth });
+    // Center the entire layout
+    const startX = (CANVAS_WIDTH - totalWidth) / 2;
+    const startY = 140; // Leave space for teacher desk at top
     
-    const centerStartX = (width - totalContentWidth) / 2;
-    const minStartX = SAFE_MARGIN;
-    const maxStartX = width - SAFE_MARGIN - totalContentWidth;
-    const boundedStartX = Math.min(maxStartX, Math.max(minStartX, centerStartX));
-    const startX = boundedStartX;
-    console.log('🎯 Starting X position:', { centerStartX, startX });
-
-    const totalContentHeight = (rows * deskHeight) + ((rows - 1) * verticalGap);
-    const centeredStartY = (height - totalContentHeight) / 2;
-    const startY = Math.max(SAFE_MARGIN + 80, centeredStartY); // Teacher desk space
-    console.log('🎯 Starting Y position:', { centeredStartY, startY });
-
+    console.log('Layout:', { totalWidth, totalHeight, startX, startY });
+    
+    // Create desks row by row
     for (let row = 0; row < rows; row++) {
-      const yPos = startY + (row * (deskHeight + verticalGap));
+      const y = startY + (row * (deskHeight + gapBetweenRows));
       
-      if (yPos + deskHeight > height - SAFE_MARGIN) {
-        console.warn(`Row ${row} would exceed canvas bounds, stopping`);
-        break;
-      }
-      
+      // Left group (4 desks)
       const leftGroupDeskIds: number[] = [];
-      for (let i = 0; i < desksPerGroup; i++) {
-        const deskId = baseId + (row * desksPerGroup * groupsPerRow) + i;
-        const xPos = startX + (i * deskWidth);
+      for (let i = 0; i < 4; i++) {
+        const deskId = baseId + (row * desksPerRow) + i;
+        const x = startX + (i * deskWidth);
         
-        if (xPos + deskWidth > width - SAFE_MARGIN) {
-          console.warn(`Desk would exceed right bound at x=${xPos}, skipping`);
-          break;
-        }
-        
+        newDesks.push({
+          id: deskId,
+          x,
+          y,
+          width: deskWidth,
+          height: deskHeight,
+          student: null,
+          isLocked: false,
+        });
         leftGroupDeskIds.push(deskId);
-        newDesks.push({
-          id: deskId,
-          x: xPos,
-          y: yPos,
-          width: deskWidth,
-          height: deskHeight,
-          student: null,
-          isLocked: false,
-        });
       }
       
-      if (leftGroupDeskIds.length > 0) {
-        newGroups.push({
-          id: baseId + (row * groupsPerRow),
-          deskIds: leftGroupDeskIds,
-          name: `Row ${row + 1} - Left`,
-          color: GROUP_COLORS[0]
-        });
-      }
-
+      newGroups.push({
+        id: baseId + (row * 2),
+        deskIds: leftGroupDeskIds,
+        name: `Row ${row + 1} - Left`,
+        color: GROUP_COLORS[0]
+      });
+      
+      // Right group (4 desks)
       const rightGroupDeskIds: number[] = [];
-      const rightGroupStartX = startX + singleGroupWidth + horizontalGap;
+      const rightStartX = startX + (4 * deskWidth) + gapBetweenGroups;
       
-      for (let i = 0; i < desksPerGroup; i++) {
-        const deskId = baseId + (row * desksPerGroup * groupsPerRow) + desksPerGroup + i;
-        const xPos = rightGroupStartX + (i * deskWidth);
+      for (let i = 0; i < 4; i++) {
+        const deskId = baseId + (row * desksPerRow) + 4 + i;
+        const x = rightStartX + (i * deskWidth);
         
-        if (xPos + deskWidth > width - SAFE_MARGIN) {
-          console.warn(`Right group desk would exceed bound at x=${xPos}, skipping`);
-          break;
-        }
-        
-        rightGroupDeskIds.push(deskId);
         newDesks.push({
           id: deskId,
-          x: xPos,
-          y: yPos,
+          x,
+          y,
           width: deskWidth,
           height: deskHeight,
           student: null,
           isLocked: false,
         });
+        rightGroupDeskIds.push(deskId);
       }
       
-      if (rightGroupDeskIds.length > 0) {
-        newGroups.push({
-          id: baseId + (row * groupsPerRow) + 1,
-          deskIds: rightGroupDeskIds,
-          name: `Row ${row + 1} - Right`,
-          color: GROUP_COLORS[0]
-        });
-      }
+      newGroups.push({
+        id: baseId + (row * 2) + 1,
+        deskIds: rightGroupDeskIds,
+        name: `Row ${row + 1} - Right`,
+        color: GROUP_COLORS[0]
+      });
     }
-
+    
     console.log(`Created ${newDesks.length} desks in ${newGroups.length} groups`);
-    console.log(`Canvas dimensions: ${width}x${height}`);
-    console.log(`Layout spans from x=${Math.min(...newDesks.map(d => d.x))} to x=${Math.max(...newDesks.map(d => d.x + d.width))}`);
-
+    
     setDesks(newDesks);
     setGroups(newGroups);
     
-    const teacherDeskWidth = 192;
-    const teacherDeskHeight = 64;
-    const teacherDeskY = SAFE_MARGIN;
-
+    // Position teacher desk at top center
     setTeacherDesk({ 
-      x: (width - teacherDeskWidth) / 2, 
-      y: teacherDeskY, 
-      width: teacherDeskWidth, 
-      height: teacherDeskHeight 
+      x: (CANVAS_WIDTH - 192) / 2, 
+      y: 60, 
+      width: 192, 
+      height: 64 
     });
     
     setIsPresetDialogOpen(false);
@@ -245,57 +211,39 @@ export const useSeatingPlan = () => {
     setGroups(prev => prev.filter(g => g.id !== groupId));
   }, [groups]);
 
-  // Furniture management with PROPER centering
-  const addFurniture = useCallback((template: FurnitureTemplate, canvasSize?: CanvasSize) => {
+  // Add furniture - simplified to always use canvas constants
+  const addFurniture = useCallback((template: FurnitureTemplate) => {
     const baseId = Date.now();
-    const width = canvasSize?.width ?? CANVAS_WIDTH;
-    const height = canvasSize?.height ?? CANVAS_HEIGHT;
-    
-    // Calculate the bounding box of the template
     const templateDesks = template.desks;
     if (templateDesks.length === 0) return;
     
-    // Find the bounds of the template
-    const minTemplateX = Math.min(...templateDesks.map(d => d.x));
-    const maxTemplateX = Math.max(...templateDesks.map(d => d.x + d.width));
-    const minTemplateY = Math.min(...templateDesks.map(d => d.y));
-    const maxTemplateY = Math.max(...templateDesks.map(d => d.y + d.height));
+    // Find template bounds
+    const minX = Math.min(...templateDesks.map(d => d.x));
+    const maxX = Math.max(...templateDesks.map(d => d.x + d.width));
+    const minY = Math.min(...templateDesks.map(d => d.y));
+    const maxY = Math.max(...templateDesks.map(d => d.y + d.height));
     
-    const templateWidth = maxTemplateX - minTemplateX;
-    const templateHeight = maxTemplateY - minTemplateY;
+    const templateWidth = maxX - minX;
+    const templateHeight = maxY - minY;
     
-    // Calculate where to place the template so it's centered on canvas
-    const canvasCenterX = width / 2;
-    const canvasCenterY = height / 2;
+    // Center on canvas
+    const centerX = CANVAS_WIDTH / 2;
+    const centerY = CANVAS_HEIGHT / 2;
     
-    // This is the top-left corner of the template's bounding box, positioned to center it
-    const templateOriginX = canvasCenterX - (templateWidth / 2);
-    const templateOriginY = canvasCenterY - (templateHeight / 2);
+    const offsetX = centerX - (templateWidth / 2) - minX;
+    const offsetY = centerY - (templateHeight / 2) - minY;
     
-    // Offset to align the template's local origin with the canvas position
-    const offsetX = templateOriginX - minTemplateX;
-    const offsetY = templateOriginY - minTemplateY;
+    const newDesks = templateDesks.map((desk, index) => ({
+      id: baseId + index,
+      x: desk.x + offsetX,
+      y: desk.y + offsetY,
+      width: desk.width,
+      height: desk.height,
+      student: null,
+      isLocked: false,
+    }));
     
-    const newDesks = templateDesks.map((desk, index) => {
-      // Position the desk by applying the offset
-      let x = desk.x + offsetX;
-      let y = desk.y + offsetY;
-      
-      // Constrain to canvas bounds with margin
-      x = Math.max(SAFE_MARGIN, Math.min(x, width - desk.width - SAFE_MARGIN));
-      y = Math.max(SAFE_MARGIN, Math.min(y, height - desk.height - SAFE_MARGIN));
-      
-      return {
-        id: baseId + index,
-        x,
-        y,
-        width: desk.width,
-        height: desk.height,
-        student: null,
-        isLocked: false,
-      };
-    });
-    
+    // Create group if multiple desks
     if (template.desks.length > 1) {
       const newGroup = {
         id: baseId,

@@ -153,8 +153,11 @@ const SeatingPlanTool = () => {
 
   useEffect(() => {
     setIsClient(true);
-    // Debug: Log canvas dimensions
-    console.log('Canvas dimensions (always auto-fit):', { CANVAS_WIDTH, CANVAS_HEIGHT, squares: { width: CANVAS_WIDTH / GRID_SIZE, height: CANVAS_HEIGHT / GRID_SIZE } });
+    console.log('🎯 Seating Plan Canvas:', { 
+      width: CANVAS_WIDTH, 
+      height: CANVAS_HEIGHT, 
+      gridSquares: { width: CANVAS_WIDTH / GRID_SIZE, height: CANVAS_HEIGHT / GRID_SIZE } 
+    });
   }, []);
 
   // Memoized sensors for DnD
@@ -205,14 +208,6 @@ const SeatingPlanTool = () => {
   const onExport = useCallback(() => {
     handleExport(isGridVisible, isWhiteBackground, setIsGridVisible);
   }, [handleExport, isGridVisible, isWhiteBackground, setIsGridVisible]);
-
-  const getCanvasSize = useCallback(() => {
-    const el = containerRef.current;
-    return {
-      width: el?.offsetWidth ?? CANVAS_WIDTH,
-      height: el?.offsetHeight ?? CANVAS_HEIGHT,
-    };
-  }, [containerRef]);
 
   // Memoized mouse handlers
   const handleMouseOver = useCallback((e: React.MouseEvent) => {
