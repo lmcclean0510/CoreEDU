@@ -32,6 +32,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 // Components
 import DraggableItem from './components/DraggableItem';
@@ -57,7 +58,7 @@ const SeatingPlanTool = () => {
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   
   // UI state
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.5); // Start with a reasonable default
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
@@ -129,18 +130,31 @@ const SeatingPlanTool = () => {
   const { isLoading: isAssigning, autoAssignStudents, clearAssignments } = useStudentAssignment();
   const { isExporting, handleExport } = useExport(containerRef);
 
-  // Auto-fit zoom on mount
+  // Auto-fit zoom on mount and container resize
   useEffect(() => {
-    if (canvasContainerRef.current) {
-      const containerWidth = canvasContainerRef.current.offsetWidth;
-      const containerHeight = canvasContainerRef.current.offsetHeight;
-      
-      const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
-      const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
-      const fitScale = Math.min(scaleX, scaleY, 1);
-      
-      setZoom(fitScale);
-    }
+    const calculateFitZoom = () => {
+      if (canvasContainerRef.current) {
+        const containerWidth = canvasContainerRef.current.offsetWidth;
+        const containerHeight = canvasContainerRef.current.offsetHeight;
+        
+        const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
+        const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
+        const fitScale = Math.min(scaleX, scaleY, 1);
+        
+        setZoom(fitScale);
+      }
+    };
+
+    // Calculate immediately
+    calculateFitZoom();
+
+    // Also recalculate on window resize
+    const handleResize = () => {
+      calculateFitZoom();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -719,35 +733,41 @@ const SeatingPlanTool = () => {
             <div className="absolute bottom-6 right-6 z-30">
               {/* Quick Add Menu */}
               {fabOpen && (
-                <div className="absolute bottom-16 right-0 bg-card rounded-lg shadow-xl border border-border py-2 mb-2 w-48">
+                <div className="absolute bottom-16 right-0 bg-card rounded-lg shadow-xl border border-border py-1 mb-2 w-56">
                   {/* Furniture Items */}
-                  {furnitureTemplates.map((template) => (
-                    <Button
-                      key={template.id}
-                      variant="ghost"
-                      className="w-full justify-start px-4 py-2 h-auto hover:bg-muted"
-                      onClick={() => handleAddFurniture(template)}
-                    >
-                      <span className="mr-2">{template.icon}</span>
-                      <span className="text-sm">{template.name}</span>
-                    </Button>
-                  ))}
+                  <div className="px-1 py-1">
+                    {furnitureTemplates.map((template) => (
+                      <Button
+                        key={template.id}
+                        variant="ghost"
+                        className="w-full justify-start px-3 py-2 h-9 hover:bg-muted text-sm font-normal"
+                        onClick={() => handleAddFurniture(template)}
+                      >
+                        <span className="mr-2 text-base">{template.icon}</span>
+                        <span>{template.name}</span>
+                      </Button>
+                    ))}
+                  </div>
                   
                   {/* Separator */}
-                  <div className="h-px bg-border my-2 mx-2" />
+                  <Separator className="my-1" />
                   
-                  {/* Pick Preset */}
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 py-2 h-auto hover:bg-muted"
-                    onClick={() => {
-                      loadComputerRoomPreset(getCanvasSize());
-                      setFabOpen(false);
-                    }}
-                  >
-                    <Grid3X3 size={16} className="mr-2 text-muted-foreground" />
-                    <span className="text-sm">Computer Room Preset</span>
-                  </Button>
+                  {/* Presets */}
+                  <div className="px-1 py-1">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start px-3 py-2 h-9 hover:bg-muted text-sm font-normal"
+                      onClick={() => {
+                        setActiveTab('layout');
+                        setLeftPanelOpen(true);
+                        setRightPanelOpen(false);
+                        setFabOpen(false);
+                      }}
+                    >
+                      <LayoutGrid size={16} className="mr-2" />
+                      <span>Presets</span>
+                    </Button>
+                  </div>
                 </div>
               )}
               
