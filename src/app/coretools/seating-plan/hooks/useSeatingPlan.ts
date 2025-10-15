@@ -110,11 +110,11 @@ export const useSeatingPlan = () => {
     const deskWidth = 128;
     const deskHeight = 80;
     const horizontalGap = 160;
-    const verticalGap = 64;
+    const verticalGap = 48; // Reduced from 64 for shorter canvas
     
     const desksPerGroup = 4;
     const groupsPerRow = 2;
-    const rows = 4;
+    const rows = 3; // Reduced from 4 to fit shorter canvas
     
     const singleGroupWidth = desksPerGroup * deskWidth;
     const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap;
@@ -127,7 +127,7 @@ export const useSeatingPlan = () => {
 
     const totalContentHeight = (rows * deskHeight) + ((rows - 1) * verticalGap);
     const centeredStartY = (height - totalContentHeight) / 2;
-    const startY = Math.max(SAFE_MARGIN + (GRID_SIZE * 3), centeredStartY);
+    const startY = Math.max(SAFE_MARGIN + 80, centeredStartY); // Teacher desk space
 
     for (let row = 0; row < rows; row++) {
       const yPos = startY + (row * (deskHeight + verticalGap));
@@ -211,7 +211,7 @@ export const useSeatingPlan = () => {
     
     const teacherDeskWidth = 192;
     const teacherDeskHeight = 64;
-    const teacherDeskY = Math.max(SAFE_MARGIN, startY - teacherDeskHeight - verticalGap);
+    const teacherDeskY = SAFE_MARGIN;
 
     setTeacherDesk({ 
       x: (width - teacherDeskWidth) / 2, 

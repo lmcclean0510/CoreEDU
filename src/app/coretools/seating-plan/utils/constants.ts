@@ -61,7 +61,7 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
 
 export const DEFAULT_TEACHER_DESK = {
   x: (CANVAS_WIDTH - 192) / 2,
-  y: 32,
+  y: 32, // Near top of shorter canvas
   width: 192,
   height: 64
 };
