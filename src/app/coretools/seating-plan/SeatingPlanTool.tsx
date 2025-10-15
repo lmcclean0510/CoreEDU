@@ -3,10 +3,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-// Optimized canvas size - 33 grid squares wide gives ~70% zoom
-const CANVAS_WIDTH = 1056;  // 33 grid squares - targets 70% zoom
-const CANVAS_HEIGHT = 640;   // 20 grid squares
-const GRID_SIZE = 32;
+// Optimized canvas size - 33x20 grid squares at 36px each
+const GRID_SIZE = 36;        // Increased from 32px for better readability
+const CANVAS_WIDTH = 1188;   // 33 grid squares × 36px
+const CANVAS_HEIGHT = 720;   // 20 grid squares × 36px
 
 interface Desk {
   id: number;
@@ -31,7 +31,7 @@ const SeatingPlanTool = () => {
         const containerHeight = containerRef.current.clientHeight;
         const actualCanvasWidth = canvasRef.current.offsetWidth;
         
-        const padding = 96;
+        const padding = 64; // p-8: 32px each side = 64px total
         const scaleX = (containerWidth - padding) / actualCanvasWidth;
         const scaleY = (containerHeight - padding) / CANVAS_HEIGHT;
         const newZoom = Math.min(scaleX, scaleY, 1);
@@ -68,18 +68,18 @@ const SeatingPlanTool = () => {
     console.log('🎯 Loading preset...');
     
     const newDesks: Desk[] = [];
-    const deskWidth = 128;
-    const deskHeight = 80;
+    const deskWidth = 144;  // Scaled from 128 (4 grid squares)
+    const deskHeight = 90;  // Scaled from 80 (2.5 grid squares)
     const rows = 3;
-    const gapBetweenGroups = 32; // Tight gap - layout fits exactly in 1056px canvas
-    const rowGap = 48;
+    const gapBetweenGroups = 36; // 1 grid square gap
+    const rowGap = 54; // 1.5 grid squares
     
     // Calculate total width: 4 desks + gap + 4 desks
     const totalWidth = (4 * deskWidth) + gapBetweenGroups + (4 * deskWidth);
     
     // Center the layout
     const startX = (CANVAS_WIDTH - totalWidth) / 2;
-    const startY = 150;
+    const startY = 170; // Leave space for scaled teacher desk
     
     console.log('🎯 Layout:', { totalWidth, startX, CANVAS_WIDTH });
     
@@ -119,10 +119,10 @@ const SeatingPlanTool = () => {
   const addSingleDesk = () => {
     const newDesk: Desk = {
       id: Date.now(),
-      x: (CANVAS_WIDTH - 128) / 2,
-      y: (CANVAS_HEIGHT - 80) / 2,
-      width: 128,
-      height: 80,
+      x: (CANVAS_WIDTH - 144) / 2,
+      y: (CANVAS_HEIGHT - 90) / 2,
+      width: 144,
+      height: 90,
     };
     console.log('🎯 Adding desk at center:', newDesk);
     setDesks([...desks, newDesk]);
@@ -168,7 +168,7 @@ const SeatingPlanTool = () => {
         </div>
 
         {/* Canvas */}
-        <div className="absolute inset-0 flex items-center justify-center p-12">
+        <div className="absolute inset-0 flex items-center justify-center p-8">
           <div
             ref={canvasRef}
             className="relative bg-white rounded-xl border-2 border-dashed border-muted-foreground/30 shadow-lg"
@@ -199,10 +199,10 @@ const SeatingPlanTool = () => {
             <div
               className="absolute bg-primary text-primary-foreground rounded flex items-center justify-center text-xs font-medium shadow-md"
               style={{
-                left: `${(CANVAS_WIDTH - 192) / 2}px`,
-                top: '60px',
-                width: '192px',
-                height: '64px',
+                left: `${(CANVAS_WIDTH - 216) / 2}px`,
+                top: '68px',
+                width: '216px',
+                height: '72px',
               }}
             >
               Teacher's Desk
