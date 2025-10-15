@@ -1,6 +1,6 @@
 import type { FurnitureTemplate } from '../types';
 
-export const CANVAS_WIDTH = 1600;
+export const CANVAS_WIDTH = 1920;
 export const CANVAS_HEIGHT = 1003;
 
 export const GROUP_COLORS = [

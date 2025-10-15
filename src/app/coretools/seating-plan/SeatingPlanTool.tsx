@@ -228,10 +228,13 @@ const SeatingPlanTool = () => {
       };
     }
 
+    const scale = zoom || 1;
     const rect = el.getBoundingClientRect();
+    const measuredWidth = rect.width / scale;
+    const measuredHeight = rect.height / scale;
     return {
-      width: rect.width / zoom,
-      height: rect.height / zoom,
+      width: Math.max(CANVAS_WIDTH, measuredWidth),
+      height: Math.max(CANVAS_HEIGHT, measuredHeight),
     };
   }, [zoom]);
 
