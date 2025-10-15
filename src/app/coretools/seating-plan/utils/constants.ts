@@ -15,15 +15,15 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
     id: 'single-desk',
     name: 'Single Desk',
     icon: '🪑',
-    desks: [{ x: 0, y: 0, width: 112, height: 72 }]
+    desks: [{ x: 0, y: 0, width: 128, height: 80 }]
   },
   {
     id: 'double-desk',
     name: 'Double Desk',
     icon: '🪑🪑',
     desks: [
-      { x: 0, y: 0, width: 112, height: 72 },
-      { x: 112, y: 0, width: 112, height: 72 }
+      { x: 0, y: 0, width: 128, height: 80 },
+      { x: 128, y: 0, width: 128, height: 80 }
     ]
   },
   {
@@ -31,10 +31,10 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
     name: 'Table for 4',
     icon: '⬜',
     desks: [
-      { x: 0, y: 0, width: 112, height: 72 },
-      { x: 112, y: 0, width: 112, height: 72 },
-      { x: 0, y: 72, width: 112, height: 72 },
-      { x: 112, y: 72, width: 112, height: 72 }
+      { x: 0, y: 0, width: 128, height: 80 },
+      { x: 128, y: 0, width: 128, height: 80 },
+      { x: 0, y: 80, width: 128, height: 80 },
+      { x: 128, y: 80, width: 128, height: 80 }
     ]
   },
   {
@@ -42,9 +42,9 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
     name: 'Row of 3',
     icon: '▬',
     desks: [
-      { x: 0, y: 0, width: 112, height: 72 },
-      { x: 112, y: 0, width: 112, height: 72 },
-      { x: 224, y: 0, width: 112, height: 72 }
+      { x: 0, y: 0, width: 128, height: 80 },
+      { x: 128, y: 0, width: 128, height: 80 },
+      { x: 256, y: 0, width: 128, height: 80 }
     ]
   },
   {
@@ -52,10 +52,10 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
     name: 'Row of 4',
     icon: '▬▬',
     desks: [
-      { x: 0, y: 0, width: 112, height: 72 },
-      { x: 112, y: 0, width: 112, height: 72 },
-      { x: 224, y: 0, width: 112, height: 72 },
-      { x: 336, y: 0, width: 112, height: 72 }
+      { x: 0, y: 0, width: 128, height: 80 },
+      { x: 128, y: 0, width: 128, height: 80 },
+      { x: 256, y: 0, width: 128, height: 80 },
+      { x: 384, y: 0, width: 128, height: 80 }
     ]
   }
 ];
