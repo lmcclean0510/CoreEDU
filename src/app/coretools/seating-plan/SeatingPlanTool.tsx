@@ -77,6 +77,7 @@ const SeatingPlanTool = () => {
     isBlackAndWhite,
     isWhiteBackground,
     hoveredGroupId,
+    isPresetDialogOpen,
     areIndicatorsVisible,
 
     // Setters
@@ -91,6 +92,7 @@ const SeatingPlanTool = () => {
     setIsBlackAndWhite,
     setIsWhiteBackground,
     setHoveredGroupId,
+    setIsPresetDialogOpen,
     setAreIndicatorsVisible,
 
     // Computed values
@@ -125,32 +127,32 @@ const SeatingPlanTool = () => {
   const { isLoading: isAssigning, autoAssignStudents, clearAssignments } = useStudentAssignment();
   const { isExporting, handleExport } = useExport(containerRef);
 
-  const computeFitScale = useCallback(() => {
-    const container = canvasContainerRef.current;
-    if (!container) return null;
-
-    const containerWidth = container.offsetWidth;
-    const containerHeight = container.offsetHeight;
-
-    const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
-    const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
-
-    return Math.min(scaleX, scaleY, 1);
-  }, []);
-
   // Auto-fit zoom on mount and container resize
   useEffect(() => {
-    const updateZoom = () => {
-      const fitScale = computeFitScale();
-      if (fitScale !== null) {
+    const calculateFitZoom = () => {
+      if (canvasContainerRef.current) {
+        const containerWidth = canvasContainerRef.current.offsetWidth;
+        const containerHeight = canvasContainerRef.current.offsetHeight;
+        
+        const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
+        const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
+        const fitScale = Math.min(scaleX, scaleY, 1);
+        
         setZoom(fitScale);
       }
     };
 
-    updateZoom();
-    window.addEventListener('resize', updateZoom);
-    return () => window.removeEventListener('resize', updateZoom);
-  }, [computeFitScale]);
+    // Calculate immediately
+    calculateFitZoom();
+
+    // Also recalculate on window resize
+    const handleResize = () => {
+      calculateFitZoom();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -174,11 +176,17 @@ const SeatingPlanTool = () => {
   }, []);
 
   const handleFitToScreen = useCallback(() => {
-    const fitScale = computeFitScale();
-    if (fitScale !== null) {
+    if (canvasContainerRef.current) {
+      const containerWidth = canvasContainerRef.current.offsetWidth;
+      const containerHeight = canvasContainerRef.current.offsetHeight;
+      
+      const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
+      const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
+      const fitScale = Math.min(scaleX, scaleY, 1);
+      
       setZoom(fitScale);
     }
-  }, [computeFitScale]);
+  }, []);
 
   const handleAutoAssign = useCallback(() => {
     autoAssignStudents(
@@ -221,22 +229,11 @@ const SeatingPlanTool = () => {
 
   const getCanvasSize = useCallback(() => {
     const el = containerRef.current;
-    if (!el) {
-      return {
-        width: CANVAS_WIDTH,
-        height: CANVAS_HEIGHT,
-      };
-    }
-
-    const scale = zoom || 1;
-    const rect = el.getBoundingClientRect();
-    const measuredWidth = rect.width / scale;
-    const measuredHeight = rect.height / scale;
     return {
-      width: Math.max(CANVAS_WIDTH, measuredWidth),
-      height: Math.max(CANVAS_HEIGHT, measuredHeight),
+      width: el?.offsetWidth ?? CANVAS_WIDTH,
+      height: el?.offsetHeight ?? CANVAS_HEIGHT,
     };
-  }, [zoom]);
+  }, [containerRef]);
 
   // Memoized mouse handlers
   const handleMouseOver = useCallback((e: React.MouseEvent) => {
@@ -276,6 +273,10 @@ const SeatingPlanTool = () => {
           {/* Compact Top Toolbar */}
           <div className="bg-card border-b border-border px-4 py-2 flex items-center justify-between shadow-sm z-30 flex-shrink-0">
             <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <h1 className="font-semibold text-foreground">Seating Plan</h1>
+              </div>
+              
               {/* Tabs */}
               <div className="flex items-center gap-1">
                 {[
@@ -414,6 +415,7 @@ const SeatingPlanTool = () => {
                       size="sm"
                       onClick={() => {
                         loadComputerRoomPreset(getCanvasSize());
+                        setIsPresetDialogOpen(false);
                       }}
                       className="w-full justify-start"
                     >
