@@ -1,8 +1,8 @@
 import type { FurnitureTemplate } from '../types';
 
 export const GRID_SIZE = 32;
-export const CANVAS_WIDTH = GRID_SIZE * 60; // 60 grid squares wide = 1920px
-export const CANVAS_HEIGHT = GRID_SIZE * 35; // 35 grid squares tall = 1120px
+export const CANVAS_WIDTH = GRID_SIZE * 75; // 75 grid squares wide = 2400px (MUCH wider)
+export const CANVAS_HEIGHT = GRID_SIZE * 28; // 28 grid squares tall = 896px (less tall)
 
 export const GROUP_COLORS = [
   '#14b8a6', '#3b82f6', '#8b5cf6', '#d946ef', '#ef4444', '#f97316',
