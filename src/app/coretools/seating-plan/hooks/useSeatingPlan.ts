@@ -22,9 +22,9 @@ export const useSeatingPlan = () => {
   const [newRuleStudents, setNewRuleStudents] = useState('');
   const [studentInput, setStudentInput] = useState('');
   const [activeTab, setActiveTab] = useState('layout');
-  const [isGridVisible, setIsGridVisible] = useState(false);
+  const [isGridVisible, setIsGridVisible] = useState(true); // Changed to true
   const [isBlackAndWhite, setIsBlackAndWhite] = useState(false);
-  const [isWhiteBackground, setIsWhiteBackground] = useState(false);
+  const [isWhiteBackground, setIsWhiteBackground] = useState(true); // Changed to true
   const [hoveredGroupId, setHoveredGroupId] = useState<number | null>(null);
   const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
   const [areIndicatorsVisible, setAreIndicatorsVisible] = useState(true);

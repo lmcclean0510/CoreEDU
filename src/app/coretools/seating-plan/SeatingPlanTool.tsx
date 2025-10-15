@@ -634,7 +634,7 @@ const SeatingPlanTool = () => {
                         </div>
                         <p className="text-lg font-medium">Empty Classroom</p>
                         <p className="text-sm">
-                          Click the Layout tab to add furniture or choose a preset.
+                          Click the + button to add furniture or choose a preset.
                         </p>
                       </div>
                     </div>
@@ -715,37 +715,28 @@ const SeatingPlanTool = () => {
               </Button>
             )}
 
-            {/* Floating Action Button (FAB) */}
+            {/* Floating Action Button (FAB) - Quick Add Menu */}
             <div className="absolute bottom-6 right-6 z-30">
-              {/* Quick Actions Menu */}
+              {/* Quick Add Menu */}
               {fabOpen && (
                 <div className="absolute bottom-16 right-0 bg-card rounded-lg shadow-xl border border-border py-2 mb-2 w-48">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 py-2 h-auto hover:bg-muted"
-                    onClick={() => {
-                      setActiveTab('layout');
-                      setLeftPanelOpen(true);
-                      setRightPanelOpen(false);
-                      setFabOpen(false);
-                    }}
-                  >
-                    <LayoutGrid size={16} className="mr-2 text-muted-foreground" />
-                    <span className="text-sm">Add Furniture</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 py-2 h-auto hover:bg-muted"
-                    onClick={() => {
-                      setActiveTab('students');
-                      setRightPanelOpen(true);
-                      setLeftPanelOpen(false);
-                      setFabOpen(false);
-                    }}
-                  >
-                    <Users size={16} className="mr-2 text-muted-foreground" />
-                    <span className="text-sm">Add Students</span>
-                  </Button>
+                  {/* Furniture Items */}
+                  {furnitureTemplates.map((template) => (
+                    <Button
+                      key={template.id}
+                      variant="ghost"
+                      className="w-full justify-start px-4 py-2 h-auto hover:bg-muted"
+                      onClick={() => handleAddFurniture(template)}
+                    >
+                      <span className="mr-2">{template.icon}</span>
+                      <span className="text-sm">{template.name}</span>
+                    </Button>
+                  ))}
+                  
+                  {/* Separator */}
+                  <div className="h-px bg-border my-2 mx-2" />
+                  
+                  {/* Pick Preset */}
                   <Button
                     variant="ghost"
                     className="w-full justify-start px-4 py-2 h-auto hover:bg-muted"
@@ -755,7 +746,7 @@ const SeatingPlanTool = () => {
                     }}
                   >
                     <Grid3X3 size={16} className="mr-2 text-muted-foreground" />
-                    <span className="text-sm">Pick Preset</span>
+                    <span className="text-sm">Computer Room Preset</span>
                   </Button>
                 </div>
               )}
