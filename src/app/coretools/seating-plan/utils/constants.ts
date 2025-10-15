@@ -1,5 +1,8 @@
 import type { FurnitureTemplate } from '../types';
 
+export const CANVAS_WIDTH = 1403;
+export const CANVAS_HEIGHT = 1003;
+
 export const GROUP_COLORS = [
   '#14b8a6', '#3b82f6', '#8b5cf6', '#d946ef', '#ef4444', '#f97316',
   '#eab308', '#22c55e', '#6366f1', '#06b6d4', '#84cc16', '#10b981',
@@ -58,7 +61,7 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
 ];
 
 export const DEFAULT_TEACHER_DESK = {
-  x: (1403 - 192) / 2,
+  x: (CANVAS_WIDTH - 192) / 2,
   y: 32,
   width: 192,
   height: 64

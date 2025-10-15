@@ -46,10 +46,7 @@ import { useSeatingPlan } from './hooks/useSeatingPlan';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useStudentAssignment } from './hooks/useStudentAssignment';
 import { useExport } from './hooks/useExport';
-import { GRID_SIZE } from './utils/constants';
-
-const CANVAS_WIDTH = 1403;
-const CANVAS_HEIGHT = 1003;
+import { GRID_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT } from './utils/constants';
 
 const SeatingPlanTool = () => {
   const [isClient, setIsClient] = useState(false);
@@ -80,7 +77,6 @@ const SeatingPlanTool = () => {
     isBlackAndWhite,
     isWhiteBackground,
     hoveredGroupId,
-    isPresetDialogOpen,
     areIndicatorsVisible,
 
     // Setters
@@ -95,7 +91,6 @@ const SeatingPlanTool = () => {
     setIsBlackAndWhite,
     setIsWhiteBackground,
     setHoveredGroupId,
-    setIsPresetDialogOpen,
     setAreIndicatorsVisible,
 
     // Computed values
@@ -130,32 +125,32 @@ const SeatingPlanTool = () => {
   const { isLoading: isAssigning, autoAssignStudents, clearAssignments } = useStudentAssignment();
   const { isExporting, handleExport } = useExport(containerRef);
 
+  const computeFitScale = useCallback(() => {
+    const container = canvasContainerRef.current;
+    if (!container) return null;
+
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+
+    const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
+    const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
+
+    return Math.min(scaleX, scaleY, 1);
+  }, []);
+
   // Auto-fit zoom on mount and container resize
   useEffect(() => {
-    const calculateFitZoom = () => {
-      if (canvasContainerRef.current) {
-        const containerWidth = canvasContainerRef.current.offsetWidth;
-        const containerHeight = canvasContainerRef.current.offsetHeight;
-        
-        const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
-        const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
-        const fitScale = Math.min(scaleX, scaleY, 1);
-        
+    const updateZoom = () => {
+      const fitScale = computeFitScale();
+      if (fitScale !== null) {
         setZoom(fitScale);
       }
     };
 
-    // Calculate immediately
-    calculateFitZoom();
-
-    // Also recalculate on window resize
-    const handleResize = () => {
-      calculateFitZoom();
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    updateZoom();
+    window.addEventListener('resize', updateZoom);
+    return () => window.removeEventListener('resize', updateZoom);
+  }, [computeFitScale]);
 
   useEffect(() => {
     setIsClient(true);
@@ -179,17 +174,11 @@ const SeatingPlanTool = () => {
   }, []);
 
   const handleFitToScreen = useCallback(() => {
-    if (canvasContainerRef.current) {
-      const containerWidth = canvasContainerRef.current.offsetWidth;
-      const containerHeight = canvasContainerRef.current.offsetHeight;
-      
-      const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
-      const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
-      const fitScale = Math.min(scaleX, scaleY, 1);
-      
+    const fitScale = computeFitScale();
+    if (fitScale !== null) {
       setZoom(fitScale);
     }
-  }, []);
+  }, [computeFitScale]);
 
   const handleAutoAssign = useCallback(() => {
     autoAssignStudents(
@@ -418,7 +407,6 @@ const SeatingPlanTool = () => {
                       size="sm"
                       onClick={() => {
                         loadComputerRoomPreset(getCanvasSize());
-                        setIsPresetDialogOpen(false);
                       }}
                       className="w-full justify-start"
                     >

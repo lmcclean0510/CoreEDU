@@ -1,11 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
-import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES, GRID_SIZE } from '../utils/constants';
+import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES, GRID_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT } from '../utils/constants';
 import { parseStudentInput, validateSeparationRule } from '../utils/validation';
 import { sortDesksByPosition } from '../utils/calculations';
 import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTemplate, DeskWithGroup, Stats } from '../types';
 
-const CANVAS_WIDTH = 1403;
-const CANVAS_HEIGHT = 1003;
 const SAFE_MARGIN = 60;
 
 type CanvasSize = { width: number; height: number };
@@ -21,12 +19,10 @@ export const useSeatingPlan = () => {
   const [alternateGender, setAlternateGender] = useState(false);
   const [newRuleStudents, setNewRuleStudents] = useState('');
   const [studentInput, setStudentInput] = useState('');
-  const [activeTab, setActiveTab] = useState('layout');
   const [isGridVisible, setIsGridVisible] = useState(true); // Changed to true
   const [isBlackAndWhite, setIsBlackAndWhite] = useState(false);
   const [isWhiteBackground, setIsWhiteBackground] = useState(true); // Changed to true
   const [hoveredGroupId, setHoveredGroupId] = useState<number | null>(null);
-  const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
   const [areIndicatorsVisible, setAreIndicatorsVisible] = useState(true);
 
   // Memoized group lookup map for better performance
@@ -220,7 +216,6 @@ export const useSeatingPlan = () => {
       height: teacherDeskHeight 
     });
     
-    setIsPresetDialogOpen(false);
   }, []);
 
   // Group management
@@ -424,12 +419,10 @@ export const useSeatingPlan = () => {
     alternateGender,
     newRuleStudents,
     studentInput,
-    activeTab,
     isGridVisible,
     isBlackAndWhite,
     isWhiteBackground,
     hoveredGroupId,
-    isPresetDialogOpen,
     areIndicatorsVisible,
 
     // Setters
@@ -440,12 +433,10 @@ export const useSeatingPlan = () => {
     setAlternateGender,
     setNewRuleStudents,
     setStudentInput,
-    setActiveTab,
     setIsGridVisible,
     setIsBlackAndWhite,
     setIsWhiteBackground,
     setHoveredGroupId,
-    setIsPresetDialogOpen,
     setAreIndicatorsVisible,
 
     // Computed values

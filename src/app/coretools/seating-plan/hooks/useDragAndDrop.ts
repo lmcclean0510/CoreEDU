@@ -2,11 +2,8 @@ import { useCallback } from 'react';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { getGroupBounds, constrainGroupMovement, alignToGrid } from '../utils/calculations';
-import { GROUP_COLORS } from '../utils/constants';
+import { GROUP_COLORS, CANVAS_WIDTH, CANVAS_HEIGHT } from '../utils/constants';
 import type { Desk, Group, TeacherDesk } from '../types';
-
-const DEFAULT_CANVAS_WIDTH = 1403;
-const DEFAULT_CANVAS_HEIGHT = 1003;
 
 export const useDragAndDrop = (scale: number = 1) => {
   const handleDragEnd = useCallback((
@@ -25,8 +22,8 @@ export const useDragAndDrop = (scale: number = 1) => {
     const containerEl = containerRef.current;
     if (!containerEl) return;
     
-    const canvasWidth = containerEl.offsetWidth || DEFAULT_CANVAS_WIDTH;
-    const canvasHeight = containerEl.offsetHeight || DEFAULT_CANVAS_HEIGHT;
+    const canvasWidth = containerEl.offsetWidth || CANVAS_WIDTH;
+    const canvasHeight = containerEl.offsetHeight || CANVAS_HEIGHT;
     
     const scaledDelta = {
         x: delta.x / scale,
@@ -128,8 +125,8 @@ export const useDragAndDrop = (scale: number = 1) => {
     const containerEl = containerRef.current;
     if (!containerEl) return;
 
-    const canvasWidth = containerEl.offsetWidth || DEFAULT_CANVAS_WIDTH;
-    const canvasHeight = containerEl.offsetHeight || DEFAULT_CANVAS_HEIGHT;
+    const canvasWidth = containerEl.offsetWidth || CANVAS_WIDTH;
+    const canvasHeight = containerEl.offsetHeight || CANVAS_HEIGHT;
 
     setDesks(prev => prev.map(desk => alignToGrid(desk, canvasWidth, canvasHeight)));
     setTeacherDesk(prev => alignToGrid(prev, canvasWidth, canvasHeight));
