@@ -5,6 +5,7 @@ import { AppTopBar } from './AppTopBar';
 import { useAuth } from '@/providers/UserProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -51,6 +52,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <>{children}</>;
   }
 
+  const isFullWidthPage = pathname.startsWith('/coretools/seating-plan');
+
   // Full app layout with sidebar and top bar
   return (
     <div className="h-screen flex overflow-hidden bg-background">
@@ -65,8 +68,18 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AppTopBar />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-muted/30 relative">
-          <div className="container mx-auto p-4 md:p-6 max-w-7xl">
+        <main className={cn(
+          "flex-1 overflow-y-auto bg-muted/30 relative",
+          isFullWidthPage && "px-4 md:px-6 py-4 md:py-6"
+        )}>
+          <div
+            className={cn(
+              "mx-auto",
+              isFullWidthPage
+                ? "w-full h-full"
+                : "container p-4 md:p-6 max-w-7xl"
+            )}
+          >
             {children}
           </div>
         </main>

@@ -1,7 +1,7 @@
 import type { FurnitureTemplate } from '../types';
 
 export const GRID_SIZE = 32;
-export const CANVAS_WIDTH = GRID_SIZE * 50; // Expanded to 50 grid squares for extra width
+export const CANVAS_WIDTH = GRID_SIZE * 45; // 45 grid squares wide for additional space
 export const CANVAS_HEIGHT = 1003;
 
 export const GROUP_COLORS = [
