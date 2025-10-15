@@ -108,8 +108,8 @@ export const useSeatingPlan = () => {
     const usableWidth = width - (SAFE_MARGIN * 2);
     const usableHeight = height - (SAFE_MARGIN * 2);
     
-    const deskWidth = 96;
-    const deskHeight = 64;
+    const deskWidth = 112;
+    const deskHeight = 72;
     const horizontalGap = 128;
     const verticalGap = 64;
     

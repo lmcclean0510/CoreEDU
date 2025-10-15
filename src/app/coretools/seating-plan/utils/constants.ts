@@ -15,15 +15,15 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
     id: 'single-desk',
     name: 'Single Desk',
     icon: '🪑',
-    desks: [{ x: 0, y: 0, width: 96, height: 64 }]
+    desks: [{ x: 0, y: 0, width: 112, height: 72 }]
   },
   {
     id: 'double-desk',
     name: 'Double Desk',
     icon: '🪑🪑',
     desks: [
-      { x: 0, y: 0, width: 96, height: 64 },
-      { x: 96, y: 0, width: 96, height: 64 }
+      { x: 0, y: 0, width: 112, height: 72 },
+      { x: 112, y: 0, width: 112, height: 72 }
     ]
   },
   {
@@ -31,10 +31,10 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
     name: 'Table for 4',
     icon: '⬜',
     desks: [
-      { x: 0, y: 0, width: 96, height: 64 },
-      { x: 96, y: 0, width: 96, height: 64 },
-      { x: 0, y: 64, width: 96, height: 64 },
-      { x: 96, y: 64, width: 96, height: 64 }
+      { x: 0, y: 0, width: 112, height: 72 },
+      { x: 112, y: 0, width: 112, height: 72 },
+      { x: 0, y: 72, width: 112, height: 72 },
+      { x: 112, y: 72, width: 112, height: 72 }
     ]
   },
   {
@@ -42,9 +42,9 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
     name: 'Row of 3',
     icon: '▬',
     desks: [
-      { x: 0, y: 0, width: 96, height: 64 },
-      { x: 96, y: 0, width: 96, height: 64 },
-      { x: 192, y: 0, width: 96, height: 64 }
+      { x: 0, y: 0, width: 112, height: 72 },
+      { x: 112, y: 0, width: 112, height: 72 },
+      { x: 224, y: 0, width: 112, height: 72 }
     ]
   },
   {
@@ -52,10 +52,10 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
     name: 'Row of 4',
     icon: '▬▬',
     desks: [
-      { x: 0, y: 0, width: 96, height: 64 },
-      { x: 96, y: 0, width: 96, height: 64 },
-      { x: 192, y: 0, width: 96, height: 64 },
-      { x: 288, y: 0, width: 96, height: 64 }
+      { x: 0, y: 0, width: 112, height: 72 },
+      { x: 112, y: 0, width: 112, height: 72 },
+      { x: 224, y: 0, width: 112, height: 72 },
+      { x: 336, y: 0, width: 112, height: 72 }
     ]
   }
 ];
