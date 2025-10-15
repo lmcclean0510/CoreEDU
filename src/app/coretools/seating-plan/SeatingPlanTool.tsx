@@ -27,12 +27,10 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Search,
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Components
@@ -246,7 +244,7 @@ const SeatingPlanTool = () => {
   }, [addFurniture, getCanvasSize]);
 
   return (
-    <div className="fixed inset-0 bg-background flex flex-col overflow-hidden" style={{ top: '57px', height: 'calc(100vh - 57px)' }}>
+    <div className="absolute inset-0 bg-background flex flex-col overflow-hidden -m-4 md:-m-6">
       <style jsx global>{`
         .export-bw .desk-bw, .export-bw .teacher-desk-bw {
           background-color: white !important;
