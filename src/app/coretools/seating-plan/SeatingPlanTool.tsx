@@ -436,7 +436,7 @@ const SeatingPlanTool = () => {
                           key={template.id}
                           variant="ghost"
                           size="sm"
-                          className="w-full justify-start hover:bg-muted"
+                          className="w-full justify-start"
                           onClick={() => handleAddFurniture(template)}
                         >
                           <span className="mr-2">{template.icon}</span>
@@ -740,7 +740,7 @@ const SeatingPlanTool = () => {
                       <Button
                         key={template.id}
                         variant="ghost"
-                        className="w-full justify-start px-3 py-2 h-9 hover:bg-muted text-sm font-normal"
+                        className="w-full justify-start px-3 py-2 h-9 text-sm font-normal"
                         onClick={() => handleAddFurniture(template)}
                       >
                         <span className="mr-2 text-base">{template.icon}</span>
@@ -756,7 +756,7 @@ const SeatingPlanTool = () => {
                   <div className="px-1 py-1">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start px-3 py-2 h-9 hover:bg-muted text-sm font-normal"
+                      className="w-full justify-start px-3 py-2 h-9 text-sm font-normal"
                       onClick={() => {
                         setActiveTab('layout');
                         setLeftPanelOpen(true);
