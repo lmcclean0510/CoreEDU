@@ -229,9 +229,9 @@ const SeatingPlanTool = () => {
   }, [setHoveredGroupId]);
 
   const handleAddFurniture = useCallback((template: any) => {
-    addFurniture(template, getCanvasSize());
+    addFurniture(template); // Don't pass getCanvasSize - use constants
     setFabOpen(false);
-  }, [addFurniture, getCanvasSize]);
+  }, [addFurniture]);
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -361,7 +361,7 @@ const SeatingPlanTool = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        loadComputerRoomPreset(getCanvasSize());
+                        loadComputerRoomPreset(); // Don't pass getCanvasSize - use constants
                         setIsPresetDialogOpen(false);
                       }}
                       className="w-full justify-start"

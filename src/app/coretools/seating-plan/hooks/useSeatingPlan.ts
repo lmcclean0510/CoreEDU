@@ -103,6 +103,8 @@ export const useSeatingPlan = () => {
     // ALWAYS use constants directly
     const width = CANVAS_WIDTH;
     const height = CANVAS_HEIGHT;
+    console.log('🎯 Computer Room Preset - Using canvas dimensions:', { width, height });
+    
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
     const baseId = Date.now();
@@ -118,16 +120,19 @@ export const useSeatingPlan = () => {
     
     const singleGroupWidth = desksPerGroup * deskWidth;
     const totalContentWidth = (singleGroupWidth * groupsPerRow) + horizontalGap;
+    console.log('🎯 Content width calculation:', { singleGroupWidth, totalContentWidth });
     
     const centerStartX = (width - totalContentWidth) / 2;
     const minStartX = SAFE_MARGIN;
     const maxStartX = width - SAFE_MARGIN - totalContentWidth;
     const boundedStartX = Math.min(maxStartX, Math.max(minStartX, centerStartX));
     const startX = boundedStartX;
+    console.log('🎯 Starting X position:', { centerStartX, startX });
 
     const totalContentHeight = (rows * deskHeight) + ((rows - 1) * verticalGap);
     const centeredStartY = (height - totalContentHeight) / 2;
     const startY = Math.max(SAFE_MARGIN + 80, centeredStartY); // Teacher desk space
+    console.log('🎯 Starting Y position:', { centeredStartY, startY });
 
     for (let row = 0; row < rows; row++) {
       const yPos = startY + (row * (deskHeight + verticalGap));
