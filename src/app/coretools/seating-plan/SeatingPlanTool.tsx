@@ -3,8 +3,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-// Optimized canvas size - 34 grid squares wide gives ~70% zoom
-const CANVAS_WIDTH = 1088;  // 34 grid squares - targets 70% zoom and fits tighter layout
+// Optimized canvas size - 33 grid squares wide gives ~70% zoom
+const CANVAS_WIDTH = 1056;  // 33 grid squares - targets 70% zoom
 const CANVAS_HEIGHT = 640;   // 20 grid squares
 const GRID_SIZE = 32;
 
@@ -71,7 +71,7 @@ const SeatingPlanTool = () => {
     const deskWidth = 128;
     const deskHeight = 80;
     const rows = 3;
-    const gapBetweenGroups = 64; // Tight gap - layout fits exactly in 1088px canvas
+    const gapBetweenGroups = 32; // Tight gap - layout fits exactly in 1056px canvas
     const rowGap = 48;
     
     // Calculate total width: 4 desks + gap + 4 desks
