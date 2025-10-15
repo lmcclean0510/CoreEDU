@@ -265,10 +265,6 @@ const SeatingPlanTool = () => {
           {/* Compact Top Toolbar */}
           <div className="bg-card border-b border-border px-4 py-2 flex items-center justify-between shadow-sm z-30 flex-shrink-0">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <h1 className="font-semibold text-foreground">Seating Plan</h1>
-              </div>
-              
               {/* Tabs */}
               <div className="flex items-center gap-1">
                 {[
