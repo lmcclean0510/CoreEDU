@@ -130,8 +130,9 @@ const SeatingPlanTool = () => {
         const containerWidth = canvasContainerRef.current.offsetWidth;
         const containerHeight = canvasContainerRef.current.offsetHeight;
         
-        const scaleX = (containerWidth - 64) / CANVAS_WIDTH;
-        const scaleY = (containerHeight - 64) / CANVAS_HEIGHT;
+        // Padding is p-12 = 48px on each side = 96px total
+        const scaleX = (containerWidth - 96) / CANVAS_WIDTH;
+        const scaleY = (containerHeight - 96) / CANVAS_HEIGHT;
         const fitScale = Math.min(scaleX, scaleY, 1);
         
         setZoom(fitScale);
@@ -515,7 +516,7 @@ const SeatingPlanTool = () => {
               </div>
               
               {/* Canvas content */}
-              <div className="absolute inset-0 flex items-center justify-center p-8">
+              <div className="absolute inset-0 flex items-center justify-center p-12">
                 <div
                   ref={containerRef}
                   className={cn(
