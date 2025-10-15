@@ -3,8 +3,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-// Simple constants - no calculations, just fixed numbers
-const CANVAS_WIDTH = 3200;  // 100 grid squares
+// Optimized canvas size - 50 grid squares wide gives ~50% zoom which is readable
+const CANVAS_WIDTH = 1600;  // 50 grid squares - perfect balance
 const CANVAS_HEIGHT = 640;   // 20 grid squares
 const GRID_SIZE = 32;
 
@@ -23,25 +23,6 @@ const SeatingPlanTool = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
   const [showGrid, setShowGrid] = useState(true);
 
-  // Check actual canvas size
-  useEffect(() => {
-    if (canvasRef.current) {
-      const actualWidth = canvasRef.current.offsetWidth;
-      const actualHeight = canvasRef.current.offsetHeight;
-      const computedStyle = window.getComputedStyle(canvasRef.current);
-      
-      console.log('🚨 ACTUAL CANVAS SIZE:', {
-        offsetWidth: actualWidth,
-        offsetHeight: actualHeight,
-        cssWidth: computedStyle.width,
-        cssHeight: computedStyle.height,
-        expectedWidth: CANVAS_WIDTH,
-        expectedHeight: CANVAS_HEIGHT,
-        PROBLEM: actualWidth !== CANVAS_WIDTH ? 'WIDTH MISMATCH!' : 'OK'
-      });
-    }
-  }, [canvasRef.current, desks]);
-
   // Auto-fit zoom
   useEffect(() => {
     const calculateZoom = () => {
@@ -58,15 +39,14 @@ const SeatingPlanTool = () => {
         setZoom(newZoom);
         console.log('🎯 Zoom calculated:', { 
           containerWidth, 
-          containerHeight, 
           actualCanvasWidth,
-          expectedCanvasWidth: CANVAS_WIDTH,
-          newZoom 
+          newZoom,
+          zoomPercent: Math.round(newZoom * 100) + '%'
         });
       }
     };
 
-    const timer = setTimeout(calculateZoom, 100); // Small delay to ensure DOM is ready
+    const timer = setTimeout(calculateZoom, 100);
     window.addEventListener('resize', calculateZoom);
     return () => {
       clearTimeout(timer);
@@ -76,7 +56,7 @@ const SeatingPlanTool = () => {
 
   // Log canvas info on mount
   useEffect(() => {
-    console.log('🎯 EXPECTED Canvas dimensions:', { 
+    console.log('🎯 Canvas dimensions:', { 
       CANVAS_WIDTH, 
       CANVAS_HEIGHT, 
       gridSquares: { w: CANVAS_WIDTH / GRID_SIZE, h: CANVAS_HEIGHT / GRID_SIZE } 
@@ -91,26 +71,23 @@ const SeatingPlanTool = () => {
     const deskWidth = 128;
     const deskHeight = 80;
     const rows = 3;
-    const desksPerRow = 8;
-    const gapBetweenDesks = 160;
+    const gapBetweenGroups = 160;
     const rowGap = 48;
     
-    // Calculate total width of layout
-    const leftGroupWidth = 4 * deskWidth;
-    const rightGroupWidth = 4 * deskWidth;
-    const totalWidth = leftGroupWidth + gapBetweenDesks + rightGroupWidth;
+    // Calculate total width: 4 desks + gap + 4 desks
+    const totalWidth = (4 * deskWidth) + gapBetweenGroups + (4 * deskWidth);
     
     // Center the layout
     const startX = (CANVAS_WIDTH - totalWidth) / 2;
     const startY = 150;
     
-    console.log('🎯 Layout calc:', { totalWidth, startX, startY, CANVAS_WIDTH });
+    console.log('🎯 Layout:', { totalWidth, startX, CANVAS_WIDTH });
     
     let id = 1;
     for (let row = 0; row < rows; row++) {
       const y = startY + (row * (deskHeight + rowGap));
       
-      // Left group
+      // Left group (4 desks)
       for (let i = 0; i < 4; i++) {
         newDesks.push({
           id: id++,
@@ -121,8 +98,8 @@ const SeatingPlanTool = () => {
         });
       }
       
-      // Right group
-      const rightStartX = startX + leftGroupWidth + gapBetweenDesks;
+      // Right group (4 desks)
+      const rightStartX = startX + (4 * deskWidth) + gapBetweenGroups;
       for (let i = 0; i < 4; i++) {
         newDesks.push({
           id: id++,
@@ -134,10 +111,7 @@ const SeatingPlanTool = () => {
       }
     }
     
-    console.log('🎯 Created desks:', newDesks.length);
-    console.log('🎯 First desk position:', newDesks[0]);
-    console.log('🎯 Last desk position:', newDesks[newDesks.length - 1]);
-    
+    console.log('🎯 Created', newDesks.length, 'desks');
     setDesks(newDesks);
   };
 
@@ -150,7 +124,7 @@ const SeatingPlanTool = () => {
       width: 128,
       height: 80,
     };
-    console.log('🎯 Adding desk at:', newDesk, 'for canvas width:', CANVAS_WIDTH);
+    console.log('🎯 Adding desk at center:', newDesk);
     setDesks([...desks, newDesk]);
   };
 
@@ -162,7 +136,7 @@ const SeatingPlanTool = () => {
     <div className="flex flex-col h-full bg-background">
       {/* Simple Toolbar */}
       <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <h1 className="font-semibold text-lg">Seating Plan (Debug Mode)</h1>
+        <h1 className="font-semibold text-lg">Seating Plan</h1>
         
         <div className="flex items-center gap-2">
           <Button onClick={addSingleDesk} variant="outline" size="sm">
@@ -203,8 +177,8 @@ const SeatingPlanTool = () => {
               height: `${CANVAS_HEIGHT}px`,
               transform: `scale(${zoom})`,
               transformOrigin: 'center',
-              minWidth: `${CANVAS_WIDTH}px`, // Force minimum width
-              maxWidth: `${CANVAS_WIDTH}px`, // Force maximum width
+              minWidth: `${CANVAS_WIDTH}px`,
+              maxWidth: `${CANVAS_WIDTH}px`,
             }}
           >
             {/* Grid */}
@@ -223,7 +197,7 @@ const SeatingPlanTool = () => {
 
             {/* Teacher Desk */}
             <div
-              className="absolute bg-primary text-primary-foreground rounded flex items-center justify-center text-xs font-medium"
+              className="absolute bg-primary text-primary-foreground rounded flex items-center justify-center text-xs font-medium shadow-md"
               style={{
                 left: `${(CANVAS_WIDTH - 192) / 2}px`,
                 top: '60px',
@@ -238,7 +212,7 @@ const SeatingPlanTool = () => {
             {desks.map((desk) => (
               <div
                 key={desk.id}
-                className="absolute bg-white border-2 border-primary rounded flex items-center justify-center text-xs"
+                className="absolute bg-white border-2 border-primary rounded flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{
                   left: `${desk.x}px`,
                   top: `${desk.y}px`,
@@ -246,7 +220,7 @@ const SeatingPlanTool = () => {
                   height: `${desk.height}px`,
                 }}
               >
-                {desk.id}
+                Desk {desk.id}
               </div>
             ))}
 
@@ -265,10 +239,10 @@ const SeatingPlanTool = () => {
       </div>
 
       {/* Debug Info */}
-      <div className="bg-card border-t border-border px-4 py-2 text-xs text-muted-foreground space-y-1">
-        <div>Expected Canvas: {CANVAS_WIDTH}×{CANVAS_HEIGHT}px ({CANVAS_WIDTH / GRID_SIZE}×{CANVAS_HEIGHT / GRID_SIZE} squares)</div>
-        <div>Desks: {desks.length} | Zoom: {(zoom * 100).toFixed(1)}%</div>
-        <div className="text-orange-600 font-semibold">⚠️ Open browser console (F12) to see canvas size debug info!</div>
+      <div className="bg-card border-t border-border px-4 py-2 text-xs text-muted-foreground">
+        Canvas: {CANVAS_WIDTH}×{CANVAS_HEIGHT}px ({CANVAS_WIDTH / GRID_SIZE}×{CANVAS_HEIGHT / GRID_SIZE} squares) | 
+        Desks: {desks.length} | 
+        Zoom: {(zoom * 100).toFixed(1)}%
       </div>
     </div>
   );
