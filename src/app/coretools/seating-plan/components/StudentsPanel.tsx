@@ -67,25 +67,27 @@ const StudentsPanel = memo(({
             className="h-32 text-sm resize-none"
           />
           <div className="grid grid-cols-2 gap-2">
-            <Button 
-              onClick={onParseStudents} 
-              size="sm" 
+            <Button
+              onClick={onParseStudents}
+              size="sm"
               disabled={isLoading || !studentInput.trim()}
+              className="whitespace-nowrap"
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
               ) : (
                 <Users className="w-4 h-4 mr-2" />
               )}
-              Load Students
+              Load
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
+              className="whitespace-nowrap"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Upload File
+              Upload
             </Button>
             <input
               type="file"
