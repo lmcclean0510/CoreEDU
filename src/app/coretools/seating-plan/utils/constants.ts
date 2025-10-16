@@ -2,7 +2,7 @@ import type { FurnitureTemplate } from '../types';
 
 // Optimized canvas size - scaled up for better visibility
 export const GRID_SIZE = 48;        // Increased for better readability
-export const CANVAS_WIDTH = 1584;   // 33 grid squares × 48px
+export const CANVAS_WIDTH = 2016;   // 42 grid squares × 48px (wider for better fit)
 export const CANVAS_HEIGHT = 960;   // 20 grid squares × 48px
 
 // Desk dimensions

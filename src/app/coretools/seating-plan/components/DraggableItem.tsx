@@ -115,18 +115,18 @@ const DraggableItem = memo(({
           <div
             className={cn(
               "flex h-full w-full flex-col items-center justify-center gap-1 px-3 py-2 text-center",
-              isLayoutMode && 'pl-8'
+              isLayoutMode && 'pl-10'
             )}
           >
             {isExcluded ? (
-              <span className="text-sm font-semibold">Not in use</span>
+              <span className="text-base font-semibold">Not in use</span>
             ) : desk.student ? (
-              <div className="flex flex-col text-base font-semibold leading-tight">
+              <div className="flex flex-col text-lg font-semibold leading-tight">
                 <span>{firstName}</span>
-                {lastName && <span className="text-sm font-medium text-muted-foreground">{lastName}</span>}
+                {lastName && <span className="text-base font-medium text-muted-foreground">{lastName}</span>}
               </div>
             ) : (
-              <span className="text-sm font-medium text-muted-foreground">Available</span>
+              <span className="text-base font-medium text-muted-foreground">Available</span>
             )}
           </div>
           {areIndicatorsVisible && desk.studentInfo?.gender && (
