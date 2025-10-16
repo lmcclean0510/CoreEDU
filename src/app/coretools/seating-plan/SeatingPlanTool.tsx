@@ -2,11 +2,15 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-
-// Optimized canvas size - 33x20 grid squares at 40px each for maximum readability
-const GRID_SIZE = 40;        // Increased from 36px for even better readability
-const CANVAS_WIDTH = 1320;   // 33 grid squares × 40px
-const CANVAS_HEIGHT = 800;   // 20 grid squares × 40px
+import {
+  GRID_SIZE,
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  DEFAULT_DESK_WIDTH,
+  DEFAULT_DESK_HEIGHT,
+  DEFAULT_TEACHER_DESK,
+  PRESET_LAYOUTS
+} from './utils/constants';
 
 interface Desk {
   id: number;
@@ -66,51 +70,46 @@ const SeatingPlanTool = () => {
   // Create simple preset - 3 rows of 8 desks
   const loadPreset = () => {
     console.log('🎯 Loading preset...');
-    
+
+    const preset = PRESET_LAYOUTS.COMPUTER_ROOM;
     const newDesks: Desk[] = [];
-    const deskWidth = 160;  // 4 grid squares
-    const deskHeight = 100;  // 2.5 grid squares
-    const rows = 3;
-    const gapBetweenGroups = 40; // 1 grid square gap
-    const rowGap = 60; // 1.5 grid squares
-    
+
     // Calculate total width: 4 desks + gap + 4 desks
-    const totalWidth = (4 * deskWidth) + gapBetweenGroups + (4 * deskWidth);
-    
+    const totalWidth = (4 * preset.deskWidth) + preset.gapBetweenGroups + (4 * preset.deskWidth);
+
     // Center the layout
     const startX = (CANVAS_WIDTH - totalWidth) / 2;
-    const startY = 190; // Leave space for scaled teacher desk
-    
+
     console.log('🎯 Layout:', { totalWidth, startX, CANVAS_WIDTH });
-    
+
     let id = 1;
-    for (let row = 0; row < rows; row++) {
-      const y = startY + (row * (deskHeight + rowGap));
-      
+    for (let row = 0; row < preset.rows; row++) {
+      const y = preset.startY + (row * (preset.deskHeight + preset.rowGap));
+
       // Left group (4 desks)
       for (let i = 0; i < 4; i++) {
         newDesks.push({
           id: id++,
-          x: startX + (i * deskWidth),
+          x: startX + (i * preset.deskWidth),
           y,
-          width: deskWidth,
-          height: deskHeight,
+          width: preset.deskWidth,
+          height: preset.deskHeight,
         });
       }
-      
+
       // Right group (4 desks)
-      const rightStartX = startX + (4 * deskWidth) + gapBetweenGroups;
+      const rightStartX = startX + (4 * preset.deskWidth) + preset.gapBetweenGroups;
       for (let i = 0; i < 4; i++) {
         newDesks.push({
           id: id++,
-          x: rightStartX + (i * deskWidth),
+          x: rightStartX + (i * preset.deskWidth),
           y,
-          width: deskWidth,
-          height: deskHeight,
+          width: preset.deskWidth,
+          height: preset.deskHeight,
         });
       }
     }
-    
+
     console.log('🎯 Created', newDesks.length, 'desks');
     setDesks(newDesks);
   };
@@ -119,10 +118,10 @@ const SeatingPlanTool = () => {
   const addSingleDesk = () => {
     const newDesk: Desk = {
       id: Date.now(),
-      x: (CANVAS_WIDTH - 160) / 2,
-      y: (CANVAS_HEIGHT - 100) / 2,
-      width: 160,
-      height: 100,
+      x: (CANVAS_WIDTH - DEFAULT_DESK_WIDTH) / 2,
+      y: (CANVAS_HEIGHT - DEFAULT_DESK_HEIGHT) / 2,
+      width: DEFAULT_DESK_WIDTH,
+      height: DEFAULT_DESK_HEIGHT,
     };
     console.log('🎯 Adding desk at center:', newDesk);
     setDesks([...desks, newDesk]);
@@ -199,10 +198,10 @@ const SeatingPlanTool = () => {
             <div
               className="absolute bg-primary text-primary-foreground rounded flex items-center justify-center text-sm font-medium shadow-md"
               style={{
-                left: `${(CANVAS_WIDTH - 240) / 2}px`,
-                top: '76px',
-                width: '240px',
-                height: '80px',
+                left: `${DEFAULT_TEACHER_DESK.x}px`,
+                top: `${DEFAULT_TEACHER_DESK.y}px`,
+                width: `${DEFAULT_TEACHER_DESK.width}px`,
+                height: `${DEFAULT_TEACHER_DESK.height}px`,
               }}
             >
               Teacher's Desk

@@ -1,9 +1,13 @@
 import type { FurnitureTemplate } from '../types';
 
-// Canvas dimensions - 100 grid squares wide, 20 tall (reasonable size)
-export const GRID_SIZE = 32;
-export const CANVAS_WIDTH = GRID_SIZE * 100; // 3200px - wider but not excessive
-export const CANVAS_HEIGHT = GRID_SIZE * 20; // 640px - short height
+// Optimized canvas size - 33x20 grid squares at 40px each for maximum readability
+export const GRID_SIZE = 40;        // Increased from 36px for even better readability
+export const CANVAS_WIDTH = 1320;   // 33 grid squares × 40px
+export const CANVAS_HEIGHT = 800;   // 20 grid squares × 40px
+
+// Desk dimensions
+export const DEFAULT_DESK_WIDTH = 160;  // 4 grid squares
+export const DEFAULT_DESK_HEIGHT = 100; // 2.5 grid squares
 
 export const GROUP_COLORS = [
   '#14b8a6', '#3b82f6', '#8b5cf6', '#d946ef', '#ef4444', '#f97316',
@@ -62,8 +66,21 @@ export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
 
 // Teacher desk positioned at top center
 export const DEFAULT_TEACHER_DESK = {
-  x: (CANVAS_WIDTH - 192) / 2,
-  y: 32,
-  width: 192,
-  height: 64
+  x: (CANVAS_WIDTH - 240) / 2,
+  y: 76,
+  width: 240,
+  height: 80
+};
+
+// Layout presets
+export const PRESET_LAYOUTS = {
+  COMPUTER_ROOM: {
+    rows: 3,
+    desksPerRow: 8,
+    deskWidth: DEFAULT_DESK_WIDTH,
+    deskHeight: DEFAULT_DESK_HEIGHT,
+    gapBetweenGroups: 40, // 1 grid square gap
+    rowGap: 60, // 1.5 grid squares
+    startY: 190, // Leave space for teacher desk
+  }
 };
