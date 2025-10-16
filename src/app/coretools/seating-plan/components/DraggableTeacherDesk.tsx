@@ -34,7 +34,7 @@ const DraggableTeacherDesk = memo(({ x, y, width, height, isLayoutMode }: Dragga
         <div ref={setNodeRef} style={style}>
             <div
               className={cn(
-                "border-2 rounded-lg flex items-center justify-start text-sm font-medium transition-shadow duration-200 shadow-sm select-none teacher-desk-bw",
+                "border-2 rounded-lg flex items-center justify-start text-base font-medium transition-shadow duration-200 shadow-sm select-none teacher-desk-bw",
                 "bg-primary text-primary-foreground",
                 isLayoutMode && "hover:bg-primary/90",
               )}

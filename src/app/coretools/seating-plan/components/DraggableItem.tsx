@@ -119,14 +119,14 @@ const DraggableItem = memo(({
             )}
           >
             {isExcluded ? (
-              <span className="text-xs font-semibold">Not in use</span>
+              <span className="text-sm font-semibold">Not in use</span>
             ) : desk.student ? (
-              <div className="flex flex-col text-sm font-semibold leading-tight">
+              <div className="flex flex-col text-base font-semibold leading-tight">
                 <span>{firstName}</span>
-                {lastName && <span className="text-xs font-medium text-muted-foreground">{lastName}</span>}
+                {lastName && <span className="text-sm font-medium text-muted-foreground">{lastName}</span>}
               </div>
             ) : (
-              <span className="text-xs font-medium text-muted-foreground">Available</span>
+              <span className="text-sm font-medium text-muted-foreground">Available</span>
             )}
           </div>
           {areIndicatorsVisible && desk.studentInfo?.gender && (
