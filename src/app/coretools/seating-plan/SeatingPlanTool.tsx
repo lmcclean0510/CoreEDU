@@ -3,12 +3,23 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   GRID_SIZE,
   CANVAS_WIDTH,
@@ -138,6 +149,12 @@ const SeatingPlanTool = () => {
     );
   };
 
+  // Clear all desks and groups
+  const handleClearLayout = () => {
+    setDesks([]);
+    setGroups([]);
+  };
+
   return (
     <DndContext onDragEnd={onDragEnd}>
       <div className="flex h-full bg-background relative">
@@ -258,8 +275,8 @@ const SeatingPlanTool = () => {
 
               {/* Quick Actions */}
               <div className="h-6 w-px bg-border mx-1" />
-              <Button onClick={loadComputerRoomPreset} variant="outline" size="sm" className="min-w-[170px]">
-                Load Computer Room
+              <Button onClick={loadComputerRoomPreset} variant="outline" size="sm" className="min-w-[130px]">
+                Load Preset 1
               </Button>
               <Button onClick={() => setIsGridVisible(!isGridVisible)} variant="outline" size="sm" className="min-w-[100px]">
                 {isGridVisible ? 'Hide Grid' : 'Show Grid'}
@@ -396,6 +413,34 @@ const SeatingPlanTool = () => {
                 </div>
               </PopoverContent>
             </Popover>
+            )}
+
+            {/* Clear Layout FAB - Only visible in Layout Mode */}
+            {isLayoutMode && desks.length > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="lg"
+                    variant="destructive"
+                    className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
+                    title="Clear Layout"
+                  >
+                    <Trash2 className="h-6 w-6" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear Room Layout?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will remove all desks and groups from the canvas. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleClearLayout}>Clear Layout</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>

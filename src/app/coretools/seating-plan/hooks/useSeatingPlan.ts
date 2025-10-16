@@ -94,22 +94,23 @@ export const useSeatingPlan = () => {
     }).filter(Boolean);
   }, [groups, desks]);
 
-  // Computer Room Preset - simplified and always centered
+  // Load Preset 1 (Rows layout) - 4 rows of 8 desks = 32 total
   const loadComputerRoomPreset = useCallback(() => {
-    console.log('🎯 Loading Computer Room Preset');
+    console.log('🎯 Loading Preset 1');
     console.log('Canvas size:', CANVAS_WIDTH, 'x', CANVAS_HEIGHT);
 
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
     const baseId = Date.now();
 
-    // Layout configuration - use constants
-    const deskWidth = DEFAULT_DESK_WIDTH;
-    const deskHeight = DEFAULT_DESK_HEIGHT;
-    const desksPerRow = 8; // 4 left + 4 right
-    const rows = 3;
-    const gapBetweenGroups = DEFAULT_DESK_WIDTH; // Horizontal gap between left and right groups
-    const gapBetweenRows = GRID_SIZE * 1.5; // Vertical gap
+    // Layout configuration - use constants from PRESET_1
+    const preset = PRESET_LAYOUTS.PRESET_1;
+    const deskWidth = preset.deskWidth;
+    const deskHeight = preset.deskHeight;
+    const desksPerRow = preset.desksPerRow;
+    const rows = preset.rows; // 4 rows now
+    const gapBetweenGroups = preset.gapBetweenGroups;
+    const gapBetweenRows = preset.rowGap;
     
     // Calculate total layout dimensions
     const totalWidth = (desksPerRow * deskWidth) + gapBetweenGroups;

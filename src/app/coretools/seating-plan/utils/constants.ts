@@ -72,15 +72,51 @@ export const DEFAULT_TEACHER_DESK = {
   height: 96
 };
 
-// Layout presets
+// Layout presets - Common UK classroom layouts
 export const PRESET_LAYOUTS = {
-  COMPUTER_ROOM: {
-    rows: 3,
+  PRESET_1: {
+    name: 'Preset 1 - Rows (32 desks)',
+    rows: 4,
     desksPerRow: 8,
     deskWidth: DEFAULT_DESK_WIDTH,
     deskHeight: DEFAULT_DESK_HEIGHT,
-    gapBetweenGroups: 48, // 1 grid square gap
-    rowGap: 72, // 1.5 grid squares
+    gapBetweenGroups: 48, // 1 grid square gap between left/right
+    rowGap: 72, // 1.5 grid squares between rows
     startY: 228, // Leave space for teacher desk
+    layout: 'rows' // 4 rows of 8 (split into 4+4)
+  },
+  PRESET_2: {
+    name: 'Preset 2 - Groups (24 desks)',
+    rows: 4,
+    desksPerRow: 6,
+    deskWidth: DEFAULT_DESK_WIDTH,
+    deskHeight: DEFAULT_DESK_HEIGHT,
+    gapBetweenGroups: 96, // 2 grid squares - larger gap for group work
+    rowGap: 96, // 2 grid squares between rows
+    startY: 228,
+    layout: 'groups' // 4 groups of 6 desks (3+3)
+  },
+  PRESET_3: {
+    name: 'Preset 3 - U-Shape (20 desks)',
+    deskWidth: DEFAULT_DESK_WIDTH,
+    deskHeight: DEFAULT_DESK_HEIGHT,
+    layout: 'u-shape' // Desks arranged in U-shape
+  },
+  PRESET_4: {
+    name: 'Preset 4 - Tables (24 desks)',
+    rows: 3,
+    columns: 4,
+    deskWidth: DEFAULT_DESK_WIDTH,
+    deskHeight: DEFAULT_DESK_HEIGHT,
+    gapBetweenTables: 96, // 2 grid squares between tables
+    rowGap: 96,
+    startY: 228,
+    layout: 'tables' // 6 tables of 4 desks each
+  },
+  PRESET_5: {
+    name: 'Preset 5 - Horseshoe (18 desks)',
+    deskWidth: DEFAULT_DESK_WIDTH,
+    deskHeight: DEFAULT_DESK_HEIGHT,
+    layout: 'horseshoe' // Horseshoe/semicircle arrangement
   }
 };
