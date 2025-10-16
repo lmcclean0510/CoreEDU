@@ -21,6 +21,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   GRID_SIZE,
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
@@ -43,6 +50,7 @@ const SeatingPlanTool = () => {
   const [isStudentPanelOpen, setIsStudentPanelOpen] = useState(false);
   const [isRulesPanelOpen, setIsRulesPanelOpen] = useState(false);
   const [isFurniturePopoverOpen, setIsFurniturePopoverOpen] = useState(false);
+  const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
 
   // Use the seating plan hook for state management
   const {
@@ -399,70 +407,16 @@ const SeatingPlanTool = () => {
                   <div>
                     <h3 className="font-semibold text-sm mb-3">Load Preset Layout</h3>
                     <div className="grid gap-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="justify-start h-auto py-3"
-                          >
-                            <span className="text-sm font-medium">Choose Preset...</span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent side="left" className="w-64 p-2">
-                          <div className="grid gap-1">
-                            <Button
-                              variant="ghost"
-                              className="justify-start h-auto py-2 text-left"
-                              onClick={() => {
-                                loadPreset1();
-                                setIsFurniturePopoverOpen(false);
-                              }}
-                            >
-                              <span className="text-sm">Preset 1 - Rows (32 desks)</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              className="justify-start h-auto py-2 text-left"
-                              onClick={() => {
-                                loadPreset2();
-                                setIsFurniturePopoverOpen(false);
-                              }}
-                            >
-                              <span className="text-sm">Preset 2 - Groups (24 desks)</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              className="justify-start h-auto py-2 text-left"
-                              onClick={() => {
-                                loadPreset3();
-                                setIsFurniturePopoverOpen(false);
-                              }}
-                            >
-                              <span className="text-sm">Preset 3 - U-Shape (20 desks)</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              className="justify-start h-auto py-2 text-left"
-                              onClick={() => {
-                                loadPreset4();
-                                setIsFurniturePopoverOpen(false);
-                              }}
-                            >
-                              <span className="text-sm">Preset 4 - Tables (24 desks)</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              className="justify-start h-auto py-2 text-left"
-                              onClick={() => {
-                                loadPreset5();
-                                setIsFurniturePopoverOpen(false);
-                              }}
-                            >
-                              <span className="text-sm">Preset 5 - Horseshoe (18 desks)</span>
-                            </Button>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+                      <Button
+                        variant="outline"
+                        className="justify-start h-auto py-3"
+                        onClick={() => {
+                          setIsPresetDialogOpen(true);
+                          setIsFurniturePopoverOpen(false);
+                        }}
+                      >
+                        <span className="text-sm font-medium">Choose Preset...</span>
+                      </Button>
                     </div>
                   </div>
 
@@ -522,6 +476,85 @@ const SeatingPlanTool = () => {
             )}
           </div>
         </div>
+
+        {/* Preset Selection Dialog */}
+        <Dialog open={isPresetDialogOpen} onOpenChange={setIsPresetDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Choose a Classroom Layout Preset</DialogTitle>
+              <DialogDescription>
+                Select a preset layout to quickly set up your classroom. This will replace any existing layout.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-3 py-4">
+              <Button
+                variant="outline"
+                className="justify-start h-auto py-4 text-left hover:bg-accent"
+                onClick={() => {
+                  loadPreset1();
+                  setIsPresetDialogOpen(false);
+                }}
+              >
+                <div className="flex flex-col">
+                  <span className="font-semibold">Preset 1 - Rows</span>
+                  <span className="text-sm text-muted-foreground">32 desks in 4 traditional rows (4+4 per row)</span>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start h-auto py-4 text-left hover:bg-accent"
+                onClick={() => {
+                  loadPreset2();
+                  setIsPresetDialogOpen(false);
+                }}
+              >
+                <div className="flex flex-col">
+                  <span className="font-semibold">Preset 2 - Groups</span>
+                  <span className="text-sm text-muted-foreground">24 desks in 4 groups of 6 (ideal for collaboration)</span>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start h-auto py-4 text-left hover:bg-accent"
+                onClick={() => {
+                  loadPreset3();
+                  setIsPresetDialogOpen(false);
+                }}
+              >
+                <div className="flex flex-col">
+                  <span className="font-semibold">Preset 3 - U-Shape</span>
+                  <span className="text-sm text-muted-foreground">20 desks in U-formation (great for discussions)</span>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start h-auto py-4 text-left hover:bg-accent"
+                onClick={() => {
+                  loadPreset4();
+                  setIsPresetDialogOpen(false);
+                }}
+              >
+                <div className="flex flex-col">
+                  <span className="font-semibold">Preset 4 - Tables</span>
+                  <span className="text-sm text-muted-foreground">24 desks in 6 tables of 4 (paired/small group work)</span>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start h-auto py-4 text-left hover:bg-accent"
+                onClick={() => {
+                  loadPreset5();
+                  setIsPresetDialogOpen(false);
+                }}
+              >
+                <div className="flex flex-col">
+                  <span className="font-semibold">Preset 5 - Horseshoe</span>
+                  <span className="text-sm text-muted-foreground">18 desks in semicircle (presentations & whole-class)</span>
+                </div>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DndContext>
   );
