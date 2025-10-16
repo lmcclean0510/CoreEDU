@@ -3,6 +3,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   GRID_SIZE,
   CANVAS_WIDTH,
@@ -25,6 +31,7 @@ const SeatingPlanTool = () => {
   const [isRulesMode, setIsRulesMode] = useState(false);
   const [isLayoutPanelOpen, setIsLayoutPanelOpen] = useState(false);
   const [isRulesPanelOpen, setIsRulesPanelOpen] = useState(false);
+  const [isFurniturePopoverOpen, setIsFurniturePopoverOpen] = useState(false);
 
   // Use the seating plan hook for state management
   const {
@@ -257,9 +264,6 @@ const SeatingPlanTool = () => {
 
               {/* Quick Actions */}
               <div className="h-6 w-px bg-border mx-1" />
-              <Button onClick={() => addFurniture(furnitureTemplates[0])} variant="outline" size="sm" className="min-w-[130px]">
-                Add Single Desk
-              </Button>
               <Button onClick={loadComputerRoomPreset} variant="outline" size="sm" className="min-w-[170px]">
                 Load Computer Room
               </Button>
@@ -343,12 +347,51 @@ const SeatingPlanTool = () => {
                     <div className="text-center space-y-2">
                       <div className="text-6xl">📐</div>
                       <p className="text-lg font-medium">Empty Classroom</p>
-                      <p className="text-sm">Click "Add Single Desk" or "Load Computer Room"</p>
+                      <p className="text-sm">Click the green + button or "Load Computer Room"</p>
                     </div>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Floating Furniture Button */}
+            <Popover open={isFurniturePopoverOpen} onOpenChange={setIsFurniturePopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  size="lg"
+                  className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-30"
+                  title="Add Furniture"
+                >
+                  <Plus className="h-6 w-6" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                side="left"
+                align="end"
+                className="w-64 p-3"
+                sideOffset={10}
+              >
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-sm mb-3">Add Furniture</h3>
+                  <div className="grid gap-2">
+                    {furnitureTemplates.map((template) => (
+                      <Button
+                        key={template.id}
+                        variant="outline"
+                        className="justify-start h-auto py-3"
+                        onClick={() => {
+                          addFurniture(template);
+                          setIsFurniturePopoverOpen(false);
+                        }}
+                      >
+                        <span className="text-2xl mr-3">{template.icon}</span>
+                        <span className="text-sm font-medium">{template.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
