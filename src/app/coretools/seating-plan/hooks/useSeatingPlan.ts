@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES, GRID_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT } from '../utils/constants';
+import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES, GRID_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, DEFAULT_DESK_WIDTH, DEFAULT_DESK_HEIGHT } from '../utils/constants';
 import { parseStudentInput, validateSeparationRule } from '../utils/validation';
 import { sortDesksByPosition } from '../utils/calculations';
 import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTemplate, DeskWithGroup, Stats } from '../types';
@@ -98,18 +98,18 @@ export const useSeatingPlan = () => {
   const loadComputerRoomPreset = useCallback(() => {
     console.log('🎯 Loading Computer Room Preset');
     console.log('Canvas size:', CANVAS_WIDTH, 'x', CANVAS_HEIGHT);
-    
+
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
     const baseId = Date.now();
-    
-    // Layout configuration
-    const deskWidth = 128;
-    const deskHeight = 80;
+
+    // Layout configuration - use constants
+    const deskWidth = DEFAULT_DESK_WIDTH;
+    const deskHeight = DEFAULT_DESK_HEIGHT;
     const desksPerRow = 8; // 4 left + 4 right
     const rows = 3;
-    const gapBetweenGroups = 160; // Horizontal gap between left and right groups
-    const gapBetweenRows = 48; // Vertical gap
+    const gapBetweenGroups = DEFAULT_DESK_WIDTH; // Horizontal gap between left and right groups
+    const gapBetweenRows = GRID_SIZE * 1.5; // Vertical gap
     
     // Calculate total layout dimensions
     const totalWidth = (desksPerRow * deskWidth) + gapBetweenGroups;
@@ -117,7 +117,7 @@ export const useSeatingPlan = () => {
     
     // Center the entire layout
     const startX = (CANVAS_WIDTH - totalWidth) / 2;
-    const startY = 140; // Leave space for teacher desk at top
+    const startY = DEFAULT_TEACHER_DESK.y + DEFAULT_TEACHER_DESK.height + GRID_SIZE; // Leave space for teacher desk at top
     
     console.log('Layout:', { totalWidth, totalHeight, startX, startY });
     
@@ -179,18 +179,13 @@ export const useSeatingPlan = () => {
     }
     
     console.log(`Created ${newDesks.length} desks in ${newGroups.length} groups`);
-    
+
     setDesks(newDesks);
     setGroups(newGroups);
-    
-    // Position teacher desk at top center
-    setTeacherDesk({ 
-      x: (CANVAS_WIDTH - 192) / 2, 
-      y: 60, 
-      width: 192, 
-      height: 64 
-    });
-    
+
+    // Position teacher desk at top center using constants
+    setTeacherDesk(DEFAULT_TEACHER_DESK);
+
     setIsPresetDialogOpen(false);
   }, []);
 
