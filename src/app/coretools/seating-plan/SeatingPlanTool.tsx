@@ -237,8 +237,9 @@ const SeatingPlanTool = () => {
                 }}
                 variant={isLayoutMode ? "default" : "outline"}
                 size="sm"
+                className="min-w-[120px]"
               >
-                {isLayoutMode ? 'Exit Layout Mode' : 'Layout Mode'}
+                Layout Mode
               </Button>
               <Button
                 onClick={() => {
@@ -249,20 +250,21 @@ const SeatingPlanTool = () => {
                 }}
                 variant={isRulesMode ? "default" : "outline"}
                 size="sm"
+                className="min-w-[120px]"
               >
-                {isRulesMode ? 'Exit Rules Mode' : 'Rules Mode'}
+                Rules Mode
               </Button>
 
               {/* Quick Actions */}
               <div className="h-6 w-px bg-border mx-1" />
-              <Button onClick={() => addFurniture(furnitureTemplates[0])} variant="outline" size="sm">
+              <Button onClick={() => addFurniture(furnitureTemplates[0])} variant="outline" size="sm" className="min-w-[130px]">
                 Add Single Desk
               </Button>
-              <Button onClick={loadComputerRoomPreset} variant="outline" size="sm">
+              <Button onClick={loadComputerRoomPreset} variant="outline" size="sm" className="min-w-[170px]">
                 Load Computer Room
               </Button>
-              <Button onClick={() => setIsGridVisible(!isGridVisible)} variant="outline" size="sm">
-                {isGridVisible ? 'Hide' : 'Show'} Grid
+              <Button onClick={() => setIsGridVisible(!isGridVisible)} variant="outline" size="sm" className="min-w-[100px]">
+                {isGridVisible ? 'Hide Grid' : 'Show Grid'}
               </Button>
             </div>
 
