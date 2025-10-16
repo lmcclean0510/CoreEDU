@@ -70,6 +70,11 @@ const SeatingPlanTool = () => {
     setStudentInput,
     setIsGridVisible,
     loadComputerRoomPreset,
+    loadPreset1,
+    loadPreset2,
+    loadPreset3,
+    loadPreset4,
+    loadPreset5,
     addFurniture,
     removeDesk,
     parseStudents,
@@ -377,10 +382,10 @@ const SeatingPlanTool = () => {
                 <PopoverTrigger asChild>
                   <Button
                     size="lg"
-                    className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
+                    className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
                     title="Add Furniture"
                   >
-                    <Plus className="h-6 w-6" />
+                    <Plus className="h-5 w-5" />
                   </Button>
                 </PopoverTrigger>
               <PopoverContent
@@ -394,16 +399,70 @@ const SeatingPlanTool = () => {
                   <div>
                     <h3 className="font-semibold text-sm mb-3">Load Preset Layout</h3>
                     <div className="grid gap-2">
-                      <Button
-                        variant="outline"
-                        className="justify-start h-auto py-3"
-                        onClick={() => {
-                          loadComputerRoomPreset();
-                          setIsFurniturePopoverOpen(false);
-                        }}
-                      >
-                        <span className="text-sm font-medium">Preset 1 - Rows (32 desks)</span>
-                      </Button>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="justify-start h-auto py-3"
+                          >
+                            <span className="text-sm font-medium">Choose Preset...</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent side="left" className="w-64 p-2">
+                          <div className="grid gap-1">
+                            <Button
+                              variant="ghost"
+                              className="justify-start h-auto py-2 text-left"
+                              onClick={() => {
+                                loadPreset1();
+                                setIsFurniturePopoverOpen(false);
+                              }}
+                            >
+                              <span className="text-sm">Preset 1 - Rows (32 desks)</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="justify-start h-auto py-2 text-left"
+                              onClick={() => {
+                                loadPreset2();
+                                setIsFurniturePopoverOpen(false);
+                              }}
+                            >
+                              <span className="text-sm">Preset 2 - Groups (24 desks)</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="justify-start h-auto py-2 text-left"
+                              onClick={() => {
+                                loadPreset3();
+                                setIsFurniturePopoverOpen(false);
+                              }}
+                            >
+                              <span className="text-sm">Preset 3 - U-Shape (20 desks)</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="justify-start h-auto py-2 text-left"
+                              onClick={() => {
+                                loadPreset4();
+                                setIsFurniturePopoverOpen(false);
+                              }}
+                            >
+                              <span className="text-sm">Preset 4 - Tables (24 desks)</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="justify-start h-auto py-2 text-left"
+                              onClick={() => {
+                                loadPreset5();
+                                setIsFurniturePopoverOpen(false);
+                              }}
+                            >
+                              <span className="text-sm">Preset 5 - Horseshoe (18 desks)</span>
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
 
@@ -441,10 +500,10 @@ const SeatingPlanTool = () => {
                   <Button
                     size="lg"
                     variant="destructive"
-                    className="fixed bottom-6 left-80 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
+                    className="fixed bottom-6 left-6 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
                     title="Clear Layout"
                   >
-                    <Trash2 className="h-6 w-6" />
+                    <Trash2 className="h-5 w-5" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>

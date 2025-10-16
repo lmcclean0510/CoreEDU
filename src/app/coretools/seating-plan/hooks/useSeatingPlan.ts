@@ -95,43 +95,35 @@ export const useSeatingPlan = () => {
   }, [groups, desks]);
 
   // Load Preset 1 (Rows layout) - 4 rows of 8 desks = 32 total
-  const loadComputerRoomPreset = useCallback(() => {
-    console.log('🎯 Loading Preset 1');
-    console.log('Canvas size:', CANVAS_WIDTH, 'x', CANVAS_HEIGHT);
+  const loadPreset1 = useCallback(() => {
+    console.log('🎯 Loading Preset 1 - Rows');
 
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
     const baseId = Date.now();
 
-    // Layout configuration - use constants from PRESET_1
     const preset = PRESET_LAYOUTS.PRESET_1;
     const deskWidth = preset.deskWidth;
     const deskHeight = preset.deskHeight;
     const desksPerRow = preset.desksPerRow;
-    const rows = preset.rows; // 4 rows now
+    const rows = preset.rows;
     const gapBetweenGroups = preset.gapBetweenGroups;
     const gapBetweenRows = preset.rowGap;
-    
-    // Calculate total layout dimensions
+
     const totalWidth = (desksPerRow * deskWidth) + gapBetweenGroups;
     const totalHeight = (rows * deskHeight) + ((rows - 1) * gapBetweenRows);
-    
-    // Center the entire layout
     const startX = (CANVAS_WIDTH - totalWidth) / 2;
-    const startY = DEFAULT_TEACHER_DESK.y + DEFAULT_TEACHER_DESK.height + GRID_SIZE; // Leave space for teacher desk at top
-    
-    console.log('Layout:', { totalWidth, totalHeight, startX, startY });
-    
-    // Create desks row by row
+    const startY = DEFAULT_TEACHER_DESK.y + DEFAULT_TEACHER_DESK.height + GRID_SIZE;
+
     for (let row = 0; row < rows; row++) {
       const y = startY + (row * (deskHeight + gapBetweenRows));
-      
+
       // Left group (4 desks)
       const leftGroupDeskIds: number[] = [];
       for (let i = 0; i < 4; i++) {
         const deskId = baseId + (row * desksPerRow) + i;
         const x = startX + (i * deskWidth);
-        
+
         newDesks.push({
           id: deskId,
           x,
@@ -143,22 +135,22 @@ export const useSeatingPlan = () => {
         });
         leftGroupDeskIds.push(deskId);
       }
-      
+
       newGroups.push({
         id: baseId + (row * 2),
         deskIds: leftGroupDeskIds,
         name: `Row ${row + 1} - Left`,
         color: GROUP_COLORS[0]
       });
-      
+
       // Right group (4 desks)
       const rightGroupDeskIds: number[] = [];
       const rightStartX = startX + (4 * deskWidth) + gapBetweenGroups;
-      
+
       for (let i = 0; i < 4; i++) {
         const deskId = baseId + (row * desksPerRow) + 4 + i;
         const x = rightStartX + (i * deskWidth);
-        
+
         newDesks.push({
           id: deskId,
           x,
@@ -170,7 +162,7 @@ export const useSeatingPlan = () => {
         });
         rightGroupDeskIds.push(deskId);
       }
-      
+
       newGroups.push({
         id: baseId + (row * 2) + 1,
         deskIds: rightGroupDeskIds,
@@ -178,15 +170,366 @@ export const useSeatingPlan = () => {
         color: GROUP_COLORS[0]
       });
     }
-    
-    console.log(`Created ${newDesks.length} desks in ${newGroups.length} groups`);
 
     setDesks(newDesks);
     setGroups(newGroups);
-
-    // Position teacher desk at top center using constants
     setTeacherDesk(DEFAULT_TEACHER_DESK);
+    setIsPresetDialogOpen(false);
+  }, []);
 
+  // Alias for backwards compatibility
+  const loadComputerRoomPreset = loadPreset1;
+
+  // Load Preset 2 (Groups layout) - 4 groups of 6 desks = 24 total
+  const loadPreset2 = useCallback(() => {
+    console.log('🎯 Loading Preset 2 - Groups');
+
+    const newDesks: Desk[] = [];
+    const newGroups: Group[] = [];
+    const baseId = Date.now();
+
+    const preset = PRESET_LAYOUTS.PRESET_2;
+    const deskWidth = preset.deskWidth;
+    const deskHeight = preset.deskHeight;
+    const desksPerRow = preset.desksPerRow;
+    const rows = preset.rows;
+    const gapBetweenGroups = preset.gapBetweenGroups;
+    const gapBetweenRows = preset.rowGap;
+
+    // Each group is 3 desks wide
+    const groupWidth = 3 * deskWidth;
+    const totalWidth = (2 * groupWidth) + gapBetweenGroups;
+    const startX = (CANVAS_WIDTH - totalWidth) / 2;
+    const startY = DEFAULT_TEACHER_DESK.y + DEFAULT_TEACHER_DESK.height + GRID_SIZE;
+
+    let deskCounter = 0;
+    for (let row = 0; row < 2; row++) { // 2 rows of groups
+      const y = startY + (row * (2 * deskHeight + gapBetweenRows));
+
+      for (let groupCol = 0; groupCol < 2; groupCol++) { // 2 groups per row
+        const groupDeskIds: number[] = [];
+        const groupX = startX + (groupCol * (groupWidth + gapBetweenGroups));
+
+        // Create 2 rows of 3 desks for this group
+        for (let deskRow = 0; deskRow < 2; deskRow++) {
+          for (let deskCol = 0; deskCol < 3; deskCol++) {
+            const deskId = baseId + deskCounter++;
+            const x = groupX + (deskCol * deskWidth);
+            const deskY = y + (deskRow * deskHeight);
+
+            newDesks.push({
+              id: deskId,
+              x,
+              y: deskY,
+              width: deskWidth,
+              height: deskHeight,
+              student: null,
+              isLocked: false,
+            });
+            groupDeskIds.push(deskId);
+          }
+        }
+
+        newGroups.push({
+          id: baseId + (row * 2 + groupCol),
+          deskIds: groupDeskIds,
+          name: `Group ${row * 2 + groupCol + 1}`,
+          color: GROUP_COLORS[(row * 2 + groupCol) % GROUP_COLORS.length]
+        });
+      }
+    }
+
+    setDesks(newDesks);
+    setGroups(newGroups);
+    setTeacherDesk(DEFAULT_TEACHER_DESK);
+    setIsPresetDialogOpen(false);
+  }, []);
+
+  // Load Preset 3 (U-Shape layout) - 20 desks in U formation
+  const loadPreset3 = useCallback(() => {
+    console.log('🎯 Loading Preset 3 - U-Shape');
+
+    const newDesks: Desk[] = [];
+    const newGroups: Group[] = [];
+    const baseId = Date.now();
+
+    const preset = PRESET_LAYOUTS.PRESET_3;
+    const deskWidth = preset.deskWidth;
+    const deskHeight = preset.deskHeight;
+
+    const padding = 96;
+    const startY = DEFAULT_TEACHER_DESK.y + DEFAULT_TEACHER_DESK.height + padding;
+
+    // Top row - 7 desks
+    const topGroupIds: number[] = [];
+    const topRowWidth = 7 * deskWidth;
+    const topRowX = (CANVAS_WIDTH - topRowWidth) / 2;
+
+    for (let i = 0; i < 7; i++) {
+      const deskId = baseId + i;
+      newDesks.push({
+        id: deskId,
+        x: topRowX + (i * deskWidth),
+        y: startY,
+        width: deskWidth,
+        height: deskHeight,
+        student: null,
+        isLocked: false,
+      });
+      topGroupIds.push(deskId);
+    }
+
+    newGroups.push({
+      id: baseId,
+      deskIds: topGroupIds,
+      name: 'U-Shape Top',
+      color: GROUP_COLORS[0]
+    });
+
+    // Left column - 5 desks
+    const leftGroupIds: number[] = [];
+    const leftColX = topRowX;
+
+    for (let i = 0; i < 5; i++) {
+      const deskId = baseId + 7 + i;
+      newDesks.push({
+        id: deskId,
+        x: leftColX,
+        y: startY + ((i + 1) * (deskHeight + 24)),
+        width: deskWidth,
+        height: deskHeight,
+        student: null,
+        isLocked: false,
+      });
+      leftGroupIds.push(deskId);
+    }
+
+    newGroups.push({
+      id: baseId + 1,
+      deskIds: leftGroupIds,
+      name: 'U-Shape Left',
+      color: GROUP_COLORS[0]
+    });
+
+    // Right column - 5 desks
+    const rightGroupIds: number[] = [];
+    const rightColX = topRowX + (6 * deskWidth);
+
+    for (let i = 0; i < 5; i++) {
+      const deskId = baseId + 12 + i;
+      newDesks.push({
+        id: deskId,
+        x: rightColX,
+        y: startY + ((i + 1) * (deskHeight + 24)),
+        width: deskWidth,
+        height: deskHeight,
+        student: null,
+        isLocked: false,
+      });
+      rightGroupIds.push(deskId);
+    }
+
+    newGroups.push({
+      id: baseId + 2,
+      deskIds: rightGroupIds,
+      name: 'U-Shape Right',
+      color: GROUP_COLORS[0]
+    });
+
+    // Bottom row - 3 desks (closing the U slightly)
+    const bottomGroupIds: number[] = [];
+    const bottomRowWidth = 3 * deskWidth;
+    const bottomRowX = (CANVAS_WIDTH - bottomRowWidth) / 2;
+    const bottomY = startY + (6 * (deskHeight + 24));
+
+    for (let i = 0; i < 3; i++) {
+      const deskId = baseId + 17 + i;
+      newDesks.push({
+        id: deskId,
+        x: bottomRowX + (i * deskWidth),
+        y: bottomY,
+        width: deskWidth,
+        height: deskHeight,
+        student: null,
+        isLocked: false,
+      });
+      bottomGroupIds.push(deskId);
+    }
+
+    newGroups.push({
+      id: baseId + 3,
+      deskIds: bottomGroupIds,
+      name: 'U-Shape Bottom',
+      color: GROUP_COLORS[0]
+    });
+
+    setDesks(newDesks);
+    setGroups(newGroups);
+    setTeacherDesk(DEFAULT_TEACHER_DESK);
+    setIsPresetDialogOpen(false);
+  }, []);
+
+  // Load Preset 4 (Tables layout) - 6 tables of 4 desks = 24 total
+  const loadPreset4 = useCallback(() => {
+    console.log('🎯 Loading Preset 4 - Tables');
+
+    const newDesks: Desk[] = [];
+    const newGroups: Group[] = [];
+    const baseId = Date.now();
+
+    const preset = PRESET_LAYOUTS.PRESET_4;
+    const deskWidth = preset.deskWidth;
+    const deskHeight = preset.deskHeight;
+    const rows = preset.rows;
+    const columns = preset.columns;
+    const gapBetweenTables = preset.gapBetweenTables;
+    const rowGap = preset.rowGap;
+
+    // Each table is 2x2 desks
+    const tableWidth = 2 * deskWidth;
+    const tableHeight = 2 * deskHeight;
+
+    const totalWidth = (columns * tableWidth) + ((columns - 1) * gapBetweenTables);
+    const startX = (CANVAS_WIDTH - totalWidth) / 2;
+    const startY = DEFAULT_TEACHER_DESK.y + DEFAULT_TEACHER_DESK.height + GRID_SIZE;
+
+    let tableCounter = 0;
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < 2; col++) { // 2 tables per row
+        const tableDeskIds: number[] = [];
+        const tableX = startX + (col * (tableWidth + gapBetweenTables));
+        const tableY = startY + (row * (tableHeight + rowGap));
+
+        // Create 2x2 desks for this table
+        for (let deskRow = 0; deskRow < 2; deskRow++) {
+          for (let deskCol = 0; deskCol < 2; deskCol++) {
+            const deskId = baseId + (tableCounter * 4) + (deskRow * 2) + deskCol;
+            const x = tableX + (deskCol * deskWidth);
+            const y = tableY + (deskRow * deskHeight);
+
+            newDesks.push({
+              id: deskId,
+              x,
+              y,
+              width: deskWidth,
+              height: deskHeight,
+              student: null,
+              isLocked: false,
+            });
+            tableDeskIds.push(deskId);
+          }
+        }
+
+        newGroups.push({
+          id: baseId + tableCounter,
+          deskIds: tableDeskIds,
+          name: `Table ${tableCounter + 1}`,
+          color: GROUP_COLORS[tableCounter % GROUP_COLORS.length]
+        });
+
+        tableCounter++;
+      }
+    }
+
+    setDesks(newDesks);
+    setGroups(newGroups);
+    setTeacherDesk(DEFAULT_TEACHER_DESK);
+    setIsPresetDialogOpen(false);
+  }, []);
+
+  // Load Preset 5 (Horseshoe layout) - 18 desks in semicircle
+  const loadPreset5 = useCallback(() => {
+    console.log('🎯 Loading Preset 5 - Horseshoe');
+
+    const newDesks: Desk[] = [];
+    const newGroups: Group[] = [];
+    const baseId = Date.now();
+
+    const preset = PRESET_LAYOUTS.PRESET_5;
+    const deskWidth = preset.deskWidth;
+    const deskHeight = preset.deskHeight;
+
+    const startY = DEFAULT_TEACHER_DESK.y + DEFAULT_TEACHER_DESK.height + 96;
+
+    // Top row - 6 desks
+    const topGroupIds: number[] = [];
+    const topRowWidth = 6 * deskWidth;
+    const topRowX = (CANVAS_WIDTH - topRowWidth) / 2;
+
+    for (let i = 0; i < 6; i++) {
+      const deskId = baseId + i;
+      newDesks.push({
+        id: deskId,
+        x: topRowX + (i * deskWidth),
+        y: startY,
+        width: deskWidth,
+        height: deskHeight,
+        student: null,
+        isLocked: false,
+      });
+      topGroupIds.push(deskId);
+    }
+
+    newGroups.push({
+      id: baseId,
+      deskIds: topGroupIds,
+      name: 'Horseshoe Top',
+      color: GROUP_COLORS[0]
+    });
+
+    // Left arc - 6 desks
+    const leftGroupIds: number[] = [];
+    const leftX = topRowX - deskWidth;
+
+    for (let i = 0; i < 6; i++) {
+      const deskId = baseId + 6 + i;
+      newDesks.push({
+        id: deskId,
+        x: leftX - (i * 24), // Slight curve
+        y: startY + ((i + 1) * (deskHeight + 12)),
+        width: deskWidth,
+        height: deskHeight,
+        student: null,
+        isLocked: false,
+      });
+      leftGroupIds.push(deskId);
+    }
+
+    newGroups.push({
+      id: baseId + 1,
+      deskIds: leftGroupIds,
+      name: 'Horseshoe Left',
+      color: GROUP_COLORS[0]
+    });
+
+    // Right arc - 6 desks
+    const rightGroupIds: number[] = [];
+    const rightX = topRowX + topRowWidth;
+
+    for (let i = 0; i < 6; i++) {
+      const deskId = baseId + 12 + i;
+      newDesks.push({
+        id: deskId,
+        x: rightX + (i * 24), // Slight curve
+        y: startY + ((i + 1) * (deskHeight + 12)),
+        width: deskWidth,
+        height: deskHeight,
+        student: null,
+        isLocked: false,
+      });
+      rightGroupIds.push(deskId);
+    }
+
+    newGroups.push({
+      id: baseId + 2,
+      deskIds: rightGroupIds,
+      name: 'Horseshoe Right',
+      color: GROUP_COLORS[0]
+    });
+
+    setDesks(newDesks);
+    setGroups(newGroups);
+    setTeacherDesk(DEFAULT_TEACHER_DESK);
     setIsPresetDialogOpen(false);
   }, []);
 
@@ -405,6 +748,11 @@ export const useSeatingPlan = () => {
 
     // Actions
     loadComputerRoomPreset,
+    loadPreset1,
+    loadPreset2,
+    loadPreset3,
+    loadPreset4,
+    loadPreset5,
     handleRenameGroup,
     handleSetGroupColor,
     handleDeleteGroup,
