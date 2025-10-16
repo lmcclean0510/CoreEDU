@@ -275,9 +275,6 @@ const SeatingPlanTool = () => {
 
               {/* Quick Actions */}
               <div className="h-6 w-px bg-border mx-1" />
-              <Button onClick={loadComputerRoomPreset} variant="outline" size="sm" className="min-w-[130px]">
-                Load Preset 1
-              </Button>
               <Button onClick={() => setIsGridVisible(!isGridVisible)} variant="outline" size="sm" className="min-w-[100px]">
                 {isGridVisible ? 'Hide Grid' : 'Show Grid'}
               </Button>
@@ -389,26 +386,48 @@ const SeatingPlanTool = () => {
               <PopoverContent
                 side="left"
                 align="end"
-                className="w-64 p-3"
+                className="w-72 p-3 max-h-[600px] overflow-y-auto"
                 sideOffset={10}
               >
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-sm mb-3">Add Furniture</h3>
-                  <div className="grid gap-2">
-                    {furnitureTemplates.map((template) => (
+                <div className="space-y-4">
+                  {/* Presets Section */}
+                  <div>
+                    <h3 className="font-semibold text-sm mb-3">Load Preset Layout</h3>
+                    <div className="grid gap-2">
                       <Button
-                        key={template.id}
                         variant="outline"
                         className="justify-start h-auto py-3"
                         onClick={() => {
-                          addFurniture(template);
+                          loadComputerRoomPreset();
                           setIsFurniturePopoverOpen(false);
                         }}
                       >
-                        <span className="text-2xl mr-3">{template.icon}</span>
-                        <span className="text-sm font-medium">{template.name}</span>
+                        <span className="text-sm font-medium">Preset 1 - Rows (32 desks)</span>
                       </Button>
-                    ))}
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-border" />
+
+                  {/* Furniture Section */}
+                  <div>
+                    <h3 className="font-semibold text-sm mb-3">Add Individual Furniture</h3>
+                    <div className="grid gap-2">
+                      {furnitureTemplates.map((template) => (
+                        <Button
+                          key={template.id}
+                          variant="outline"
+                          className="justify-start h-auto py-3"
+                          onClick={() => {
+                            addFurniture(template);
+                            setIsFurniturePopoverOpen(false);
+                          }}
+                        >
+                          <span className="text-2xl mr-3">{template.icon}</span>
+                          <span className="text-sm font-medium">{template.name}</span>
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </PopoverContent>
@@ -422,7 +441,7 @@ const SeatingPlanTool = () => {
                   <Button
                     size="lg"
                     variant="destructive"
-                    className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
+                    className="fixed bottom-6 left-80 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
                     title="Clear Layout"
                   >
                     <Trash2 className="h-6 w-6" />

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES, GRID_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, DEFAULT_DESK_WIDTH, DEFAULT_DESK_HEIGHT } from '../utils/constants';
+import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES, GRID_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, DEFAULT_DESK_WIDTH, DEFAULT_DESK_HEIGHT, PRESET_LAYOUTS } from '../utils/constants';
 import { parseStudentInput, validateSeparationRule } from '../utils/validation';
 import { sortDesksByPosition } from '../utils/calculations';
 import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTemplate, DeskWithGroup, Stats } from '../types';
