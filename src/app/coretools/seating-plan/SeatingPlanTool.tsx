@@ -3,10 +3,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-// Optimized canvas size - 33x20 grid squares at 36px each
-const GRID_SIZE = 36;        // Increased from 32px for better readability
-const CANVAS_WIDTH = 1188;   // 33 grid squares × 36px
-const CANVAS_HEIGHT = 720;   // 20 grid squares × 36px
+// Optimized canvas size - 33x20 grid squares at 40px each for maximum readability
+const GRID_SIZE = 40;        // Increased from 36px for even better readability
+const CANVAS_WIDTH = 1320;   // 33 grid squares × 40px
+const CANVAS_HEIGHT = 800;   // 20 grid squares × 40px
 
 interface Desk {
   id: number;
@@ -68,18 +68,18 @@ const SeatingPlanTool = () => {
     console.log('🎯 Loading preset...');
     
     const newDesks: Desk[] = [];
-    const deskWidth = 144;  // Scaled from 128 (4 grid squares)
-    const deskHeight = 90;  // Scaled from 80 (2.5 grid squares)
+    const deskWidth = 160;  // 4 grid squares
+    const deskHeight = 100;  // 2.5 grid squares
     const rows = 3;
-    const gapBetweenGroups = 36; // 1 grid square gap
-    const rowGap = 54; // 1.5 grid squares
+    const gapBetweenGroups = 40; // 1 grid square gap
+    const rowGap = 60; // 1.5 grid squares
     
     // Calculate total width: 4 desks + gap + 4 desks
     const totalWidth = (4 * deskWidth) + gapBetweenGroups + (4 * deskWidth);
     
     // Center the layout
     const startX = (CANVAS_WIDTH - totalWidth) / 2;
-    const startY = 170; // Leave space for scaled teacher desk
+    const startY = 190; // Leave space for scaled teacher desk
     
     console.log('🎯 Layout:', { totalWidth, startX, CANVAS_WIDTH });
     
@@ -119,10 +119,10 @@ const SeatingPlanTool = () => {
   const addSingleDesk = () => {
     const newDesk: Desk = {
       id: Date.now(),
-      x: (CANVAS_WIDTH - 144) / 2,
-      y: (CANVAS_HEIGHT - 90) / 2,
-      width: 144,
-      height: 90,
+      x: (CANVAS_WIDTH - 160) / 2,
+      y: (CANVAS_HEIGHT - 100) / 2,
+      width: 160,
+      height: 100,
     };
     console.log('🎯 Adding desk at center:', newDesk);
     setDesks([...desks, newDesk]);
@@ -197,12 +197,12 @@ const SeatingPlanTool = () => {
 
             {/* Teacher Desk */}
             <div
-              className="absolute bg-primary text-primary-foreground rounded flex items-center justify-center text-xs font-medium shadow-md"
+              className="absolute bg-primary text-primary-foreground rounded flex items-center justify-center text-sm font-medium shadow-md"
               style={{
-                left: `${(CANVAS_WIDTH - 216) / 2}px`,
-                top: '68px',
-                width: '216px',
-                height: '72px',
+                left: `${(CANVAS_WIDTH - 240) / 2}px`,
+                top: '76px',
+                width: '240px',
+                height: '80px',
               }}
             >
               Teacher's Desk
@@ -212,7 +212,7 @@ const SeatingPlanTool = () => {
             {desks.map((desk) => (
               <div
                 key={desk.id}
-                className="absolute bg-white border-2 border-primary rounded flex items-center justify-center text-xs font-medium shadow-sm"
+                className="absolute bg-white border-2 border-primary rounded flex items-center justify-center text-sm font-medium shadow-sm"
                 style={{
                   left: `${desk.x}px`,
                   top: `${desk.y}px`,
@@ -228,7 +228,7 @@ const SeatingPlanTool = () => {
             {desks.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                 <div className="text-center space-y-2">
-                  <div className="text-5xl">📐</div>
+                  <div className="text-6xl">📐</div>
                   <p className="text-lg font-medium">Empty Classroom</p>
                   <p className="text-sm">Click "Add Single Desk" or "Load Computer Room"</p>
                 </div>
@@ -236,13 +236,6 @@ const SeatingPlanTool = () => {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Debug Info */}
-      <div className="bg-card border-t border-border px-4 py-2 text-xs text-muted-foreground">
-        Canvas: {CANVAS_WIDTH}×{CANVAS_HEIGHT}px ({CANVAS_WIDTH / GRID_SIZE}×{CANVAS_HEIGHT / GRID_SIZE} squares) | 
-        Desks: {desks.length} | 
-        Zoom: {(zoom * 100).toFixed(1)}%
       </div>
     </div>
   );
