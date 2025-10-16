@@ -1,9 +1,9 @@
 import type { FurnitureTemplate } from '../types';
 
 // Canvas dimensions - 100 grid squares wide, 20 tall (reasonable size)
-export const GRID_SIZE = 32;
-export const CANVAS_WIDTH = GRID_SIZE * 100; // 3200px - wider but not excessive
-export const CANVAS_HEIGHT = GRID_SIZE * 20; // 640px - short height
+export const GRID_SIZE = 45;
+export const CANVAS_WIDTH = GRID_SIZE * 100; // 4500px - wider but not excessive
+export const CANVAS_HEIGHT = GRID_SIZE * 20; // 900px - short height
 
 export const GROUP_COLORS = [
   '#14b8a6', '#3b82f6', '#8b5cf6', '#d946ef', '#ef4444', '#f97316',
