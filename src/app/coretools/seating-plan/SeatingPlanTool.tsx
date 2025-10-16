@@ -29,7 +29,7 @@ const SeatingPlanTool = () => {
   const [zoom, setZoom] = useState(1);
   const [isLayoutMode, setIsLayoutMode] = useState(false);
   const [isRulesMode, setIsRulesMode] = useState(false);
-  const [isLayoutPanelOpen, setIsLayoutPanelOpen] = useState(false);
+  const [isStudentPanelOpen, setIsStudentPanelOpen] = useState(false);
   const [isRulesPanelOpen, setIsRulesPanelOpen] = useState(false);
   const [isFurniturePopoverOpen, setIsFurniturePopoverOpen] = useState(false);
 
@@ -141,18 +141,18 @@ const SeatingPlanTool = () => {
   return (
     <DndContext onDragEnd={onDragEnd}>
       <div className="flex h-full bg-background relative">
-        {/* Layout Panel - Sliding from Left */}
+        {/* Student Management Panel - Sliding from Left */}
         <div
           className={`absolute top-0 left-0 h-full w-80 bg-card border-r border-border overflow-y-auto p-4 space-y-4 transition-transform duration-300 ease-in-out z-20 shadow-lg ${
-            isLayoutPanelOpen ? 'translate-x-0' : '-translate-x-full'
+            isStudentPanelOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-lg">Layout & Students</h2>
+            <h2 className="font-semibold text-lg">Student Management</h2>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsLayoutPanelOpen(false)}
+              onClick={() => setIsStudentPanelOpen(false)}
             >
               ✕
             </Button>
@@ -234,14 +234,9 @@ const SeatingPlanTool = () => {
           {/* Toolbar */}
           <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {/* Panel Toggle Buttons */}
+              {/* Mode Toggle Buttons */}
               <Button
-                onClick={() => {
-                  setIsLayoutPanelOpen(!isLayoutPanelOpen);
-                  setIsRulesPanelOpen(false);
-                  setIsLayoutMode(!isLayoutMode);
-                  setIsRulesMode(false);
-                }}
+                onClick={() => setIsLayoutMode(!isLayoutMode)}
                 variant={isLayoutMode ? "default" : "outline"}
                 size="sm"
                 className="min-w-[120px]"
@@ -251,9 +246,8 @@ const SeatingPlanTool = () => {
               <Button
                 onClick={() => {
                   setIsRulesPanelOpen(!isRulesPanelOpen);
-                  setIsLayoutPanelOpen(false);
+                  setIsStudentPanelOpen(false);
                   setIsRulesMode(!isRulesMode);
-                  setIsLayoutMode(false);
                 }}
                 variant={isRulesMode ? "default" : "outline"}
                 size="sm"
@@ -273,9 +267,18 @@ const SeatingPlanTool = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
-                Zoom: {Math.round(zoom * 100)}%
-              </span>
+              {/* Manage Students Button */}
+              <Button
+                onClick={() => {
+                  setIsStudentPanelOpen(!isStudentPanelOpen);
+                  setIsRulesPanelOpen(false);
+                }}
+                variant="outline"
+                size="sm"
+                className="min-w-[150px]"
+              >
+                Manage Students
+              </Button>
               {students.length > 0 && (
                 <span className="text-sm text-muted-foreground">
                   {stats.assignedDesks}/{stats.availableDesks} assigned
@@ -354,17 +357,18 @@ const SeatingPlanTool = () => {
               </div>
             </div>
 
-            {/* Floating Furniture Button */}
-            <Popover open={isFurniturePopoverOpen} onOpenChange={setIsFurniturePopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  size="lg"
-                  className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-30"
-                  title="Add Furniture"
-                >
-                  <Plus className="h-6 w-6" />
-                </Button>
-              </PopoverTrigger>
+            {/* Floating Furniture Button - Only visible in Layout Mode */}
+            {isLayoutMode && (
+              <Popover open={isFurniturePopoverOpen} onOpenChange={setIsFurniturePopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="lg"
+                    className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
+                    title="Add Furniture"
+                  >
+                    <Plus className="h-6 w-6" />
+                  </Button>
+                </PopoverTrigger>
               <PopoverContent
                 side="left"
                 align="end"
@@ -392,6 +396,7 @@ const SeatingPlanTool = () => {
                 </div>
               </PopoverContent>
             </Popover>
+            )}
           </div>
         </div>
       </div>
