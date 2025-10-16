@@ -23,6 +23,8 @@ const SeatingPlanTool = () => {
   const [zoom, setZoom] = useState(1);
   const [isLayoutMode, setIsLayoutMode] = useState(false);
   const [isRulesMode, setIsRulesMode] = useState(false);
+  const [isLayoutPanelOpen, setIsLayoutPanelOpen] = useState(false);
+  const [isRulesPanelOpen, setIsRulesPanelOpen] = useState(false);
 
   // Use the seating plan hook for state management
   const {
@@ -131,10 +133,23 @@ const SeatingPlanTool = () => {
 
   return (
     <DndContext onDragEnd={onDragEnd}>
-      <div className="flex h-full bg-background">
-        {/* Left Sidebar - Student & Rules Management */}
-        <div className="w-80 border-r border-border overflow-y-auto p-4 space-y-4">
-          <h1 className="font-semibold text-xl mb-4">Seating Plan</h1>
+      <div className="flex h-full bg-background relative">
+        {/* Layout Panel - Sliding from Left */}
+        <div
+          className={`absolute top-0 left-0 h-full w-80 bg-card border-r border-border overflow-y-auto p-4 space-y-4 transition-transform duration-300 ease-in-out z-20 shadow-lg ${
+            isLayoutPanelOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-lg">Layout & Students</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsLayoutPanelOpen(false)}
+            >
+              ✕
+            </Button>
+          </div>
 
           {/* Students Panel */}
           <StudentsPanel
@@ -149,6 +164,24 @@ const SeatingPlanTool = () => {
             onUpdateStudentGender={updateStudentGender}
             onUpdateStudentSEND={updateStudentSEND}
           />
+        </div>
+
+        {/* Rules Panel - Sliding from Left */}
+        <div
+          className={`absolute top-0 left-0 h-full w-80 bg-card border-r border-border overflow-y-auto p-4 space-y-4 transition-transform duration-300 ease-in-out z-20 shadow-lg ${
+            isRulesPanelOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-lg">Rules & Assignment</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsRulesPanelOpen(false)}
+            >
+              ✕
+            </Button>
+          </div>
 
           {/* Rules Panel */}
           <RulesPanel
@@ -194,20 +227,34 @@ const SeatingPlanTool = () => {
           {/* Toolbar */}
           <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
+              {/* Panel Toggle Buttons */}
               <Button
-                onClick={() => setIsLayoutMode(!isLayoutMode)}
+                onClick={() => {
+                  setIsLayoutPanelOpen(!isLayoutPanelOpen);
+                  setIsRulesPanelOpen(false);
+                  setIsLayoutMode(!isLayoutMode);
+                  setIsRulesMode(false);
+                }}
                 variant={isLayoutMode ? "default" : "outline"}
                 size="sm"
               >
                 {isLayoutMode ? 'Exit Layout Mode' : 'Layout Mode'}
               </Button>
               <Button
-                onClick={() => setIsRulesMode(!isRulesMode)}
+                onClick={() => {
+                  setIsRulesPanelOpen(!isRulesPanelOpen);
+                  setIsLayoutPanelOpen(false);
+                  setIsRulesMode(!isRulesMode);
+                  setIsLayoutMode(false);
+                }}
                 variant={isRulesMode ? "default" : "outline"}
                 size="sm"
               >
                 {isRulesMode ? 'Exit Rules Mode' : 'Rules Mode'}
               </Button>
+
+              {/* Quick Actions */}
+              <div className="h-6 w-px bg-border mx-1" />
               <Button onClick={() => addFurniture(furnitureTemplates[0])} variant="outline" size="sm">
                 Add Single Desk
               </Button>
@@ -223,9 +270,11 @@ const SeatingPlanTool = () => {
               <span className="text-sm text-muted-foreground">
                 Zoom: {Math.round(zoom * 100)}%
               </span>
-              <span className="text-sm text-muted-foreground">
-                {stats.assignedDesks}/{stats.availableDesks} assigned
-              </span>
+              {students.length > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  {stats.assignedDesks}/{stats.availableDesks} assigned
+                </span>
+              )}
             </div>
           </div>
 
