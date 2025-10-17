@@ -381,6 +381,7 @@ const SeatingPlanTool = () => {
                     onToggleExclude={() => handleToggleDoNotUseDesk(desk.id)}
                     onManualAssign={handleManualAssign}
                     onGroupHover={setHoveredGroupId}
+                    isGroupSelected={desk.group?.id === hoveredGroupId}
                     isLayoutMode={isLayoutMode}
                     isRulesMode={isRulesMode}
                     isExcluded={doNotUseDeskIds.has(desk.id)}

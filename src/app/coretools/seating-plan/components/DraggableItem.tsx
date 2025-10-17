@@ -17,6 +17,7 @@ interface DraggableItemProps {
   onToggleExclude: () => void;
   onManualAssign: (deskId: number, studentName: string | null) => void;
   onGroupHover?: (groupId: number | null) => void;
+  isGroupSelected?: boolean;
   isLayoutMode: boolean;
   isRulesMode: boolean;
   isExcluded: boolean;
@@ -32,6 +33,7 @@ const DraggableItem = memo(({
   onToggleExclude,
   onManualAssign,
   onGroupHover,
+  isGroupSelected,
   isLayoutMode,
   isRulesMode,
   isExcluded,
@@ -111,12 +113,17 @@ const DraggableItem = memo(({
             "relative group flex h-full w-full select-none rounded-xl border-2 bg-card shadow-md transition-all duration-200 desk-bw",
             isOver && "outline-dashed outline-2 outline-offset-2 outline-primary",
             isExcluded && "bg-destructive/10 !border-destructive opacity-70",
-            !isExcluded && 'text-foreground'
+            !isExcluded && 'text-foreground',
+            isGroupSelected && !isExcluded && "ring-4 ring-offset-2 shadow-2xl scale-105"
           )}
           style={{
             width: desk.width,
             height: desk.height,
             borderColor: isExcluded ? 'hsl(var(--destructive))' : borderColor,
+            ...(isGroupSelected && !isExcluded && {
+              ringColor: borderColor,
+              boxShadow: `0 0 30px 5px ${borderColor}40, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)`
+            })
           }}
           title={isGrouped ? groupName : 'Drag to move'}
         >
