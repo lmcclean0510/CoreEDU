@@ -175,6 +175,14 @@ const SeatingPlanTool = () => {
     setGroups([]);
   };
 
+  // Handle canvas click to deselect group
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    // Only close group controls if clicking directly on canvas background
+    if (e.target === e.currentTarget) {
+      setHoveredGroupId(null);
+    }
+  };
+
   return (
     <DndContext onDragEnd={onDragEnd}>
       <div className="flex h-full bg-background relative">
@@ -339,6 +347,7 @@ const SeatingPlanTool = () => {
                   minWidth: `${CANVAS_WIDTH}px`,
                   maxWidth: `${CANVAS_WIDTH}px`,
                 }}
+                onClick={handleCanvasClick}
               >
                 {/* Grid */}
                 {isGridVisible && (

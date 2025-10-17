@@ -83,17 +83,13 @@ const DraggableItem = memo(({
       onManualAssign(desk.id, studentName);
   }, [desk.id, onManualAssign]);
 
-  const handleMouseEnter = useCallback(() => {
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    // Only activate group controls in Layout Mode when clicking on a grouped desk
     if (onGroupHover && group && isLayoutMode) {
+      e.stopPropagation();
       onGroupHover(group.id);
     }
   }, [onGroupHover, group, isLayoutMode]);
-
-  const handleMouseLeave = useCallback(() => {
-    if (onGroupHover && isLayoutMode) {
-      onGroupHover(null);
-    }
-  }, [onGroupHover, isLayoutMode]);
 
   const nameParts = useMemo(() => {
     if (desk.student) {
@@ -108,8 +104,7 @@ const DraggableItem = memo(({
     <div
       ref={(node) => { setDraggableNodeRef(node); setDroppableRef(node); }}
       style={style}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
         <div
           className={cn(
