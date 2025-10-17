@@ -391,7 +391,7 @@ const SeatingPlanTool = () => {
                   <Button
                     size="lg"
                     className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
-                    title="Add Furniture"
+                    title="Layout Options"
                   >
                     <Plus className="h-5 w-5" />
                   </Button>
@@ -442,37 +442,41 @@ const SeatingPlanTool = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Clear Layout Section - Only show when desks exist */}
+                  {desks.length > 0 && (
+                    <>
+                      <div className="h-px bg-border" />
+                      <div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="destructive"
+                              className="w-full justify-start h-auto py-3"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              <span className="text-sm font-medium">Clear All Desks</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Clear Room Layout?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will remove all desks and groups from the canvas. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleClearLayout}>Clear Layout</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </>
+                  )}
                 </div>
               </PopoverContent>
             </Popover>
-            )}
-
-            {/* Clear Layout FAB - Only visible in Layout Mode */}
-            {isLayoutMode && desks.length > 0 && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    size="lg"
-                    variant="destructive"
-                    className="fixed bottom-6 left-6 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all z-30 animate-in fade-in slide-in-from-bottom-4 duration-300"
-                    title="Clear Layout"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Clear Room Layout?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will remove all desks and groups from the canvas. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleClearLayout}>Clear Layout</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             )}
           </div>
         </div>
