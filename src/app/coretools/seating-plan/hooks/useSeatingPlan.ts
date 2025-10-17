@@ -704,6 +704,23 @@ export const useSeatingPlan = () => {
     setDesks(sorted);
   }, [desks]);
 
+  // Auto-align desks to grid
+  const autoAlignToGrid = useCallback(() => {
+    const alignedDesks = desks.map(desk => ({
+      ...desk,
+      x: Math.round(desk.x / GRID_SIZE) * GRID_SIZE,
+      y: Math.round(desk.y / GRID_SIZE) * GRID_SIZE,
+    }));
+    setDesks(alignedDesks);
+
+    // Also align teacher desk
+    setTeacherDesk(prev => ({
+      ...prev,
+      x: Math.round(prev.x / GRID_SIZE) * GRID_SIZE,
+      y: Math.round(prev.y / GRID_SIZE) * GRID_SIZE,
+    }));
+  }, [desks]);
+
   return {
     // State
     desks,
@@ -768,6 +785,7 @@ export const useSeatingPlan = () => {
     handleToggleDoNotUseDesk,
     handleManualAssign,
     autoRenumberDesks,
+    autoAlignToGrid,
 
     // Constants
     furnitureTemplates: FURNITURE_TEMPLATES,

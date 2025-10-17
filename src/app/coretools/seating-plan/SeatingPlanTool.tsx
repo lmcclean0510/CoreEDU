@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, AlignVerticalJustifyCenter } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -101,6 +101,7 @@ const SeatingPlanTool = () => {
     handleRenameGroup,
     handleSetGroupColor,
     handleDeleteGroup,
+    autoAlignToGrid,
     furnitureTemplates,
   } = useSeatingPlan();
 
@@ -306,6 +307,12 @@ const SeatingPlanTool = () => {
               <Button onClick={() => setIsGridVisible(!isGridVisible)} variant="outline" size="sm" className="min-w-[100px]">
                 {isGridVisible ? 'Hide Grid' : 'Show Grid'}
               </Button>
+              {isLayoutMode && desks.length > 0 && (
+                <Button onClick={autoAlignToGrid} variant="outline" size="sm" className="min-w-[110px]">
+                  <AlignVerticalJustifyCenter className="w-4 h-4 mr-2" />
+                  Align to Grid
+                </Button>
+              )}
             </div>
 
             <div className="flex items-center gap-4">
