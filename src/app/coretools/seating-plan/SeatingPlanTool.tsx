@@ -39,6 +39,7 @@ import DraggableItem from './components/DraggableItem';
 import DraggableTeacherDesk from './components/DraggableTeacherDesk';
 import StudentsPanel from './components/StudentsPanel';
 import RulesPanel from './components/RulesPanel';
+import GroupControl from './components/GroupControl';
 
 const SeatingPlanTool = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -68,6 +69,8 @@ const SeatingPlanTool = () => {
     desksWithGroups,
     stats,
     unassignedStudents,
+    groupLayouts,
+    hoveredGroupId,
     getDeskGroup,
     setDesks,
     setGroups,
@@ -77,6 +80,7 @@ const SeatingPlanTool = () => {
     setNewRuleStudents,
     setStudentInput,
     setIsGridVisible,
+    setHoveredGroupId,
     loadComputerRoomPreset,
     loadPreset1,
     loadPreset2,
@@ -94,6 +98,9 @@ const SeatingPlanTool = () => {
     removeSeparationRule,
     handleToggleDoNotUseDesk,
     handleManualAssign,
+    handleRenameGroup,
+    handleSetGroupColor,
+    handleDeleteGroup,
     furnitureTemplates,
   } = useSeatingPlan();
 
@@ -364,10 +371,23 @@ const SeatingPlanTool = () => {
                     onRemove={() => removeDesk(desk.id)}
                     onToggleExclude={() => handleToggleDoNotUseDesk(desk.id)}
                     onManualAssign={handleManualAssign}
+                    onGroupHover={setHoveredGroupId}
                     isLayoutMode={isLayoutMode}
                     isRulesMode={isRulesMode}
                     isExcluded={doNotUseDeskIds.has(desk.id)}
                     areIndicatorsVisible={true}
+                  />
+                ))}
+
+                {/* Group Controls - Only show in Layout Mode */}
+                {isLayoutMode && groupLayouts.map((group) => (
+                  <GroupControl
+                    key={group.id}
+                    group={group}
+                    isVisible={hoveredGroupId === group.id}
+                    onRename={handleRenameGroup}
+                    onSetColor={handleSetGroupColor}
+                    onDelete={handleDeleteGroup}
                   />
                 ))}
 

@@ -16,22 +16,24 @@ interface DraggableItemProps {
   onRemove: () => void;
   onToggleExclude: () => void;
   onManualAssign: (deskId: number, studentName: string | null) => void;
+  onGroupHover?: (groupId: number | null) => void;
   isLayoutMode: boolean;
   isRulesMode: boolean;
   isExcluded: boolean;
   areIndicatorsVisible: boolean;
 }
 
-const DraggableItem = memo(({ 
-  desk, 
-  deskIndex, 
-  group, 
+const DraggableItem = memo(({
+  desk,
+  deskIndex,
+  group,
   unassignedStudents,
-  onRemove, 
-  onToggleExclude, 
+  onRemove,
+  onToggleExclude,
   onManualAssign,
-  isLayoutMode, 
-  isRulesMode, 
+  onGroupHover,
+  isLayoutMode,
+  isRulesMode,
   isExcluded,
   areIndicatorsVisible
 }: DraggableItemProps) => {
@@ -81,6 +83,18 @@ const DraggableItem = memo(({
       onManualAssign(desk.id, studentName);
   }, [desk.id, onManualAssign]);
 
+  const handleMouseEnter = useCallback(() => {
+    if (onGroupHover && group && isLayoutMode) {
+      onGroupHover(group.id);
+    }
+  }, [onGroupHover, group, isLayoutMode]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (onGroupHover && isLayoutMode) {
+      onGroupHover(null);
+    }
+  }, [onGroupHover, isLayoutMode]);
+
   const nameParts = useMemo(() => {
     if (desk.student) {
       return desk.student.split(' ');
@@ -94,6 +108,8 @@ const DraggableItem = memo(({
     <div
       ref={(node) => { setDraggableNodeRef(node); setDroppableRef(node); }}
       style={style}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
         <div
           className={cn(
@@ -102,8 +118,8 @@ const DraggableItem = memo(({
             isExcluded && "bg-destructive/10 !border-destructive opacity-70",
             !isExcluded && 'text-foreground'
           )}
-          style={{ 
-            width: desk.width, 
+          style={{
+            width: desk.width,
             height: desk.height,
             borderColor: isExcluded ? 'hsl(var(--destructive))' : borderColor,
           }}
