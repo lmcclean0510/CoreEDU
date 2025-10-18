@@ -16,6 +16,13 @@ export const GROUP_COLORS = [
 
 export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
   {
+    id: 'teacher-desk',
+    name: "Teacher's Desk",
+    icon: '🧑‍🏫',
+    isTeacherDesk: true,
+    desks: []
+  },
+  {
     id: 'single-desk',
     name: 'Single Desk',
     icon: '🪑',

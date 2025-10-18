@@ -545,11 +545,13 @@ const SeatingPlanTool = () => {
                   />
                 )}
 
-                {/* Teacher Desk */}
-                <DraggableTeacherDesk
-                  {...teacherDesk}
-                  isLayoutMode={isLayoutMode}
-                />
+                {/* Teacher Desk - Only render if it exists */}
+                {teacherDesk && (
+                  <DraggableTeacherDesk
+                    {...teacherDesk}
+                    isLayoutMode={isLayoutMode}
+                  />
+                )}
 
                 {/* Desks */}
                 {desksWithGroups.map((desk, index) => (

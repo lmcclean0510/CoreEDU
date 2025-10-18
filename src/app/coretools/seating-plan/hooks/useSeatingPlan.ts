@@ -7,7 +7,7 @@ import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTempla
 export const useSeatingPlan = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [teacherDesk, setTeacherDesk] = useState<TeacherDesk>(DEFAULT_TEACHER_DESK);
+  const [teacherDesk, setTeacherDesk] = useState<TeacherDesk | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [separationRules, setSeparationRules] = useState<SeparationRule[]>([]);
   const [doNotUseDeskIds, setDoNotUseDeskIds] = useState<Set<number>>(new Set());
@@ -547,26 +547,32 @@ export const useSeatingPlan = () => {
 
   // Add furniture - simplified to always use canvas constants
   const addFurniture = useCallback((template: FurnitureTemplate) => {
+    // Handle teacher desk specially
+    if (template.isTeacherDesk) {
+      setTeacherDesk(DEFAULT_TEACHER_DESK);
+      return;
+    }
+
     const baseId = Date.now();
     const templateDesks = template.desks;
     if (templateDesks.length === 0) return;
-    
+
     // Find template bounds
     const minX = Math.min(...templateDesks.map(d => d.x));
     const maxX = Math.max(...templateDesks.map(d => d.x + d.width));
     const minY = Math.min(...templateDesks.map(d => d.y));
     const maxY = Math.max(...templateDesks.map(d => d.y + d.height));
-    
+
     const templateWidth = maxX - minX;
     const templateHeight = maxY - minY;
-    
+
     // Center on canvas
     const centerX = CANVAS_WIDTH / 2;
     const centerY = CANVAS_HEIGHT / 2;
-    
+
     const offsetX = centerX - (templateWidth / 2) - minX;
     const offsetY = centerY - (templateHeight / 2) - minY;
-    
+
     const newDesks = templateDesks.map((desk, index) => ({
       id: baseId + index,
       x: desk.x + offsetX,
@@ -576,7 +582,7 @@ export const useSeatingPlan = () => {
       student: null,
       isLocked: false,
     }));
-    
+
     // Create group if multiple desks
     if (template.desks.length > 1) {
       const newGroup = {
@@ -587,7 +593,7 @@ export const useSeatingPlan = () => {
       };
       setGroups(prev => [...prev, newGroup]);
     }
-    
+
     setDesks(prev => [...prev, ...newDesks]);
   }, [groups.length]);
 
@@ -708,13 +714,15 @@ export const useSeatingPlan = () => {
     }));
     setDesks(alignedDesks);
 
-    // Also align teacher desk
-    setTeacherDesk(prev => ({
-      ...prev,
-      x: Math.round(prev.x / GRID_SIZE) * GRID_SIZE,
-      y: Math.round(prev.y / GRID_SIZE) * GRID_SIZE,
-    }));
-  }, [desks]);
+    // Also align teacher desk if it exists
+    if (teacherDesk) {
+      setTeacherDesk(prev => prev ? ({
+        ...prev,
+        x: Math.round(prev.x / GRID_SIZE) * GRID_SIZE,
+        y: Math.round(prev.y / GRID_SIZE) * GRID_SIZE,
+      }) : null);
+    }
+  }, [desks, teacherDesk]);
 
   return {
     // State

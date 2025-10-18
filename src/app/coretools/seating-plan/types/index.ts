@@ -39,6 +39,7 @@ export interface Desk {
     id: string;
     name: string;
     icon: string;
+    isTeacherDesk?: boolean;
     desks: Array<{
       x: number;
       y: number;
