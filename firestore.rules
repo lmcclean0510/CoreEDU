@@ -280,6 +280,40 @@ service cloud.firestore {
     }
 
     // ==========================================
+    // SEATING PLANS - TEACHER TOOL
+    // ==========================================
+
+    match /seatingPlans/{planId} {
+      // Teachers can create seating plans
+      allow create: if isSignedIn() && isTeacher() &&
+        request.resource.data.teacherId == request.auth.uid &&
+        // Validate required fields
+        request.resource.data.planName is string &&
+        request.resource.data.desks is list &&
+        request.resource.data.groups is list;
+
+      // Teachers can read their own seating plans
+      allow read: if isSignedIn() && isTeacher() &&
+        resource.data.teacherId == request.auth.uid;
+
+      // Teachers can update their own seating plans
+      allow update: if isSignedIn() && isTeacher() &&
+        resource.data.teacherId == request.auth.uid &&
+        // Prevent changing ownership
+        request.resource.data.teacherId == resource.data.teacherId;
+
+      // Teachers can delete their own seating plans
+      allow delete: if isSignedIn() && isTeacher() &&
+        resource.data.teacherId == request.auth.uid;
+
+      // Teachers can list their own seating plans
+      allow list: if isSignedIn() && isTeacher();
+
+      // Admin access
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
     // ADDITIONAL SECURITY RULES
     // ==========================================
 

@@ -40,6 +40,9 @@ import DraggableTeacherDesk from './components/DraggableTeacherDesk';
 import StudentsPanel from './components/StudentsPanel';
 import RulesPanel from './components/RulesPanel';
 import GroupControl from './components/GroupControl';
+import { SaveLoadPanel } from './components/SaveLoadPanel';
+import { useSeatingPlanPersistence } from '@/hooks/teacher/use-seating-plan-persistence';
+import { useToast } from '@/hooks/shared/use-toast';
 
 const SeatingPlanTool = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -52,6 +55,11 @@ const SeatingPlanTool = () => {
   const [isRulesPanelOpen, setIsRulesPanelOpen] = useState(false);
   const [isFurniturePopoverOpen, setIsFurniturePopoverOpen] = useState(false);
   const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // Save/Load persistence hook
+  const { savedPlans, isSaving, savePlan, updatePlan, deletePlan } = useSeatingPlanPersistence();
 
   // Use the seating plan hook for state management
   const {
@@ -175,6 +183,67 @@ const SeatingPlanTool = () => {
     // Only close group controls if clicking directly on canvas background
     if (e.target === e.currentTarget) {
       setHoveredGroupId(null);
+    }
+  };
+
+  // Save seating plan
+  const handleSavePlan = async (planName: string) => {
+    const planData = {
+      desks,
+      groups,
+      teacherDesk,
+      students,
+      separationRules,
+      doNotUseDeskIds: Array.from(doNotUseDeskIds),
+      fillFromFront,
+      alternateGender,
+      metadata: {
+        totalDesks: desks.length,
+        totalStudents: students.length,
+      },
+    };
+
+    if (currentPlanId) {
+      // Update existing plan
+      await updatePlan(currentPlanId, { ...planData, planName });
+    } else {
+      // Save new plan
+      const newPlanId = await savePlan(planName, planData);
+      if (newPlanId) setCurrentPlanId(newPlanId);
+    }
+  };
+
+  // Load seating plan
+  const handleLoadPlan = (planId: string) => {
+    const plan = savedPlans.find(p => p.id === planId);
+    if (!plan) return;
+
+    setDesks(plan.desks);
+    setGroups(plan.groups);
+    setTeacherDesk(plan.teacherDesk);
+
+    // Recreate students from the saved data
+    const studentNames = plan.students.map(s => s.name).join('\n');
+    setStudentInput(studentNames);
+    setTimeout(() => {
+      parseStudents();
+    }, 100);
+
+    setFillFromFront(plan.fillFromFront);
+    setAlternateGender(plan.alternateGender);
+    setCurrentPlanId(planId);
+
+    toast({
+      title: 'Plan Loaded',
+      description: `Loaded "${plan.planName}"`,
+    });
+  };
+
+  // Delete seating plan
+  const handleDeletePlan = async (planId: string) => {
+    await deletePlan(planId);
+    if (currentPlanId === planId) {
+      setCurrentPlanId(null);
     }
   };
 
@@ -310,6 +379,15 @@ const SeatingPlanTool = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              {/* Save/Load Buttons */}
+              <SaveLoadPanel
+                onSave={handleSavePlan}
+                onLoad={handleLoadPlan}
+                onDelete={handleDeletePlan}
+                savedPlans={savedPlans}
+                isSaving={isSaving}
+              />
+
               {/* Manage Students Button */}
               <Button
                 onClick={() => {
