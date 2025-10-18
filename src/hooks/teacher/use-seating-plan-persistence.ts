@@ -51,22 +51,42 @@ export const useSeatingPlanPersistence = () => {
   useEffect(() => {
     if (!user?.uid) return;
 
+    // Query without orderBy to avoid needing a composite index
+    // We'll sort client-side instead
     const q = query(
       collection(db, 'seatingPlans'),
-      where('teacherId', '==', user.uid),
-      orderBy('updatedAt', 'desc')
+      where('teacherId', '==', user.uid)
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const plans: SeatingPlanData[] = [];
-      snapshot.forEach((doc) => {
-        plans.push({ id: doc.id, ...doc.data() } as SeatingPlanData);
-      });
-      setSavedPlans(plans);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const plans: SeatingPlanData[] = [];
+        snapshot.forEach((doc) => {
+          plans.push({ id: doc.id, ...doc.data() } as SeatingPlanData);
+        });
+
+        // Sort client-side by updatedAt (most recent first)
+        plans.sort((a, b) => {
+          const aTime = a.updatedAt?.toMillis?.() || 0;
+          const bTime = b.updatedAt?.toMillis?.() || 0;
+          return bTime - aTime;
+        });
+
+        setSavedPlans(plans);
+      },
+      (error) => {
+        console.error('Error fetching seating plans:', error);
+        toast({
+          title: 'Error Loading Plans',
+          description: 'Could not load saved seating plans. Check console for details.',
+          variant: 'destructive',
+        });
+      }
+    );
 
     return () => unsubscribe();
-  }, [user?.uid]);
+  }, [user?.uid, toast]);
 
   // Save new plan
   const savePlan = useCallback(async (
