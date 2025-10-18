@@ -3,12 +3,20 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, AlignVerticalJustifyCenter } from 'lucide-react';
+import { Plus, Trash2, AlignVerticalJustifyCenter, Menu, Grid3x3, Save, FolderOpen, FilePlus, Eye, EyeOff } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,7 +48,6 @@ import DraggableTeacherDesk from './components/DraggableTeacherDesk';
 import StudentsPanel from './components/StudentsPanel';
 import RulesPanel from './components/RulesPanel';
 import GroupControl from './components/GroupControl';
-import { SaveLoadPanel } from './components/SaveLoadPanel';
 import { useSeatingPlanPersistence } from '@/hooks/teacher/use-seating-plan-persistence';
 import { useToast } from '@/hooks/shared/use-toast';
 
@@ -57,6 +64,9 @@ const SeatingPlanTool = () => {
   const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [newPlanName, setNewPlanName] = useState('');
   const { toast } = useToast();
 
   // Save/Load persistence hook
@@ -194,7 +204,9 @@ const SeatingPlanTool = () => {
   };
 
   // Save seating plan (as new)
-  const handleSavePlan = async (planName: string) => {
+  const handleSavePlan = async () => {
+    if (!newPlanName.trim()) return;
+
     const planData = {
       desks,
       groups,
@@ -211,10 +223,12 @@ const SeatingPlanTool = () => {
     };
 
     // Always save as new plan
-    const newPlanId = await savePlan(planName, planData);
+    const newPlanId = await savePlan(newPlanName.trim(), planData);
     if (newPlanId) {
       setCurrentPlanId(newPlanId);
-      setCurrentPlanName(planName);
+      setCurrentPlanName(newPlanName.trim());
+      setNewPlanName('');
+      setIsSaveDialogOpen(false);
     }
   };
 
@@ -263,6 +277,7 @@ const SeatingPlanTool = () => {
     setAlternateGender(plan.alternateGender);
     setCurrentPlanId(planId);
     setCurrentPlanName(plan.planName);
+    setIsLoadDialogOpen(false);
 
     toast({
       title: 'Plan Loaded',
@@ -373,74 +388,126 @@ const SeatingPlanTool = () => {
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col">
           {/* Toolbar */}
-          <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {/* Mode Toggle Buttons */}
-              <Button
-                onClick={() => setIsLayoutMode(!isLayoutMode)}
-                variant={isLayoutMode ? "default" : "outline"}
-                size="sm"
-                className="min-w-[120px]"
-              >
-                Layout Mode
-              </Button>
-              <Button
-                onClick={() => {
-                  setIsRulesPanelOpen(!isRulesPanelOpen);
-                  setIsStudentPanelOpen(false);
-                  setIsRulesMode(!isRulesMode);
-                }}
-                variant={isRulesMode ? "default" : "outline"}
-                size="sm"
-                className="min-w-[120px]"
-              >
-                Rules Mode
-              </Button>
+          <div className="bg-card border-b border-border px-4 py-3 space-y-3">
+            {/* Top Row: Current Plan Name */}
+            {currentPlanId && currentPlanName && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-md border border-primary/20">
+                  <span className="text-sm font-medium text-primary">Editing:</span>
+                  <span className="text-sm font-semibold">{currentPlanName}</span>
+                </div>
+              </div>
+            )}
 
-              {/* Quick Actions */}
-              <div className="h-6 w-px bg-border mx-1" />
-              <Button onClick={() => setIsGridVisible(!isGridVisible)} variant="outline" size="sm" className="min-w-[100px]">
-                {isGridVisible ? 'Hide Grid' : 'Show Grid'}
-              </Button>
-              {isLayoutMode && desks.length > 0 && (
-                <Button onClick={autoAlignToGrid} variant="outline" size="sm" className="min-w-[110px]">
-                  <AlignVerticalJustifyCenter className="w-4 h-4 mr-2" />
-                  Align to Grid
+            {/* Main Row: Controls */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* File Menu Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Menu className="w-4 h-4 mr-2" />
+                      File
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuLabel>Seating Plans</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {currentPlanId ? (
+                      <>
+                        <DropdownMenuItem onClick={() => handleUpdatePlan('')} disabled={isSaving}>
+                          <Save className="w-4 h-4 mr-2" />
+                          Update Plan
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleNewPlan}>
+                          <FilePlus className="w-4 h-4 mr-2" />
+                          New Plan
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setIsSaveDialogOpen(true)}>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save as New...
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <DropdownMenuItem onClick={() => setIsSaveDialogOpen(true)}>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Plan...
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => setIsLoadDialogOpen(true)}>
+                      <FolderOpen className="w-4 h-4 mr-2" />
+                      Load Plan...
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Mode Toggle Buttons */}
+                <Button
+                  onClick={() => setIsLayoutMode(!isLayoutMode)}
+                  variant={isLayoutMode ? "default" : "outline"}
+                  size="sm"
+                >
+                  Layout Mode
                 </Button>
-              )}
-            </div>
+                <Button
+                  onClick={() => {
+                    setIsRulesPanelOpen(!isRulesPanelOpen);
+                    setIsStudentPanelOpen(false);
+                    setIsRulesMode(!isRulesMode);
+                  }}
+                  variant={isRulesMode ? "default" : "outline"}
+                  size="sm"
+                >
+                  Rules Mode
+                </Button>
 
-            <div className="flex items-center gap-4">
-              {/* Save/Load Buttons */}
-              <SaveLoadPanel
-                onSave={handleSavePlan}
-                onLoad={handleLoadPlan}
-                onDelete={handleDeletePlan}
-                onUpdate={handleUpdatePlan}
-                onNewPlan={handleNewPlan}
-                savedPlans={savedPlans}
-                isSaving={isSaving}
-                currentPlanId={currentPlanId}
-                currentPlanName={currentPlanName}
-              />
+                {/* View Tools Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Grid3x3 className="w-4 h-4 mr-2" />
+                      View
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-40">
+                    <DropdownMenuItem onClick={() => setIsGridVisible(!isGridVisible)}>
+                      {isGridVisible ? (
+                        <><EyeOff className="w-4 h-4 mr-2" /> Hide Grid</>
+                      ) : (
+                        <><Eye className="w-4 h-4 mr-2" /> Show Grid</>
+                      )}
+                    </DropdownMenuItem>
+                    {isLayoutMode && desks.length > 0 && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={autoAlignToGrid}>
+                          <AlignVerticalJustifyCenter className="w-4 h-4 mr-2" />
+                          Align to Grid
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
 
-              {/* Manage Students Button */}
-              <Button
-                onClick={() => {
-                  setIsStudentPanelOpen(!isStudentPanelOpen);
-                  setIsRulesPanelOpen(false);
-                }}
-                variant="outline"
-                size="sm"
-                className="min-w-[150px]"
-              >
-                Manage Students
-              </Button>
-              {students.length > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  {stats.assignedDesks}/{stats.availableDesks} assigned
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                {/* Manage Students Button */}
+                <Button
+                  onClick={() => {
+                    setIsStudentPanelOpen(!isStudentPanelOpen);
+                    setIsRulesPanelOpen(false);
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Manage Students
+                </Button>
+                {students.length > 0 && (
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">
+                    {stats.assignedDesks}/{stats.availableDesks} assigned
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -625,6 +692,117 @@ const SeatingPlanTool = () => {
             )}
           </div>
         </div>
+
+        {/* Save Plan Dialog */}
+        <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Seating Plan</DialogTitle>
+              <DialogDescription>
+                Give your seating plan a name to save it for later use.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label htmlFor="plan-name" className="text-sm font-medium">Plan Name</label>
+                <input
+                  id="plan-name"
+                  type="text"
+                  placeholder="e.g., Term 1 - Math, Group Work Layout..."
+                  value={newPlanName}
+                  onChange={(e) => setNewPlanName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSavePlan()}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsSaveDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSavePlan} disabled={!newPlanName.trim() || isSaving}>
+                {isSaving ? 'Saving...' : 'Save Plan'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Load Plan Dialog */}
+        <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Load Saved Seating Plan</DialogTitle>
+              <DialogDescription>
+                Select a previously saved seating plan to load.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[400px] overflow-y-auto pr-4">
+              {savedPlans.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No saved seating plans yet.</p>
+                  <p className="text-sm mt-2">Create your first layout and save it!</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {savedPlans.map((plan) => (
+                    <div key={plan.id} className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{plan.planName}</h3>
+                          <div className="flex gap-2 mt-1 flex-wrap">
+                            {plan.metadata && (
+                              <>
+                                <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium">
+                                  {plan.metadata.totalDesks} desks
+                                </span>
+                                <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium">
+                                  {plan.metadata.totalStudents} students
+                                </span>
+                              </>
+                            )}
+                            <span className="text-xs text-muted-foreground self-center">
+                              {plan.updatedAt?.toDate?.().toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleLoadPlan(plan.id)}
+                          >
+                            <FolderOpen className="w-4 h-4 mr-2" />
+                            Load
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete "{plan.planName}"?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeletePlan(plan.id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Preset Selection Dialog */}
         <Dialog open={isPresetDialogOpen} onOpenChange={setIsPresetDialogOpen}>
