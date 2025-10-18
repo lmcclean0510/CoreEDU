@@ -505,12 +505,12 @@ const SeatingPlanTool = () => {
             ref={containerRef}
             className="flex-1 relative bg-muted/30 overflow-hidden"
           >
-            {/* Current Plan Watermark */}
+            {/* Current Plan Watermark - Subtle indicator */}
             {currentPlanId && currentPlanName && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-                <div className="px-4 py-2 bg-primary/5 backdrop-blur-sm rounded-lg border border-primary/10">
-                  <span className="text-sm font-medium text-primary/60">
-                    Editing: <span className="font-semibold text-primary/80">{currentPlanName}</span>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+                <div className="px-3 py-1 bg-primary/5 backdrop-blur-sm rounded-b-md border-x border-b border-primary/10">
+                  <span className="text-xs font-medium text-primary/40">
+                    {currentPlanName}
                   </span>
                 </div>
               </div>
