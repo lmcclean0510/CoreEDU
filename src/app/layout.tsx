@@ -5,7 +5,6 @@ import { Inter, Lexend } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { AppLayout } from '@/components/app-layout/AppLayout';
 import { UserProvider } from '@/providers/UserProvider';
-import { FirestoreMonitorProvider } from '@/providers/FirestoreMonitorProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -32,9 +31,7 @@ export default function RootLayout({
     <html lang="en" className={cn("h-full", inter.variable, lexend.variable)}>
       <body className="font-body antialiased h-full">
         <UserProvider>
-          <FirestoreMonitorProvider>
-            <AppLayout>{children}</AppLayout>
-          </FirestoreMonitorProvider>
+          <AppLayout>{children}</AppLayout>
         </UserProvider>
         <Toaster />
       </body>

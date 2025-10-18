@@ -161,7 +161,6 @@ export async function POST(request: NextRequest) {
     response.headers.set('X-XSS-Protection', '1; mode=block');
 
     // Log successful login (for security monitoring)
-    console.log(`[SECURITY] Successful login: ${decodedToken.uid} from ${clientIp} at ${new Date().toISOString()}`);
 
     return response;
 
@@ -193,10 +192,8 @@ export async function DELETE(request: NextRequest) {
         const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
         await adminAuth.revokeRefreshTokens(decodedClaims.uid);
         
-        console.log(`[SECURITY] Successful logout: ${decodedClaims.uid} from ${clientIp} at ${new Date().toISOString()}`);
       } catch (error) {
         // Session might already be invalid - that's okay for logout
-        console.log(`[SECURITY] Logout with invalid session from ${clientIp} at ${new Date().toISOString()}`);
       }
     }
 

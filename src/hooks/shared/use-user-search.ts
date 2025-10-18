@@ -36,7 +36,6 @@ export function useUserSearch({ schoolId, userRole }: UseUserSearchProps) {
     setIsSearching(true);
     setSearchError(null);
     setSearchResult(null);
-    console.log(`%c[Firestore Read] %cSearching for ${userRole} with email ${email} in school ${schoolId}`, 'color: #3b82f6', 'color: default');
 
     try {
       const q = query(
@@ -87,7 +86,6 @@ export function useUserSearch({ schoolId, userRole }: UseUserSearchProps) {
       fetchLocks.set(lockKey, 'pending');
       setIsLoading(true);
       
-      console.log(`%c[Firestore Read] %cFetching all ${userRole}s for school ${schoolId}`, 'color: #3b82f6', 'color: default');
   
       const q = query(
         collection(db, 'users'),

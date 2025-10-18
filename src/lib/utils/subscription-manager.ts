@@ -29,12 +29,10 @@ export class SubscriptionManager {
     // Clean up existing subscription with same key
     const existing = this.subscriptions.get(key);
     if (existing) {
-      console.log(`[${this.debugName}] Replacing existing subscription: ${key}`);
       existing();
     }
 
     this.subscriptions.set(key, unsubscribe);
-    console.log(`[${this.debugName}] Added subscription: ${key} (Total: ${this.subscriptions.size})`);
   }
 
   /**
@@ -45,7 +43,6 @@ export class SubscriptionManager {
     if (unsubscribe) {
       unsubscribe();
       this.subscriptions.delete(key);
-      console.log(`[${this.debugName}] Removed subscription: ${key} (Remaining: ${this.subscriptions.size})`);
       return true;
     }
     return false;
@@ -69,12 +66,10 @@ export class SubscriptionManager {
    * Clean up all subscriptions
    */
   cleanup(): void {
-    console.log(`[${this.debugName}] Cleaning up ${this.subscriptions.size} subscriptions`);
     
     for (const [key, unsubscribe] of this.subscriptions) {
       try {
         unsubscribe();
-        console.log(`[${this.debugName}] Cleaned up subscription: ${key}`);
       } catch (error) {
         console.error(`[${this.debugName}] Error cleaning up subscription ${key}:`, error);
       }
@@ -89,7 +84,6 @@ export class SubscriptionManager {
   destroy(): void {
     if (this.isDestroyed) return;
     
-    console.log(`[${this.debugName}] Destroying subscription manager`);
     this.cleanup();
     this.isDestroyed = true;
   }
@@ -160,7 +154,6 @@ class GlobalSubscriptionManager {
   }
 
   cleanupAll(): void {
-    console.log('Cleaning up all global subscription managers');
     for (const [key, manager] of this.managers) {
       manager.destroy();
     }

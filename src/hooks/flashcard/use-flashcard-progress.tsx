@@ -19,7 +19,6 @@ export function useFlashcardProgress() {
   useEffect(() => {
     if (user) {
       const fetchRatings = async () => {
-        console.log(`%c[Firestore Read] %cFetching flashcard ratings for user ${user.uid}`, 'color: #3b82f6', 'color: default');
         const userRatingsRef = doc(db, 'userFlashcardRatings', user.uid);
         const docSnap = await getDoc(userRatingsRef);
         if (docSnap.exists()) {
@@ -32,7 +31,6 @@ export function useFlashcardProgress() {
 
   const handleConfidenceRating = async (cardId: string, confidence: ConfidenceLevel) => {
     if (!user) return;
-    console.log(`%c[Firestore Write] %cSetting confidence for card ${cardId} for user ${user.uid}`, 'color: #8b5cf6', 'color: default');
     const currentRating = ratings[cardId];
     const newConfidence = currentRating?.confidence === confidence ? null : confidence;
     
@@ -59,7 +57,6 @@ export function useFlashcardProgress() {
 
   const handleSelfAssessment = async (cardId: string, wasCorrect: boolean) => {
     if (!user) return;
-    console.log(`%c[Firestore Write] %cSaving self-assessment for card ${cardId} for user ${user.uid}`, 'color: #8b5cf6', 'color: default');
     const fieldToIncrement = wasCorrect ? 'correct' : 'incorrect';
     setRatings(prev => ({ 
       ...prev, 

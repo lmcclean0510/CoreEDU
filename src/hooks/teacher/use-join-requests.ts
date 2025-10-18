@@ -117,7 +117,6 @@ export function useJoinRequests(teacherClassIds: string[] = []) {
     const cachedData = dataCache.get<{ requests: JoinRequestWithStudentInfo[], count: number, timestamp: number }>(cacheKey);
     
     if (cachedData && (now - cachedData.timestamp) < 60000) {
-      console.log(`%c[Cache Hit] %cUsing cached join requests`, 'color: #16a34a', 'color: default');
       setState(prev => ({
         ...prev,
         requests: cachedData.requests,

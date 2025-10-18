@@ -54,7 +54,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    console.log('Setting up auth listener...');
     
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -100,7 +99,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
-      console.log('Cleaning up auth listener');
       unsubscribe();
     };
   }, []); // Empty dependency array - only run once

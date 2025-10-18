@@ -137,7 +137,6 @@ export function usePuzzleJsonImport() {
     try {
       for (const puzzle of previewData) {
         try {
-          console.log(`%c[Firestore Write] %cImporting puzzle: ${puzzle.title}`, 'color: #8b5cf6', 'color: default');
           
           await addDoc(collection(db, 'puzzles'), {
             ...puzzle,

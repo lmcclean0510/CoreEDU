@@ -28,7 +28,6 @@ export function useAdminFlashcards() {
   const loadFlashcards = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log(`%c[Firestore Read] %cFetching all flashcards for admin`, 'color: #3b82f6', 'color: default');
       const flashcardsRef = collection(db, 'flashcards');
       const q = query(flashcardsRef, orderBy('term'));
       const snapshot = await getDocs(q);
@@ -55,7 +54,6 @@ export function useAdminFlashcards() {
     try {
       if (editingId) {
         // Update existing
-        console.log(`%c[Firestore Write] %cUpdating flashcard ${editingId}`, 'color: #8b5cf6', 'color: default');
         const docRef = doc(db, 'flashcards', editingId);
         await updateDoc(docRef, {
           ...flashcard,
@@ -70,7 +68,6 @@ export function useAdminFlashcards() {
         });
       } else {
         // Add new
-        console.log(`%c[Firestore Write] %cCreating new flashcard`, 'color: #8b5cf6', 'color: default');
         const docRef = await addDoc(collection(db, 'flashcards'), {
           ...flashcard,
           createdAt: serverTimestamp(),
@@ -99,7 +96,6 @@ export function useAdminFlashcards() {
   // Delete flashcard
   const deleteFlashcard = useCallback(async (id: string) => {
     try {
-      console.log(`%c[Firestore Write] %cDeleting flashcard ${id}`, 'color: #8b5cf6', 'color: default');
       await deleteDoc(doc(db, 'flashcards', id));
       setFlashcards(prev => prev.filter(f => f.id !== id));
       toast({

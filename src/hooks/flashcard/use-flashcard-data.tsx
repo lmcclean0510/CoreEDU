@@ -24,7 +24,6 @@ export function useFlashcardData({ subject, orderByField = 'term' }: UseFlashcar
       setError(null);
       
       try {
-        console.log(`%c[Firestore Read] %cFetching flashcards for subject: ${subject}`, 'color: #3b82f6', 'color: default');
         const flashcardsRef = collection(db, 'flashcards');
         const q = query(
           flashcardsRef, 

@@ -28,7 +28,6 @@ export function useAdminPuzzles() {
   const loadPuzzles = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log(`%c[Firestore Read] %cFetching all puzzles for admin`, 'color: #3b82f6', 'color: default');
       const puzzlesRef = collection(db, 'puzzles');
       const q = query(puzzlesRef, orderBy('challengeLevel'));
       const snapshot = await getDocs(q);
@@ -55,7 +54,6 @@ export function useAdminPuzzles() {
     try {
       if (editingId) {
         // Update existing
-        console.log(`%c[Firestore Write] %cUpdating puzzle ${editingId}`, 'color: #8b5cf6', 'color: default');
         const docRef = doc(db, 'puzzles', editingId);
         await updateDoc(docRef, {
           ...puzzle,
@@ -70,7 +68,6 @@ export function useAdminPuzzles() {
         });
       } else {
         // Add new
-        console.log(`%c[Firestore Write] %cCreating new puzzle`, 'color: #8b5cf6', 'color: default');
         const docRef = await addDoc(collection(db, 'puzzles'), {
           ...puzzle,
           createdAt: serverTimestamp(),
@@ -99,7 +96,6 @@ export function useAdminPuzzles() {
   // Delete puzzle
   const deletePuzzle = useCallback(async (id: string) => {
     try {
-      console.log(`%c[Firestore Write] %cDeleting puzzle ${id}`, 'color: #8b5cf6', 'color: default');
       await deleteDoc(doc(db, 'puzzles', id));
       setPuzzles(prev => prev.filter(p => p.id !== id));
       toast({

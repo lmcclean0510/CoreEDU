@@ -37,7 +37,6 @@ export default function StudentDashboardPage() {
       return;
     }
 
-    console.log('🔔 Setting up real-time homework subscription for student:', user.uid);
     setIsLoading(true);
 
     // Set up real-time subscription to studentHomeworks
@@ -50,7 +49,6 @@ export default function StudentDashboardPage() {
       studentHomeworkQuery, 
       async (snapshot) => {
         try {
-          console.log('📝 Student homework data changed, updating...');
           
           const studentHomeworkData = snapshot.docs.map(doc => ({ 
             id: doc.id, 
@@ -129,7 +127,6 @@ export default function StudentDashboardPage() {
             .filter(item => item.assignment && item.classInfo)
             .sort((a, b) => b.assignment.createdAt.seconds - a.assignment.createdAt.seconds);
 
-          console.log(`✅ Updated homework list: ${enrichedData.length} assignments`);
           setHomeworks(enrichedData);
           setIsLoading(false);
 

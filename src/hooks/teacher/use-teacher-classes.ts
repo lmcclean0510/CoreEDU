@@ -32,7 +32,6 @@ export function useTeacherClasses() {
     if (!forceRefresh) {
       const cached = dataCache.get<ClassInfo[]>(cacheKey);
       if (cached) {
-        console.log(`%c[Cache Hit] %cUsing cached classes for teacher ${user.uid}`, 'color: #16a34a', 'color: default');
         setClasses(cached);
         setIsLoading(false);
         return;

@@ -290,7 +290,6 @@ export default function SplitScreenLogin() {
                 <button
                   type="button"
                   className="text-sm text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline"
-                  onClick={() => console.log("Forgot password")}
                 >
                   Forgot password?
                 </button>

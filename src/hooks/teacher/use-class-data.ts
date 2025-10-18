@@ -58,7 +58,6 @@ export function useClassData(classId: string) {
     const cachedData = dataCache.get<any>(classCacheKey);
 
     if (cachedData && refreshTrigger === 0) { // Only use cache on initial load
-        console.log(`%c[Cache Hit] %cUsing cached data for class ${classId}`, 'color: #16a34a', 'color: default');
         setClassInfo(cachedData.classInfo);
         setStudents(cachedData.students);
         setTeachers(cachedData.teachers);
@@ -69,7 +68,6 @@ export function useClassData(classId: string) {
     }
 
     try {
-      console.log(`%c[Firestore Read] %cSubscribing to real-time data for class ${classId}`, 'color: #3b82f6', 'color: default');
       const classDocRef = doc(db, 'classes', classId);
       
       const unsubscribeClass = onSnapshot(
@@ -82,7 +80,6 @@ export function useClassData(classId: string) {
               return;
             }
 
-            console.log(`%c[Firestore Read] %cFetching user profiles for class ${classId}`, 'color: #3b82f6', 'color: default');
             const fetchedClass = { id: classDoc.id, ...classDoc.data() } as ClassInfo;
             setClassInfo(fetchedClass);
 
@@ -111,7 +108,6 @@ export function useClassData(classId: string) {
             setStudents(classStudents);
             setTeachers(classTeachers);
             
-            console.log(`%c[Firestore Read] %cFetching homework and progress for class ${classId}`, 'color: #3b82f6', 'color: default');
             
             // Fetch homework and student homework data
             try {
@@ -168,14 +164,12 @@ export function useClassData(classId: string) {
     const puzzleCache = dataCache.get<Puzzle[]>('puzzles');
     
     if (flashcardCache && puzzleCache) {
-      console.log(`%c[Cache Hit] %cUsing cached assignment data (flashcards/puzzles).`, 'color: #16a34a', 'color: default');
       setFlashcards(flashcardCache);
       setPuzzles(puzzleCache);
       return;
     }
 
     try {
-      console.log(`%c[Firestore Read] %cFetching all flashcards and puzzles for assignment creation.`, 'color: #3b82f6', 'color: default');
       const [flashcardsQuery, puzzlesQuery] = await Promise.all([
         getDocs(query(collection(db, 'flashcards'), orderBy('term'))),
         getDocs(query(collection(db, 'puzzles'), orderBy('challengeLevel')))
@@ -194,7 +188,6 @@ export function useClassData(classId: string) {
 
   // FIXED: refetchData now triggers a re-fetch by incrementing refreshTrigger
   const refetchData = useCallback(() => {
-    console.log(`%c[Cache Invalidation] %cInvalidating cache and forcing refresh for class ${classId}`, 'color: #f97316', 'color: default');
     dataCache.invalidate(`class-data-${classId}`);
     setRefreshTrigger(prev => prev + 1); // This will trigger the useEffect to re-run
   }, [classId]);

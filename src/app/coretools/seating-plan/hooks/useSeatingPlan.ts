@@ -96,7 +96,6 @@ export const useSeatingPlan = () => {
 
   // Load Preset 1 (Rows layout) - 4 rows of 8 desks = 32 total
   const loadPreset1 = useCallback(() => {
-    console.log('🎯 Loading Preset 1 - Rows');
 
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
@@ -182,7 +181,6 @@ export const useSeatingPlan = () => {
 
   // Load Preset 2 (Groups layout) - 4 groups of 6 desks = 24 total
   const loadPreset2 = useCallback(() => {
-    console.log('🎯 Loading Preset 2 - Groups');
 
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
@@ -247,7 +245,6 @@ export const useSeatingPlan = () => {
 
   // Load Preset 3 (U-Shape layout) - 20 desks in U formation
   const loadPreset3 = useCallback(() => {
-    console.log('🎯 Loading Preset 3 - U-Shape');
 
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
@@ -371,7 +368,6 @@ export const useSeatingPlan = () => {
 
   // Load Preset 4 (Tables layout) - 6 tables of 4 desks = 24 total
   const loadPreset4 = useCallback(() => {
-    console.log('🎯 Loading Preset 4 - Tables');
 
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];
@@ -439,7 +435,6 @@ export const useSeatingPlan = () => {
 
   // Load Preset 5 (Horseshoe layout) - 18 desks in semicircle
   const loadPreset5 = useCallback(() => {
-    console.log('🎯 Loading Preset 5 - Horseshoe');
 
     const newDesks: Desk[] = [];
     const newGroups: Group[] = [];

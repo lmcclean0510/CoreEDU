@@ -123,14 +123,8 @@ const SeatingPlanTool = () => {
         const scaleX = (containerWidth - padding) / actualCanvasWidth;
         const scaleY = (containerHeight - padding) / CANVAS_HEIGHT;
         const newZoom = Math.min(scaleX, scaleY, 1);
-        
+
         setZoom(newZoom);
-        console.log('🎯 Zoom calculated:', { 
-          containerWidth, 
-          actualCanvasWidth,
-          newZoom,
-          zoomPercent: Math.round(newZoom * 100) + '%'
-        });
       }
     };
 

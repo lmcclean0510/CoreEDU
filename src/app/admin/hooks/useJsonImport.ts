@@ -131,7 +131,6 @@ export function useJsonImport() {
     try {
       for (const flashcard of previewData) {
         try {
-          console.log(`%c[Firestore Write] %cImporting flashcard: ${flashcard.term}`, 'color: #8b5cf6', 'color: default');
           
           await addDoc(collection(db, 'flashcards'), {
             ...flashcard,
