@@ -388,18 +388,7 @@ const SeatingPlanTool = () => {
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col">
           {/* Toolbar */}
-          <div className="bg-card border-b border-border px-4 py-3 space-y-3">
-            {/* Top Row: Current Plan Name */}
-            {currentPlanId && currentPlanName && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-md border border-primary/20">
-                  <span className="text-sm font-medium text-primary">Editing:</span>
-                  <span className="text-sm font-semibold">{currentPlanName}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Main Row: Controls */}
+          <div className="bg-card border-b border-border px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-wrap">
                 {/* File Menu Dropdown */}
@@ -516,6 +505,17 @@ const SeatingPlanTool = () => {
             ref={containerRef}
             className="flex-1 relative bg-muted/30 overflow-hidden"
           >
+            {/* Current Plan Watermark */}
+            {currentPlanId && currentPlanName && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+                <div className="px-4 py-2 bg-primary/5 backdrop-blur-sm rounded-lg border border-primary/10">
+                  <span className="text-sm font-medium text-primary/60">
+                    Editing: <span className="font-semibold text-primary/80">{currentPlanName}</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Canvas */}
             <div className="absolute inset-0 flex items-center justify-center p-8">
               <div
