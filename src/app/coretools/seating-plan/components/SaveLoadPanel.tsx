@@ -58,21 +58,12 @@ export const SaveLoadPanel = ({
   const [planName, setPlanName] = useState('');
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 
   const handleSave = () => {
     if (planName.trim()) {
       onSave(planName.trim());
       setPlanName('');
       setIsSaveDialogOpen(false);
-    }
-  };
-
-  const handleUpdate = () => {
-    if (planName.trim()) {
-      onUpdate(planName.trim());
-      setPlanName('');
-      setIsUpdateDialogOpen(false);
     }
   };
 
@@ -93,45 +84,10 @@ export const SaveLoadPanel = ({
 
       {/* Update Button - Only show if a plan is loaded */}
       {currentPlanId && (
-        <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="default" size="sm">
-              <Save className="w-4 h-4 mr-2" />
-              Update Plan
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Update Seating Plan</DialogTitle>
-              <DialogDescription>
-                Update the current seating plan "{currentPlanName}" or rename it.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="update-plan-name">Plan Name</Label>
-                <Input
-                  id="update-plan-name"
-                  placeholder={currentPlanName || ''}
-                  value={planName}
-                  onChange={(e) => setPlanName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleUpdate()}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Leave empty to keep the current name: "{currentPlanName}"
-                </p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleUpdate} disabled={isSaving}>
-                {isSaving ? 'Updating...' : 'Update Plan'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button variant="default" size="sm" onClick={() => onUpdate('')} disabled={isSaving}>
+          <Save className="w-4 h-4 mr-2" />
+          {isSaving ? 'Updating...' : 'Update Plan'}
+        </Button>
       )}
 
       {/* New Plan Button - Only show if a plan is loaded */}
