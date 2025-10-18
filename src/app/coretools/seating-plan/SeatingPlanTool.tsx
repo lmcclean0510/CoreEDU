@@ -183,10 +183,11 @@ const SeatingPlanTool = () => {
     );
   };
 
-  // Clear all desks and groups
+  // Clear all desks, groups, and teacher desk
   const handleClearLayout = () => {
     setDesks([]);
     setGroups([]);
+    setTeacherDesk(null);
   };
 
   // Start a new plan (clear current plan tracking)

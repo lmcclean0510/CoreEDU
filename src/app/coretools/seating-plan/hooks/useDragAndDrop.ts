@@ -14,17 +14,17 @@ export const useDragAndDrop = (scale: number = 1) => {
     getDeskGroup: (id: number) => Group | undefined,
     setDesks: (updater: (prev: Desk[]) => Desk[]) => void,
     setGroups: (updater: (prev: Group[]) => Group[]) => void,
-    setTeacherDesk: (updater: (prev: TeacherDesk) => TeacherDesk) => void
+    setTeacherDesk: (updater: (prev: TeacherDesk | null) => TeacherDesk | null) => void
   ) => {
     const { active, delta, over } = event;
     const activeId = active.id;
     const overId = over ? over.id : null;
     const containerEl = containerRef.current;
     if (!containerEl) return;
-    
+
     const canvasWidth = containerEl.offsetWidth || CANVAS_WIDTH;
     const canvasHeight = containerEl.offsetHeight || CANVAS_HEIGHT;
-    
+
     const scaledDelta = {
         x: delta.x / scale,
         y: delta.y / scale,
@@ -32,6 +32,7 @@ export const useDragAndDrop = (scale: number = 1) => {
 
     if (activeId === 'teacher-desk') {
         setTeacherDesk(prev => {
+            if (!prev) return null;
             const newX = prev.x + scaledDelta.x;
             const newY = prev.y + scaledDelta.y;
             const boundedX = Math.max(0, Math.min(newX, canvasWidth - prev.width));
@@ -120,7 +121,7 @@ export const useDragAndDrop = (scale: number = 1) => {
   const handleAutoAlign = useCallback((
     containerRef: React.RefObject<HTMLElement>,
     setDesks: (updater: (prev: Desk[]) => Desk[]) => void,
-    setTeacherDesk: (updater: (prev: TeacherDesk) => TeacherDesk) => void
+    setTeacherDesk: (updater: (prev: TeacherDesk | null) => TeacherDesk | null) => void
   ) => {
     const containerEl = containerRef.current;
     if (!containerEl) return;
@@ -129,7 +130,7 @@ export const useDragAndDrop = (scale: number = 1) => {
     const canvasHeight = containerEl.offsetHeight || CANVAS_HEIGHT;
 
     setDesks(prev => prev.map(desk => alignToGrid(desk, canvasWidth, canvasHeight)));
-    setTeacherDesk(prev => alignToGrid(prev, canvasWidth, canvasHeight));
+    setTeacherDesk(prev => prev ? alignToGrid(prev, canvasWidth, canvasHeight) : null);
   }, []);
 
   return { handleDragEnd, handleDeskOrderDragEnd, handleAutoAlign };
