@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Save, FolderOpen, Trash2 } from 'lucide-react';
+import { Save, FolderOpen, Trash2, FilePlus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,8 @@ interface SaveLoadPanelProps {
   onSave: (planName: string) => void;
   onLoad: (planId: string) => void;
   onDelete: (planId: string) => void;
+  onUpdate: (planName: string) => void;
+  onNewPlan: () => void;
   savedPlans: Array<{
     id: string;
     planName: string;
@@ -38,18 +40,25 @@ interface SaveLoadPanelProps {
     metadata?: { totalDesks: number; totalStudents: number; };
   }>;
   isSaving: boolean;
+  currentPlanId: string | null;
+  currentPlanName: string | null;
 }
 
 export const SaveLoadPanel = ({
   onSave,
   onLoad,
   onDelete,
+  onUpdate,
+  onNewPlan,
   savedPlans,
   isSaving,
+  currentPlanId,
+  currentPlanName,
 }: SaveLoadPanelProps) => {
   const [planName, setPlanName] = useState('');
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 
   const handleSave = () => {
     if (planName.trim()) {
@@ -59,19 +68,86 @@ export const SaveLoadPanel = ({
     }
   };
 
+  const handleUpdate = () => {
+    if (planName.trim()) {
+      onUpdate(planName.trim());
+      setPlanName('');
+      setIsUpdateDialogOpen(false);
+    }
+  };
+
   const handleLoad = (planId: string) => {
     onLoad(planId);
     setIsLoadDialogOpen(false);
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex items-center gap-2">
+      {/* Current Plan Indicator */}
+      {currentPlanId && currentPlanName && (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-md border border-primary/20">
+          <span className="text-sm font-medium text-primary">Editing:</span>
+          <span className="text-sm font-semibold">{currentPlanName}</span>
+        </div>
+      )}
+
+      {/* Update Button - Only show if a plan is loaded */}
+      {currentPlanId && (
+        <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="default" size="sm">
+              <Save className="w-4 h-4 mr-2" />
+              Update Plan
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Update Seating Plan</DialogTitle>
+              <DialogDescription>
+                Update the current seating plan "{currentPlanName}" or rename it.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="update-plan-name">Plan Name</Label>
+                <Input
+                  id="update-plan-name"
+                  placeholder={currentPlanName || ''}
+                  value={planName}
+                  onChange={(e) => setPlanName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleUpdate()}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Leave empty to keep the current name: "{currentPlanName}"
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdate} disabled={isSaving}>
+                {isSaving ? 'Updating...' : 'Update Plan'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* New Plan Button - Only show if a plan is loaded */}
+      {currentPlanId && (
+        <Button variant="outline" size="sm" onClick={onNewPlan}>
+          <FilePlus className="w-4 h-4 mr-2" />
+          New Plan
+        </Button>
+      )}
+
       {/* Save Button */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <Save className="w-4 h-4 mr-2" />
-            Save Plan
+            Save as New
           </Button>
         </DialogTrigger>
         <DialogContent>

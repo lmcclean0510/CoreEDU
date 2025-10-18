@@ -56,6 +56,7 @@ const SeatingPlanTool = () => {
   const [isFurniturePopoverOpen, setIsFurniturePopoverOpen] = useState(false);
   const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Save/Load persistence hook
@@ -178,6 +179,12 @@ const SeatingPlanTool = () => {
     setGroups([]);
   };
 
+  // Start a new plan (clear current plan tracking)
+  const handleNewPlan = () => {
+    setCurrentPlanId(null);
+    setCurrentPlanName(null);
+  };
+
   // Handle canvas click to deselect group
   const handleCanvasClick = (e: React.MouseEvent) => {
     // Only close group controls if clicking directly on canvas background
@@ -186,7 +193,7 @@ const SeatingPlanTool = () => {
     }
   };
 
-  // Save seating plan
+  // Save seating plan (as new)
   const handleSavePlan = async (planName: string) => {
     const planData = {
       desks,
@@ -203,14 +210,37 @@ const SeatingPlanTool = () => {
       },
     };
 
-    if (currentPlanId) {
-      // Update existing plan
-      await updatePlan(currentPlanId, { ...planData, planName });
-    } else {
-      // Save new plan
-      const newPlanId = await savePlan(planName, planData);
-      if (newPlanId) setCurrentPlanId(newPlanId);
+    // Always save as new plan
+    const newPlanId = await savePlan(planName, planData);
+    if (newPlanId) {
+      setCurrentPlanId(newPlanId);
+      setCurrentPlanName(planName);
     }
+  };
+
+  // Update existing seating plan
+  const handleUpdatePlan = async (planName: string) => {
+    if (!currentPlanId) return;
+
+    const planData = {
+      desks,
+      groups,
+      teacherDesk,
+      students,
+      separationRules,
+      doNotUseDeskIds: Array.from(doNotUseDeskIds),
+      fillFromFront,
+      alternateGender,
+      metadata: {
+        totalDesks: desks.length,
+        totalStudents: students.length,
+      },
+    };
+
+    // Use provided name or keep current name
+    const updatedName = planName || currentPlanName || 'Untitled Plan';
+    await updatePlan(currentPlanId, { ...planData, planName: updatedName });
+    setCurrentPlanName(updatedName);
   };
 
   // Load seating plan
@@ -232,6 +262,7 @@ const SeatingPlanTool = () => {
     setFillFromFront(plan.fillFromFront);
     setAlternateGender(plan.alternateGender);
     setCurrentPlanId(planId);
+    setCurrentPlanName(plan.planName);
 
     toast({
       title: 'Plan Loaded',
@@ -244,6 +275,7 @@ const SeatingPlanTool = () => {
     await deletePlan(planId);
     if (currentPlanId === planId) {
       setCurrentPlanId(null);
+      setCurrentPlanName(null);
     }
   };
 
@@ -384,8 +416,12 @@ const SeatingPlanTool = () => {
                 onSave={handleSavePlan}
                 onLoad={handleLoadPlan}
                 onDelete={handleDeletePlan}
+                onUpdate={handleUpdatePlan}
+                onNewPlan={handleNewPlan}
                 savedPlans={savedPlans}
                 isSaving={isSaving}
+                currentPlanId={currentPlanId}
+                currentPlanName={currentPlanName}
               />
 
               {/* Manage Students Button */}
