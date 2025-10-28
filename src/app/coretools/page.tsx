@@ -19,6 +19,7 @@ export default function CoreToolsPage() {
           description="Create optimized classroom seating arrangements with intelligent conflict resolution and flexible layouts"
           href="/coretools/seating-plan"
           icon={Grid3X3}
+          ctaLabel="Open planner"
         />
         <ActivityCard
           title="Grade Calculator"
@@ -46,6 +47,7 @@ export default function CoreToolsPage() {
           description="Generate student reports with templates and customizable comments"
           href="/coretools/reports"
           icon={FileText}
+          ctaLabel="Open planner"
           disabled={true}
         />
       </ContentSection>

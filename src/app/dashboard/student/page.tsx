@@ -171,6 +171,7 @@ export default function StudentDashboardPage() {
             description="Enter a class code to join your teacher's class"
             href="#"
             icon={UserPlus}
+            ctaLabel="Enter class code"
           />
         </div>
         <ActivityCard
@@ -178,12 +179,14 @@ export default function StudentDashboardPage() {
           description="Practice Python & algorithms"
           href="/corecs"
           icon={BookOpen}
+          ctaLabel="Browse lessons"
         />
         <ActivityCard
           title="CoreLabs"
           description="Play educational games"
           href="/corelabs"
           icon={Trophy}
+          ctaLabel="Play games"
         />
       </ContentSection>
 
