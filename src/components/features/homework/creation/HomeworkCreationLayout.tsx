@@ -194,29 +194,29 @@ export function HomeworkCreationLayout({
   };
 
   return (
-    <div className="container mx-auto max-w-7xl py-8 px-4 space-y-8">
-      {/* Back Button */}
-      <div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/dashboard/teacher/class/${classInfo.id}`}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Class
-          </Link>
-        </Button>
-      </div>
-
-      {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <ClipboardList className="w-6 h-6 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tighter text-foreground">
-            Create Homework
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Build and assign homework for {classInfo.className}
-          </p>
+    <div className="container mx-auto max-w-7xl py-6 px-4 space-y-6">
+      {/* Compact Header with Back Button Inline */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/dashboard/teacher/class/${classInfo.id}`}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Link>
+          </Button>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <ClipboardList className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                Create Homework
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {classInfo.className}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
