@@ -71,12 +71,15 @@ export function useHomeworkCreation() {
 
   // Task management
   const addTask = useCallback((task: HomeworkTask) => {
-    setState(prev => ({
-      ...prev,
-      selectedTasks: prev.selectedTasks.some(t => t.id === task.id)
-        ? prev.selectedTasks
-        : [...prev.selectedTasks, task]
-    }));
+    setState(prev => {
+      const isAlreadySelected = prev.selectedTasks.some(t => t.id === task.id);
+      return {
+        ...prev,
+        selectedTasks: isAlreadySelected
+          ? prev.selectedTasks.filter(t => t.id !== task.id) // Remove if already selected (toggle off)
+          : [...prev.selectedTasks, task] // Add if not selected (toggle on)
+      };
+    });
   }, []);
 
   const removeTask = useCallback((taskId: string) => {
