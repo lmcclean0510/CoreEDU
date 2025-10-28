@@ -296,17 +296,13 @@ export default function AccountPage() {
   const showAvatarGenerator = unlockedFeatures.aiAvatarGenerator?.unlocked && unlockedFeatures.aiAvatarGenerator?.active;
   const initials = ((firstName?.[0] || '') + (lastName?.[0] || '')).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'U';
 
-
+  // Protected by server-side layout - if we reach here, user exists
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-200px)] w-full items-center justify-center">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (

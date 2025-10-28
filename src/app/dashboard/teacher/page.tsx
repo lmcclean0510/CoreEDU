@@ -1,7 +1,6 @@
 "use client";
 
-import { AlertTriangle, LoaderCircle, Plus, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { LoaderCircle, Plus, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/providers/UserProvider';
 import { useTeacherClasses } from '@/hooks/teacher/use-teacher-classes';
@@ -72,31 +71,12 @@ export default function TeacherDashboardPage() {
     handleJoinRequest(requestId, 'deny');
   };
 
-  // Show loading state while auth or teacher role is being determined
+  // Protected by server-side layout - if we reach here, user is a teacher
+  // Show loading state while classes data loads
   if (isAuthLoading || isTeacher === null) {
     return (
       <div className="flex h-[calc(100vh-200px)] w-full items-center justify-center">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Show access denied only if role is confirmed to be not a teacher
-  if (isTeacher === false) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Card className="max-w-md text-center p-8">
-          <CardHeader>
-            <AlertTriangle className="w-16 h-16 mx-auto text-destructive" />
-            <CardTitle className="text-2xl mt-4">Access Denied</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>You must be a teacher to access this dashboard.</p>
-            <Button asChild className="mt-6">
-              <a href="/">Go to Homepage</a>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }

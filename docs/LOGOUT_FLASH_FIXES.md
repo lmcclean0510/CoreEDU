@@ -22,7 +22,7 @@ User clicks logout
 Redirect to /login
 ```
 
-**Root cause:** Student dashboard page (`/src/app/dashboard/student/page.tsx`) had redundant client-side auth check that showed "Please Sign In" when `user` became null.
+**Root cause:** Dashboard pages (`/src/app/dashboard/student/page.tsx` and `/src/app/dashboard/teacher/page.tsx`) had redundant client-side auth checks that showed error messages when `user` became null during logout.
 
 ### Issue 2: Layout Disappears Before Redirect
 **What happened:** After logout, sidebar and topbar disappeared, leaving just the page content briefly visible before redirect
@@ -44,11 +44,13 @@ Redirect to /login
 
 ## Fixes Applied
 
-### Fix 1: Removed Redundant "Please Sign In" Check
+### Fix 1: Removed Redundant Auth Error Checks
 
-**File:** `/src/app/dashboard/student/page.tsx`
+**Files Modified:**
+- `/src/app/dashboard/student/page.tsx`
+- `/src/app/dashboard/teacher/page.tsx`
 
-**Before:**
+**Before (Student Dashboard):**
 ```typescript
 // Loading state
 if (isAuthLoading || isLoading) {
@@ -73,23 +75,49 @@ if (!user) {
 return <DashboardContent />;
 ```
 
-**After:**
+**Before (Teacher Dashboard):**
 ```typescript
+// Loading state
+if (isAuthLoading || isTeacher === null) {
+  return <LoadingSpinner />;
+}
+
+// Access denied check
+if (isTeacher === false) {
+  return (
+    <Card>
+      <CardTitle>Access Denied</CardTitle>
+      <CardContent>
+        <p>You must be a teacher to access this dashboard.</p>
+        <Button asChild>
+          <a href="/">Go to Homepage</a>
+        </Button>
+      </CardContent>
+    </Card>
+  );  // ❌ This caused the flash
+}
+
+return <DashboardContent />;
+```
+
+**After (Both Dashboards):**
+```typescript
+// Protected by server-side layout - if we reach here, user has correct role
 // Loading state
 if (isAuthLoading || isLoading) {
   return <LoadingSpinner />;
 }
 
-// Protected by server-side layout - if we reach here, user exists
-// No need for "Please Sign In" check as layout redirects unauthenticated users
-
+// No auth check needed - trust server-side layout protection
 return <DashboardContent />;
 ```
 
 **Why this works:**
-- The server-side layout (`/src/app/dashboard/student/layout.tsx`) already protects this route
-- If user is not authenticated, they never reach the page component
-- No need for duplicate client-side check that causes flashing
+- Server-side layouts already protect these routes:
+  - `/src/app/dashboard/student/layout.tsx` - checks isStudent()
+  - `/src/app/dashboard/teacher/layout.tsx` - checks isTeacher()
+- If user doesn't have the correct role, they never reach the page component
+- No need for duplicate client-side checks that cause flashing during logout
 
 ---
 
@@ -369,18 +397,30 @@ if (!user) redirect('/login');
 
 ## Related Files Modified
 
-1. `/src/app/dashboard/student/page.tsx` - Removed "Please Sign In" check
-2. `/src/components/app-layout/AppLayout.tsx` - Changed layout visibility logic
-3. `/src/app/dashboard/page.tsx` - Server-side redirects instead of client-side
+1. `/src/app/dashboard/student/page.tsx` - Removed "Please Sign In" check (lines 158-175 removed)
+2. `/src/app/dashboard/teacher/page.tsx` - Removed "Access Denied" check (lines 84-102 removed)
+3. `/src/app/account/page.tsx` - Removed `if (!user) return null;` check (lines 308-310 removed)
+4. `/src/components/app-layout/AppLayout.tsx` - Changed layout visibility logic (line 30)
+5. `/src/app/dashboard/page.tsx` - Server-side redirects instead of client-side
 
 ---
 
 ## Summary
 
-✅ **Issue 1 Fixed:** Removed redundant "Please Sign In" check that caused flash
+✅ **Issue 1 Fixed:** Removed redundant auth error checks from student and teacher dashboards
 ✅ **Issue 2 Fixed:** Keep layout visible until navigation completes
+✅ **Issue 3 Fixed:** Removed null return from account page
 ✅ **Bonus Fix:** Server-side dashboard redirects for better UX
 
-**Result:** Professional, smooth logout experience with no visual artifacts or flashing.
+**Pages Checked and Verified:**
+- ✅ Student dashboard - Fixed
+- ✅ Teacher dashboard - Fixed
+- ✅ Account page - Fixed
+- ✅ Admin dashboard - No issues found (uses wrapper with dynamic import)
+- ✅ Teacher class pages - Legitimate authorization checks (class-specific, not role-based)
+- ✅ Homework pages - Protected by layout, no redundant checks
+- ✅ CoreTools pages - Protected by layout, no redundant checks
+
+**Result:** Professional, smooth logout experience with no visual artifacts or flashing for students, teachers, and admins across all protected pages.
 
 The logout flow now maintains visual consistency throughout the entire process, only updating the UI when actual navigation occurs, not when authentication state changes.
