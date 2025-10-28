@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -280,7 +279,13 @@ export default function StudentDashboardPage() {
       {/* Join Class Dialog */}
       <JoinClassDialog 
         isOpen={isJoinClassOpen} 
-        onOpenChange={setIsJoinClassOpen} 
+        onOpenChange={setIsJoinClassOpen}
+        triggerButton={
+          <Button variant="outline" className="mt-6 flex items-center gap-2" onClick={() => setIsJoinClassOpen(true)}>
+            <UserPlus className="h-4 w-4" />
+            Join a Class
+          </Button>
+        }
       />
     </div>
   );

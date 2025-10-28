@@ -1,4 +1,3 @@
-// @ts-nocheck
 // src/components/flashcard-system/flashcard-client.tsx
 "use client";
 
@@ -193,10 +192,10 @@ export function FlashCardClient({ flashcards: allFlashcards }: FlashCardClientPr
         isFlipped={isFlipped}
         onSettingsChange={setSettings}
         onSubTopicToggle={handleSubTopicToggle}
-        onTopicToggle={onTopicToggle}
+        onTopicToggle={handleTopicToggle}
         onSelectAllTopics={handleSelectAllTopics}
         onDeselectAllTopics={handleDeselectAllTopics}
-        onConfidenceFilterChange={onConfidenceFilterChange}
+        onConfidenceFilterChange={handleConfidenceFilterChange}
         onSelectAllConfidences={handleSelectAllConfidences}
         onDeselectAllConfidences={handleDeselectAllConfidences}
         onConfidenceRating={handleConfidenceRating}

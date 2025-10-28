@@ -1,11 +1,11 @@
-// @ts-nocheck
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Puzzle as PuzzleIcon, Clock } from 'lucide-react';
 import { StickyHomeworkNav } from './StickyHomeworkNav';
 import { OverviewStep } from './OverviewStep';
 import { AddTasksStep } from './AddTasksStep';
 import { PreviewStep } from './PreviewStep';
-import type { ClassInfo, UserProfile, Flashcard, Puzzle, HomeworkTask, HomeworkCreationStep } from '@/lib/types';
+import type { ClassInfo, UserProfile, Flashcard, Puzzle, HomeworkTask } from '@/lib/types';
+import type { HomeworkCreationStep } from '@/hooks/homework/use-homework-creation';
 
 interface HomeworkCreationLayoutProps {
   // Data

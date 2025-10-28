@@ -17,7 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { GROUP_COLORS } from '../utils/constants';
 
-interface GroupLayoutInfo {
+export interface GroupLayoutInfo {
   id: number;
   name: string;
   color: string;

@@ -18,13 +18,13 @@ import { useToast } from '@/hooks/shared/use-toast';
 import type { Desk, Group, Student, SeparationRule, TeacherDesk } from '@/app/coretools/seating-plan/types';
 
 interface SeatingPlanData {
-  id?: string;
+  id: string;
   teacherId: string;
   planName: string;
   classId?: string;
   desks: Desk[];
   groups: Group[];
-  teacherDesk: TeacherDesk;
+  teacherDesk: TeacherDesk | null;
   students: Student[];
   separationRules: SeparationRule[];
   doNotUseDeskIds: number[];

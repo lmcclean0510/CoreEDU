@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -119,7 +118,8 @@ export default function KeyboardNinjaPage() {
         let gameInstance: Phaser.Game | null = null;
 
         const initGame = async () => {
-            if (!gameContainerRef.current) return;
+            const containerElement = gameContainerRef.current;
+            if (!containerElement) return;
             const Phaser = await import('phaser');
 
             class GameScene extends Phaser.Scene {
@@ -202,8 +202,12 @@ export default function KeyboardNinjaPage() {
                 
                 create() {
                     this.itemsGroup = this.physics.add.group();
-                    this.input.keyboard.on('keydown', this.handleKeyDown, this);
-                    this.input.keyboard.on('keyup', this.handleKeyUp, this);
+                    const keyboard = this.input.keyboard;
+                    if (!keyboard) {
+                        return;
+                    }
+                    keyboard.on('keydown', this.handleKeyDown, this);
+                    keyboard.on('keyup', this.handleKeyUp, this);
                 }
                 
                 handleKeyDown(event: KeyboardEvent) {
@@ -303,7 +307,7 @@ export default function KeyboardNinjaPage() {
                     graphics.lineStyle(2, COLORS_HEX.border, 1);
                     graphics.strokeRoundedRect(-boxWidth/2, -boxHeight/2, boxWidth, boxHeight, 10);
                     
-                    const children = [graphics, text];
+                    const children: Phaser.GameObjects.GameObject[] = [graphics, text];
                     const isUpperCase = character >= 'A' && character <= 'Z';
 
                     if (isUpperCase) {
@@ -352,7 +356,7 @@ export default function KeyboardNinjaPage() {
                     const mainTextY = descTextContent ? -12 : 0;
                     const mainText = this.add.text(0, mainTextY, mainTextContent, { fontFamily: FONT_FAMILY, fontSize: '20px', color: COLORS.foreground, fontStyle: 'bold', align: 'center', padding: { top: 4, bottom: 4 } }).setOrigin(0.5);
                     
-                    const children = [mainText];
+                    const children: Phaser.GameObjects.GameObject[] = [mainText];
                     let descText: Phaser.GameObjects.Text | null = null;
                     let boxWidth, boxHeight;
                     const padding = { x: 20, y: 15 };
@@ -475,8 +479,11 @@ export default function KeyboardNinjaPage() {
 
                     if (this.lives <= 0) {
                         this.isGameActive = false;
-                        this.input.keyboard.off('keydown', this.handleKeyDown, this);
-                        this.input.keyboard.off('keyup', this.handleKeyUp, this);
+                        const keyboard = this.input.keyboard;
+                        if (keyboard) {
+                            keyboard.off('keydown', this.handleKeyDown, this);
+                            keyboard.off('keyup', this.handleKeyUp, this);
+                        }
                         if (this.onGameOverCallback) {
                             this.onGameOverCallback(this.score);
                         }
@@ -486,14 +493,14 @@ export default function KeyboardNinjaPage() {
             
             const config: Phaser.Types.Core.GameConfig = {
                 type: Phaser.AUTO,
-                width: gameContainerRef.current.clientWidth,
-                height: gameContainerRef.current.clientHeight,
+                width: containerElement.clientWidth,
+                height: containerElement.clientHeight,
                 parent: 'phaser-game-container',
                 backgroundColor: COLORS.background,
                 physics: {
                     default: 'arcade',
                     arcade: {
-                        gravity: { y: 0 },
+                        gravity: { x: 0, y: 0 },
                     },
                 },
                 render: {
@@ -501,7 +508,6 @@ export default function KeyboardNinjaPage() {
                     antialias: true,
                     roundPixels: true,
                 },
-                resolution: window.devicePixelRatio || 1,
                 scene: [GameScene],
             };
 

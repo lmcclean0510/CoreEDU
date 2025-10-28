@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -343,12 +342,12 @@ export function AddTasksStep({
                       <p className="text-sm">{selectedFlashcard.definition}</p>
                     </div>
 
-                    {selectedFlashcard.hint && (
+                    {selectedFlashcard.hints?.length ? (
                       <div>
                         <h4 className="text-sm font-semibold text-muted-foreground mb-2">Hint</h4>
-                        <p className="text-sm text-muted-foreground">{selectedFlashcard.hint}</p>
+                        <p className="text-sm text-muted-foreground">{selectedFlashcard.hints[0]}</p>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
 

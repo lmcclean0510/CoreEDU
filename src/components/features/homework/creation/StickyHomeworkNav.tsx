@@ -1,9 +1,8 @@
-// @ts-nocheck
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X, FileText, Plus, Eye, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { HomeworkCreationStep } from '@/lib/types';
+import type { HomeworkCreationStep } from '@/hooks/homework/use-homework-creation';
 
 interface StickyHomeworkNavProps {
   currentStep: HomeworkCreationStep;

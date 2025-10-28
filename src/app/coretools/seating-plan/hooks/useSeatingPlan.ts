@@ -3,6 +3,7 @@ import { GROUP_COLORS, DEFAULT_TEACHER_DESK, FURNITURE_TEMPLATES, GRID_SIZE, CAN
 import { parseStudentInput, validateSeparationRule } from '../utils/validation';
 import { sortDesksByPosition } from '../utils/calculations';
 import type { Desk, Group, Student, SeparationRule, TeacherDesk, FurnitureTemplate, DeskWithGroup, Stats } from '../types';
+import type { GroupLayoutInfo } from '../components/GroupControl';
 
 export const useSeatingPlan = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
@@ -76,22 +77,24 @@ export const useSeatingPlan = () => {
   }, [unassignedStudents]);
 
   // Memoized group layouts
-  const groupLayouts = useMemo(() => {
-    return groups.map(group => {
-      const groupDesks = desks.filter(d => group.deskIds.includes(d.id));
-      if (groupDesks.length === 0) return null;
+  const groupLayouts = useMemo<GroupLayoutInfo[]>(() => {
+    return groups
+      .map<GroupLayoutInfo | null>(group => {
+        const groupDesks = desks.filter(d => group.deskIds.includes(d.id));
+        if (groupDesks.length === 0) return null;
 
-      const minX = Math.min(...groupDesks.map(d => d.x));
-      const minY = Math.min(...groupDesks.map(d => d.y));
+        const minX = Math.min(...groupDesks.map(d => d.x));
+        const minY = Math.min(...groupDesks.map(d => d.y));
 
-      return {
-        id: group.id,
-        name: group.name,
-        color: group.color,
-        x: minX,
-        y: minY,
-      };
-    }).filter(Boolean);
+        return {
+          id: group.id,
+          name: group.name,
+          color: group.color,
+          x: minX,
+          y: minY,
+        };
+      })
+      .filter((layout): layout is GroupLayoutInfo => layout !== null);
   }, [groups, desks]);
 
   // Load Preset 1 (Rows layout) - 4 rows of 8 desks = 32 total

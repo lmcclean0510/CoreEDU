@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { memo, useCallback, useMemo } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
@@ -167,7 +166,7 @@ const DraggableItem = memo(({
               <GripVertical className="h-3 w-3" />
             </div>
           )}
-            {isLayoutMode && onRemove && (
+            {isLayoutMode && (
                 <Button
                   variant="ghost"
                   size="sm"

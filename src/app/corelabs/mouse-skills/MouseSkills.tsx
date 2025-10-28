@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -99,7 +98,8 @@ export default function MouseSkillsPage() {
   }, [timeSurvived]);
 
   const moveTarget = useCallback((targetId: number) => {
-    if (!gameAreaRef.current || gameStateRef.current !== 'playing') return;
+    const gameAreaElement = gameAreaRef.current;
+    if (!gameAreaElement || gameStateRef.current !== 'playing') return;
     
     setTargets(currentTargets => {
       const target = currentTargets.find(t => t.id === targetId);
@@ -108,7 +108,7 @@ export default function MouseSkillsPage() {
         return currentTargets;
       }
       
-      const gameArea = gameAreaRef.current.getBoundingClientRect();
+      const gameArea = gameAreaElement.getBoundingClientRect();
       const MIN_DISTANCE = (gameArea.width / 1.5);
       let newX, newY, distance;
       let attempts = 0;
