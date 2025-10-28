@@ -26,7 +26,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
 
   // Check if current path should use app layout
-  const shouldUseAppLayout = isAuthenticated && !excludedPaths.includes(pathname);
+  // Use pathname only - don't remove layout when auth changes to prevent flash
+  const shouldUseAppLayout = !excludedPaths.includes(pathname);
 
   // Redirect unauthenticated users trying to access protected pages
   useEffect(() => {
@@ -35,7 +36,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     }
   }, [isAuthenticated, isLoading, pathname, router]);
 
-  // Show loading state
+  // Show loading state only on initial auth check
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -47,7 +48,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     );
   }
 
-  // Don't use app layout for excluded pages
+  // Don't use app layout for excluded pages (public pages)
   if (!shouldUseAppLayout) {
     return <>{children}</>;
   }
