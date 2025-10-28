@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, Eye, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -40,7 +39,7 @@ export function StepNavigation({
   canProceedFromAddTasks,
   selectedTasksCount,
 }: StepNavigationProps) {
-  
+
   const getStepStatus = (stepId: HomeworkCreationStep) => {
     if (stepId === 'overview') {
       return canProceedFromOverview ? 'completed' : 'current';
@@ -64,74 +63,103 @@ export function StepNavigation({
   };
 
   return (
-    <div>
-      <h3 className="font-semibold text-lg mb-4">Create Homework</h3>
-      
-      <nav className="space-y-2">
+    <div className="space-y-4">
+      {/* Horizontal Step Tabs */}
+      <div className="flex items-center gap-2">
         {steps.map((step, index) => {
           const Icon = step.icon;
           const isActive = currentStep === step.id;
           const isAccessible = isStepAccessible(step.id);
           const status = getStepStatus(step.id);
           const isCompleted = status === 'completed';
-          
+
           return (
-            <Button
-              key={step.id}
-              variant={isActive ? "default" : "ghost"}
-              className={cn(
-                "w-full justify-start h-auto p-3 text-left",
-                !isAccessible && "opacity-50 cursor-not-allowed",
-                isActive && "bg-primary text-primary-foreground"
-              )}
-              onClick={() => isAccessible && onStepChange(step.id)}
-              disabled={!isAccessible}
-            >
-              <div className="flex items-center gap-3 w-full">
-                {/* Step icon/number */}
+            <div key={step.id} className="flex items-center flex-1">
+              {/* Step Card */}
+              <button
+                onClick={() => isAccessible && onStepChange(step.id)}
+                disabled={!isAccessible}
+                className={cn(
+                  "flex items-center gap-3 w-full p-4 rounded-lg border-2 transition-all duration-200",
+                  isActive && "bg-primary/10 border-primary shadow-sm",
+                  !isActive && isAccessible && "bg-background border-border hover:border-primary/50 hover:bg-muted/50",
+                  !isAccessible && "bg-muted/30 border-muted opacity-60 cursor-not-allowed"
+                )}
+              >
+                {/* Step Icon/Number */}
                 <div className={cn(
-                  "flex items-center justify-center w-7 h-7 rounded-full border-2 flex-shrink-0",
-                  isActive && "border-primary-foreground bg-primary-foreground text-primary",
-                  !isActive && isCompleted && "border-green-500 bg-green-500 text-white",
-                  !isActive && !isCompleted && isAccessible && "border-muted-foreground",
-                  !isAccessible && "border-muted"
+                  "flex items-center justify-center w-10 h-10 rounded-lg flex-shrink-0 transition-colors",
+                  isActive && "bg-primary text-primary-foreground",
+                  !isActive && isCompleted && "bg-green-500 text-white",
+                  !isActive && !isCompleted && isAccessible && "bg-muted text-muted-foreground",
+                  !isAccessible && "bg-muted/50 text-muted-foreground/50"
                 )}>
-                  {isCompleted ? (
-                    <Check className="w-3 h-3" />
+                  {isCompleted && !isActive ? (
+                    <Check className="w-5 h-5" />
                   ) : (
-                    <span className="text-xs font-medium">{index + 1}</span>
+                    <Icon className="w-5 h-5" />
                   )}
                 </div>
-                
-                {/* Step content */}
-                <div className="flex-1 min-w-0">
+
+                {/* Step Content */}
+                <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center gap-2">
                     <p className={cn(
-                      "font-medium text-sm",
-                      isActive && "text-primary-foreground",
-                      !isActive && "text-foreground"
+                      "font-semibold text-sm",
+                      isActive && "text-primary",
+                      !isActive && isAccessible && "text-foreground",
+                      !isAccessible && "text-muted-foreground"
                     )}>
                       {step.title}
                     </p>
                     {step.id === 'add-tasks' && selectedTasksCount > 0 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant={isActive ? "default" : "secondary"} className="text-xs">
                         {selectedTasksCount}
                       </Badge>
                     )}
                   </div>
                   <p className={cn(
-                    "text-xs mt-1",
-                    isActive && "text-primary-foreground/80",
+                    "text-xs mt-0.5",
+                    isActive && "text-primary/70",
                     !isActive && "text-muted-foreground"
                   )}>
                     {step.description}
                   </p>
                 </div>
-              </div>
-            </Button>
+
+                {/* Step Number Badge */}
+                <div className={cn(
+                  "flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold",
+                  isActive && "bg-primary/20 text-primary",
+                  !isActive && isCompleted && "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+                  !isActive && !isCompleted && "bg-muted text-muted-foreground"
+                )}>
+                  {index + 1}
+                </div>
+              </button>
+
+              {/* Connector Arrow (not on last step) */}
+              {index < steps.length - 1 && (
+                <div className="mx-2 text-muted-foreground">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="opacity-50">
+                    <path d="M7 5L12 10L7 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
+            </div>
           );
         })}
-      </nav>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full bg-muted rounded-full h-2">
+        <div
+          className="bg-primary h-2 rounded-full transition-all duration-300"
+          style={{
+            width: `${canProceedFromOverview ? (canProceedFromAddTasks ? 100 : 66) : 33}%`
+          }}
+        />
+      </div>
     </div>
   );
 }

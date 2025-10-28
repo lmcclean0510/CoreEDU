@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, BookOpen, Puzzle, Clock } from 'lucide-react';
+import { ArrowLeft, BookOpen, Puzzle as PuzzleIcon, Clock, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { StepNavigation } from './StepNavigation';
 import { OverviewStep } from './OverviewStep';
@@ -14,7 +14,7 @@ interface HomeworkCreationLayoutProps {
   students: UserProfile[];
   flashcards: Flashcard[];
   puzzles: Puzzle[];
-  
+
   // State from hook
   currentStep: HomeworkCreationStep;
   title: string;
@@ -28,7 +28,7 @@ interface HomeworkCreationLayoutProps {
   canSubmit: boolean;
   isDueDateValid: boolean;
   isCreating: boolean;
-  
+
   // Computed data
   filteredFlashcards: Flashcard[];
   filteredPuzzles: Puzzle[];
@@ -36,7 +36,7 @@ interface HomeworkCreationLayoutProps {
   availableDifficulties: number[];
   canProceedFromOverview: boolean;
   canProceedFromAddTasks: boolean;
-  
+
   // Actions
   onStepChange: (step: HomeworkCreationStep) => void;
   onNext: () => void;
@@ -55,7 +55,7 @@ interface HomeworkCreationLayoutProps {
   onClearFilters: () => void;
   onCreateHomework: () => void;
   onCancel: () => void;
-  
+
   // Helper functions
   isTaskSelected: (taskId: string) => boolean;
 }
@@ -103,6 +103,21 @@ export function HomeworkCreationLayout({
   isTaskSelected,
 }: HomeworkCreationLayoutProps) {
 
+  // Calculate task summary
+  const flashcardCount = selectedTasks.filter(t => t.type === 'flashcard').length;
+  const puzzleCount = selectedTasks.filter(t => t.type === 'puzzle').length;
+  const totalMinutes = (flashcardCount * 2) + (puzzleCount * 5);
+
+  const formatTime = () => {
+    if (totalMinutes < 60) {
+      return `${totalMinutes} min`;
+    } else {
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${hours}h ${minutes > 0 ? `${minutes}m` : ''}`;
+    }
+  };
+
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'overview':
@@ -121,7 +136,7 @@ export function HomeworkCreationLayout({
             isDueDateValid={isDueDateValid}
           />
         );
-      
+
       case 'add-tasks':
         return (
           <AddTasksStep
@@ -151,7 +166,7 @@ export function HomeworkCreationLayout({
             isTaskSelected={isTaskSelected}
           />
         );
-      
+
       case 'preview':
         return (
           <PreviewStep
@@ -172,117 +187,70 @@ export function HomeworkCreationLayout({
             onEditTasks={() => onStepChange('add-tasks')}
           />
         );
-      
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="h-screen flex">
-      {/* Narrower Full-Height Left Sidebar - Kraken Pro Style */}
-      <div className="w-64 bg-muted/30 border-r border-border flex flex-col">
-        {/* Compact Header with Progress */}
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-3 mb-3">
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-              <Link href={`/dashboard/teacher/class/${classInfo.id}`}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <span className="text-sm font-medium text-muted-foreground">Back to Class</span>
-          </div>
-          
-          {/* Progress indicator */}
-          <div className="mt-2">
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-              <span>Progress</span>
-              <span>
-                {canProceedFromOverview ? (canProceedFromAddTasks ? '3' : '2') : '1'}/3
-              </span>
-            </div>
-            <div className="w-full bg-muted rounded-full h-1.5">
-              <div 
-                className="bg-primary h-1.5 rounded-full transition-all duration-300" 
-                style={{ 
-                  width: `${canProceedFromOverview ? (canProceedFromAddTasks ? 100 : 66) : 33}%` 
-                }}
-              />
-            </div>
-          </div>
+    <div className="container mx-auto max-w-7xl py-8 px-4 space-y-8">
+      {/* Back Button */}
+      <div>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/dashboard/teacher/class/${classInfo.id}`}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Class
+          </Link>
+        </Button>
+      </div>
+
+      {/* Page Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <ClipboardList className="w-6 h-6 text-primary" />
         </div>
-        
-        {/* Step Navigation */}
-        <div className="flex-1 p-4">
-          <StepNavigation
-            currentStep={currentStep}
-            onStepChange={onStepChange}
-            canProceedFromOverview={canProceedFromOverview}
-            canProceedFromAddTasks={canProceedFromAddTasks}
-            selectedTasksCount={selectedTasks.length}
-          />
-          
-          {/* Homework Summary */}
-          {selectedTasks.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-border">
-              <h4 className="font-medium text-sm mb-3">Homework Summary</h4>
-              
-              {/* Task counts */}
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div className="text-center p-2 bg-muted/50 rounded">
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <BookOpen className="w-3 h-3 text-primary" />
-                    <span className="text-xs font-medium">Flashcards</span>
-                  </div>
-                  <p className="text-sm font-bold">{selectedTasks.filter(t => t.type === 'flashcard').length}</p>
-                </div>
-                <div className="text-center p-2 bg-muted/50 rounded">
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <Puzzle className="w-3 h-3 text-secondary" />
-                    <span className="text-xs font-medium">Puzzles</span>
-                  </div>
-                  <p className="text-sm font-bold">{selectedTasks.filter(t => t.type === 'puzzle').length}</p>
-                </div>
-              </div>
-              
-              {/* Estimated time */}
-              <div className="flex items-center justify-center gap-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded border border-blue-200 dark:border-blue-800">
-                <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs font-medium">Est. time:</span>
-                <Badge variant="secondary" className="text-xs">
-                  {(() => {
-                    const flashcardCount = selectedTasks.filter(t => t.type === 'flashcard').length;
-                    const puzzleCount = selectedTasks.filter(t => t.type === 'puzzle').length;
-                    const totalMinutes = (flashcardCount * 2) + (puzzleCount * 5);
-                    
-                    if (totalMinutes < 60) {
-                      return `${totalMinutes} min`;
-                    } else {
-                      const hours = Math.floor(totalMinutes / 60);
-                      const minutes = totalMinutes % 60;
-                      return `${hours}h ${minutes > 0 ? `${minutes}m` : ''}`;
-                    }
-                  })()}
-                </Badge>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Reserved space for future feature */}
-        <div className="p-4 border-t border-border">
-          {/* Space reserved for your future idea */}
+        <div>
+          <h1 className="text-3xl font-bold tracking-tighter text-foreground">
+            Create Homework
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Build and assign homework for {classInfo.className}
+          </p>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-0">
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="container mx-auto max-w-6xl py-8 px-8">
-            {renderCurrentStep()}
+      {/* Task Summary Bar (only show if tasks selected) */}
+      {selectedTasks.length > 0 && (
+        <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">{flashcardCount} Flashcard{flashcardCount !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <PuzzleIcon className="w-4 h-4 text-secondary" />
+            <span className="text-sm font-medium">{puzzleCount} Puzzle{puzzleCount !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="flex items-center gap-2 ml-auto">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Est. time:</span>
+            <Badge variant="secondary">{formatTime()}</Badge>
           </div>
         </div>
+      )}
+
+      {/* Step Navigation */}
+      <StepNavigation
+        currentStep={currentStep}
+        onStepChange={onStepChange}
+        canProceedFromOverview={canProceedFromOverview}
+        canProceedFromAddTasks={canProceedFromAddTasks}
+        selectedTasksCount={selectedTasks.length}
+      />
+
+      {/* Main Content */}
+      <div>
+        {renderCurrentStep()}
       </div>
     </div>
   );
