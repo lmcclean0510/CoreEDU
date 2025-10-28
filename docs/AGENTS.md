@@ -1,23 +1,23 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-CoreEDU is a Next.js 15 App Router project. Routes, layouts, and API handlers stay in `src/app`, reusable UI in `src/components`, shared hooks in `src/hooks`, Firebase/session helpers in `src/lib`, and context providers in `src/providers`. AI and Genkit workflows live in `src/ai`. Product notes and QA scripts are under `docs/`. Repo-level configuration (`next.config.ts`, `tailwind.config.ts`, `firestore.rules`, `components.json`) should be updated alongside any structural change. Co-locate new feature folders with their owning route to keep discovery simple.
+CoreEDU is a Next.js 15 App Router workspace. Routes, layouts, and API handlers live under `src/app`, with feature-specific folders co-located beside their routes. Shared UI sits in `src/components`, hooks in `src/hooks`, and cross-cutting utilities (Firebase helpers, formatters, data fetchers) belong in `src/lib`. Context providers stay in `src/providers`, while Genkit and AI flows are collected in `src/ai`. Reference product briefs or QA notes in `docs/` before changing flows that users rely on.
 
 ## Build, Test, and Development Commands
-- `npm run dev` — Launches the Turbopack dev server on port 9002.
-- `npm run genkit:dev` / `npm run genkit:watch` — Starts the Genkit emulator pointed at `src/ai/dev.ts`; use when iterating on AI flows.
-- `npm run build` → `npm run start` — Production build and serve.
-- `npm run lint` — ESLint via `next lint`; resolves path aliases out of `tsconfig.json`.
-- `npm run typecheck` — Strict TypeScript check; run before every PR.
+- `npm run dev` — Turbopack dev server on port 9002 with hot reload.
+- `npm run genkit:dev` / `npm run genkit:watch` — Spin up the Genkit emulator against `src/ai/dev.ts`.
+- `npm run build` then `npm run start` — Production bundle and verification run.
+- `npm run lint` — `next lint` with the TypeScript path alias `@/*`.
+- `npm run typecheck` — Strict compiler pass; run it before every push.
 
 ## Coding Style & Naming Conventions
-Stick with TypeScript, functional React components, and the prevailing 2-space indentation. Components and providers are `PascalCase`, hooks start with `use`, utilities are `camelCase`, and route folders stay lowercase. Rely on Tailwind classes; extend design tokens in `tailwind.config.ts` rather than hard-coding colors. Sync any new shadcn pieces through `components.json`, and run `npm run lint` until the tree is clean.
+Keep everything in TypeScript with functional React components. Follow the prevailing two-space indent, opt into `PascalCase` for components/providers, `useSomething` for hooks, and `camelCase` for helpers. Prefer Tailwind utility classes over bespoke CSS; extend design tokens in `tailwind.config.ts` when new colors or spacing scale is needed. When pulling additional shadcn UI, update `components.json` so future syncs stay deterministic.
 
 ## Testing Guidelines
-The repo currently lacks automated coverage—add it as you touch code. Place new specs as `*.test.ts` or `*.test.tsx` alongside the source, favor React Testing Library for UI, and use Firebase emulators for Firestore logic. Until an end-to-end suite exists, record manual flows with the checklist in `docs/CONSISTENCY_UPDATE.md` and summarize results in your PR.
+Automated coverage is minimal today—add targeted tests alongside the modules you touch (`Feature.test.tsx` sitting next to its source). Use Next’s recommended `@testing-library/react` plus `next/jest` when introducing suites, and document any new scripts in `package.json`. For Firestore or auth changes, exercise the Firebase emulators and capture steps or screenshots in the PR description.
 
 ## Commit & Pull Request Guidelines
-History favors short, imperative commit subjects (e.g., “Update SeatingPlanTool.tsx”); keep that style and scope commits narrowly. Before pushing, run lint and typecheck. PRs should supply a concise summary, bullet-pointed changes, linked issues, UI screenshots when visuals shift, and explicit verification steps or command output. Call out schema or config updates so teammates can reproduce them locally.
+History favors short, imperative messages (for example, `Update AddTasksStep.tsx`). Keep commits narrow in scope and rerun `npm run lint` plus `npm run typecheck` before pushing. PRs need a concise summary, bullet list of changes, linked issues, screenshots for UI shifts, and explicit verification steps or emulator commands. Flag schema, config, or environment variable updates so reviewers can reproduce locally without guesswork.
 
 ## Security & Configuration Tips
-Store secrets only in `.env.local` and sample them in docs when onboarding others. If you adjust Firebase rules, middleware, or hosting configs, update `firestore.rules` and note required emulator commands. Document any new environment variables in `docs/README.md` so future agents can boot the feature set without guesswork.
+Never commit secrets; store local values in `.env.local` and cross-check teammates via secure sharing. If you modify Firebase rules, hosting config, or middleware, update the relevant files (`firestore.rules`, `apphosting.yaml`, `next.config.ts`) and note migrations in `docs/README.md`. Keep derived credentials out of the repo and clear them from build logs before attaching evidence to reviews.
