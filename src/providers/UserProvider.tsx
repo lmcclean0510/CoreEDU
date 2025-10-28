@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -103,14 +103,20 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
   }, []); // Empty dependency array - only run once
 
-  return (
-    <AuthContext.Provider value={{
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({
       user,
       isLoading,
       isAuthenticated: !!user,
       isAdmin,
       logout,
-    }}>
+    }),
+    [user, isLoading, isAdmin, logout]
+  );
+
+  return (
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

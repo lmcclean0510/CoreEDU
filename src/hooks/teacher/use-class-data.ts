@@ -10,6 +10,7 @@ import {
   documentId,
   onSnapshot,
   orderBy,
+  limit,
 } from 'firebase/firestore';
 import type { ClassInfo, UserProfile, HomeworkAssignment, StudentHomework, Flashcard, Puzzle } from '@/lib/types';
 import { useToast } from '@/hooks/shared/use-toast';
@@ -112,8 +113,8 @@ export function useClassData(classId: string) {
             // Fetch homework and student homework data
             try {
               const [hwSnapshot, shwSnapshot] = await Promise.all([
-                getDocs(query(collection(db, 'homework'), where('classId', '==', classId))),
-                getDocs(query(collection(db, 'studentHomeworks'), where('classId', '==', classId)))
+                getDocs(query(collection(db, 'homework'), where('classId', '==', classId), limit(100))),
+                getDocs(query(collection(db, 'studentHomeworks'), where('classId', '==', classId), limit(500)))
               ]);
               
               const classHomework = hwSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HomeworkAssignment));
@@ -171,8 +172,8 @@ export function useClassData(classId: string) {
 
     try {
       const [flashcardsQuery, puzzlesQuery] = await Promise.all([
-        getDocs(query(collection(db, 'flashcards'), orderBy('term'))),
-        getDocs(query(collection(db, 'puzzles'), orderBy('challengeLevel')))
+        getDocs(query(collection(db, 'flashcards'), orderBy('term'), limit(1000))),
+        getDocs(query(collection(db, 'puzzles'), orderBy('challengeLevel'), limit(500)))
       ]);
       const fetchedFlashcards = flashcardsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() } as Flashcard));
       const fetchedPuzzles = puzzlesQuery.docs.map(doc => ({ id: doc.id, ...doc.data() } as Puzzle));

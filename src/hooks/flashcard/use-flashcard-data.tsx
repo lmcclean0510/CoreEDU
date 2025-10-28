@@ -4,7 +4,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Flashcard } from '@/lib/types';
 
@@ -26,9 +26,10 @@ export function useFlashcardData({ subject, orderByField = 'term' }: UseFlashcar
       try {
         const flashcardsRef = collection(db, 'flashcards');
         const q = query(
-          flashcardsRef, 
-          where('subject', '==', subject), 
-          orderBy(orderByField)
+          flashcardsRef,
+          where('subject', '==', subject),
+          orderBy(orderByField),
+          limit(500) // Limit to 500 flashcards per subject to prevent over-fetching
         );
         const querySnapshot = await getDocs(q);
         const fetchedFlashcards = querySnapshot.docs.map(doc => ({

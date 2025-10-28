@@ -1,15 +1,16 @@
 // src/app/admin/hooks/useAdminFlashcards.ts
 import { useState, useCallback } from 'react';
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  getDocs, 
-  query, 
-  orderBy, 
-  serverTimestamp 
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/shared/use-toast';
@@ -24,12 +25,12 @@ export function useAdminFlashcards() {
   const [isLoading, setIsLoading] = useState(false); // Start with false - no auto-loading
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load all flashcards
+  // Load flashcards (limited to prevent over-fetching)
   const loadFlashcards = useCallback(async () => {
     setIsLoading(true);
     try {
       const flashcardsRef = collection(db, 'flashcards');
-      const q = query(flashcardsRef, orderBy('term'));
+      const q = query(flashcardsRef, orderBy('term'), limit(1000));
       const snapshot = await getDocs(q);
       const fetchedFlashcards = snapshot.docs.map(doc => ({
         id: doc.id,

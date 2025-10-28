@@ -1,15 +1,16 @@
 // src/app/admin/hooks/useAdminPuzzles.ts
 import { useState, useCallback } from 'react';
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  getDocs, 
-  query, 
-  orderBy, 
-  serverTimestamp 
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/shared/use-toast';
@@ -24,12 +25,12 @@ export function useAdminPuzzles() {
   const [isLoading, setIsLoading] = useState(false); // Start with false - no auto-loading
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load all puzzles
+  // Load puzzles (limited to prevent over-fetching)
   const loadPuzzles = useCallback(async () => {
     setIsLoading(true);
     try {
       const puzzlesRef = collection(db, 'puzzles');
-      const q = query(puzzlesRef, orderBy('challengeLevel'));
+      const q = query(puzzlesRef, orderBy('challengeLevel'), limit(500));
       const snapshot = await getDocs(q);
       const fetchedPuzzles = snapshot.docs.map(doc => ({
         id: doc.id,
