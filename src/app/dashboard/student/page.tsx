@@ -155,24 +155,8 @@ export default function StudentDashboardPage() {
     );
   }
 
-  // No user state
-  if (!user) {
-    return (
-      <div className="flex h-[calc(100vh-200px)] w-full items-center justify-center">
-        <Card className="max-w-md text-center p-8">
-          <CardHeader>
-            <CardTitle>Please Sign In</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>You need to be signed in to view your dashboard.</p>
-            <Button asChild className="mt-4">
-              <Link href="/login">Sign In</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Protected by server-side layout - if we reach here, user exists
+  // No need for "Please Sign In" check as layout redirects unauthenticated users
 
   return (
     <div className="space-y-8">
