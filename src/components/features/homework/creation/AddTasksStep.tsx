@@ -245,12 +245,13 @@ export function AddTasksStep({
                             onClick={() => handleFlashcardClick(flashcard)}
                           >
                             <div className="flex items-start gap-3">
-                              <Checkbox
-                                checked={selected}
-                                onCheckedChange={() => onTaskToggle({ id: flashcard.id, type: 'flashcard', title: flashcard.term })}
-                                onClick={(e) => e.stopPropagation()}
-                                className="mt-1"
-                              />
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <Checkbox
+                                  checked={selected}
+                                  onCheckedChange={() => onTaskToggle({ id: flashcard.id, type: 'flashcard', title: flashcard.term })}
+                                  className="mt-1"
+                                />
+                              </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm line-clamp-1">{flashcard.term}</p>
                                 <Badge variant="secondary" className="text-xs mt-1">
@@ -287,12 +288,13 @@ export function AddTasksStep({
                             onClick={() => handlePuzzleClick(puzzle)}
                           >
                             <div className="flex items-start gap-3">
-                              <Checkbox
-                                checked={selected}
-                                onCheckedChange={() => onTaskToggle({ id: puzzle.id, type: 'puzzle', title: puzzle.title })}
-                                onClick={(e) => e.stopPropagation()}
-                                className="mt-1"
-                              />
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <Checkbox
+                                  checked={selected}
+                                  onCheckedChange={() => onTaskToggle({ id: puzzle.id, type: 'puzzle', title: puzzle.title })}
+                                  className="mt-1"
+                                />
+                              </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                   <Badge variant="default" className="text-xs">
