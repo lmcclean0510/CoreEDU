@@ -413,13 +413,15 @@ if (!user) redirect('/login');
 ✅ **Bonus Fix:** Server-side dashboard redirects for better UX
 
 **Pages Checked and Verified:**
-- ✅ Student dashboard - Fixed
-- ✅ Teacher dashboard - Fixed
-- ✅ Account page - Fixed
+- ✅ Student dashboard - Fixed (removed "Please Sign In" check)
+- ✅ Teacher dashboard - Fixed (removed "Access Denied" check)
+- ✅ Account page - Fixed (removed `if (!user) return null;` and changed `user.email` to `user?.email`)
 - ✅ Admin dashboard - No issues found (uses wrapper with dynamic import)
 - ✅ Teacher class pages - Legitimate authorization checks (class-specific, not role-based)
 - ✅ Homework pages - Protected by layout, no redundant checks
 - ✅ CoreTools pages - Protected by layout, no redundant checks
+
+**Note:** Account page required optional chaining (`user?.email`) to prevent client-side exception during logout when accessing user properties in JSX.
 
 **Result:** Professional, smooth logout experience with no visual artifacts or flashing for students, teachers, and admins across all protected pages.
 
