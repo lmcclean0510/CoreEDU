@@ -1,8 +1,6 @@
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, BookOpen, Puzzle as PuzzleIcon, Clock, ClipboardList } from 'lucide-react';
-import Link from 'next/link';
-import { StepNavigation } from './StepNavigation';
+import { BookOpen, Puzzle as PuzzleIcon, Clock } from 'lucide-react';
+import { StickyHomeworkNav } from './StickyHomeworkNav';
 import { OverviewStep } from './OverviewStep';
 import { AddTasksStep } from './AddTasksStep';
 import { PreviewStep } from './PreviewStep';
@@ -194,64 +192,43 @@ export function HomeworkCreationLayout({
   };
 
   return (
-    <div className="container mx-auto max-w-7xl py-6 px-4 space-y-6">
-      {/* Compact Header with Back Button Inline */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/dashboard/teacher/class/${classInfo.id}`}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Link>
-          </Button>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <ClipboardList className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                Create Homework
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {classInfo.className}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Task Summary Bar (only show if tasks selected) */}
-      {selectedTasks.length > 0 && (
-        <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">{flashcardCount} Flashcard{flashcardCount !== 1 ? 's' : ''}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <PuzzleIcon className="w-4 h-4 text-secondary" />
-            <span className="text-sm font-medium">{puzzleCount} Puzzle{puzzleCount !== 1 ? 's' : ''}</span>
-          </div>
-          <div className="flex items-center gap-2 ml-auto">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Est. time:</span>
-            <Badge variant="secondary">{formatTime()}</Badge>
-          </div>
-        </div>
-      )}
-
-      {/* Step Navigation */}
-      <StepNavigation
+    <>
+      {/* Sticky Navigation */}
+      <StickyHomeworkNav
         currentStep={currentStep}
-        onStepChange={onStepChange}
         canProceedFromOverview={canProceedFromOverview}
         canProceedFromAddTasks={canProceedFromAddTasks}
+        canSubmit={canSubmit}
+        isCreating={isCreating}
         selectedTasksCount={selectedTasks.length}
+        onStepChange={onStepChange}
+        onExit={onCancel}
+        onPublish={onCreateHomework}
       />
 
       {/* Main Content */}
-      <div>
+      <div className="container mx-auto max-w-7xl px-4 py-6">
+        {/* Task Summary Bar (only show if tasks selected and not in overview) */}
+        {selectedTasks.length > 0 && currentStep !== 'overview' && (
+          <div className="mb-6 flex items-center gap-4 p-3 bg-muted/50 rounded-lg border border-border">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">{flashcardCount} Flashcard{flashcardCount !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PuzzleIcon className="w-4 h-4 text-secondary" />
+              <span className="text-sm font-medium">{puzzleCount} Puzzle{puzzleCount !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Est. time:</span>
+              <Badge variant="secondary">{formatTime()}</Badge>
+            </div>
+          </div>
+        )}
+
         {renderCurrentStep()}
       </div>
-    </div>
+    </>
   );
 }

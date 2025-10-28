@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronLeft, ChevronRight, BookOpen, Puzzle, Search, SlidersHorizontal, X, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Puzzle, Search, SlidersHorizontal, X, CheckCircle2, Plus, Minus } from 'lucide-react';
 import { SelectedTasksList } from './SelectedTasksList';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -69,26 +69,47 @@ export function AddTasksStep({
   onReorderTasks,
   onClearAllTasks,
   onClearFilters,
-  onPrevious,
-  onNext,
-  canProceed,
   isTaskSelected,
 }: AddTasksStepProps) {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [selectedFlashcard, setSelectedFlashcard] = useState<Flashcard | null>(null);
+  const [selectedPuzzle, setSelectedPuzzle] = useState<PuzzleType | null>(null);
 
   const hasActiveFilters = selectedTopics.length > 0 || selectedDifficulties.length > 0;
 
+  const handleFlashcardClick = (flashcard: Flashcard) => {
+    setSelectedFlashcard(flashcard);
+    setSelectedPuzzle(null);
+  };
+
+  const handlePuzzleClick = (puzzle: PuzzleType) => {
+    setSelectedPuzzle(puzzle);
+    setSelectedFlashcard(null);
+  };
+
+  const currentDetail = selectedFlashcard || selectedPuzzle;
+  const currentDetailIsSelected = currentDetail ? isTaskSelected(currentDetail.id) : false;
+
+  const handleDetailToggle = () => {
+    if (!currentDetail) return;
+
+    if (selectedFlashcard) {
+      onTaskToggle({ id: selectedFlashcard.id, type: 'flashcard', title: selectedFlashcard.term });
+    } else if (selectedPuzzle) {
+      onTaskToggle({ id: selectedPuzzle.id, type: 'puzzle', title: selectedPuzzle.title });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Main Content - Task Library */}
+      {/* Toolbar */}
       <Card>
-        <div className="p-6">
-          {/* Header Row - Tabs and Search/Filter */}
-          <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="p-4">
+          <div className="flex items-center justify-between gap-4">
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as 'flashcards' | 'puzzles')} className="flex-1">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
+            <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as 'flashcards' | 'puzzles')}>
+              <TabsList className="grid w-full max-w-sm grid-cols-2">
                 <TabsTrigger value="flashcards" className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
                   Flashcards
@@ -137,8 +158,8 @@ export function AddTasksStep({
 
           {/* Filter Panel */}
           {isFiltersOpen && (
-            <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border">
-              <div className="flex items-center justify-between mb-4">
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+              <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold">Filter {activeTab}</h4>
                 {hasActiveFilters && (
                   <Button
@@ -196,172 +217,206 @@ export function AddTasksStep({
               )}
             </div>
           )}
-
-          {/* Table View */}
-          <Tabs value={activeTab} className="space-y-4">
-            {/* Flashcards Table */}
-            <TabsContent value="flashcards" className="mt-0">
-              {filteredFlashcards.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="max-h-[500px] overflow-y-auto">
-                    <table className="w-full">
-                      <thead className="bg-muted/50 sticky top-0">
-                        <tr className="border-b">
-                          <th className="w-12 p-3 text-left">
-                            <div className="flex items-center justify-center">
-                              <span className="text-xs font-medium text-muted-foreground">Select</span>
-                            </div>
-                          </th>
-                          <th className="p-3 text-left">
-                            <span className="text-xs font-medium text-muted-foreground">Term</span>
-                          </th>
-                          <th className="p-3 text-left">
-                            <span className="text-xs font-medium text-muted-foreground">Definition</span>
-                          </th>
-                          <th className="p-3 text-left">
-                            <span className="text-xs font-medium text-muted-foreground">Topic</span>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredFlashcards.map((flashcard) => {
-                          const selected = isTaskSelected(flashcard.id);
-                          return (
-                            <tr
-                              key={flashcard.id}
-                              className={cn(
-                                "border-b hover:bg-muted/30 transition-colors cursor-pointer",
-                                selected && "bg-primary/5"
-                              )}
-                              onClick={() => onTaskToggle({ id: flashcard.id, type: 'flashcard', title: flashcard.term })}
-                            >
-                              <td className="p-3">
-                                <div className="flex items-center justify-center">
-                                  <Checkbox
-                                    checked={selected}
-                                    onCheckedChange={() => onTaskToggle({ id: flashcard.id, type: 'flashcard', title: flashcard.term })}
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                </div>
-                              </td>
-                              <td className="p-3">
-                                <span className="font-medium text-sm">{flashcard.term}</span>
-                              </td>
-                              <td className="p-3">
-                                <span className="text-sm text-muted-foreground line-clamp-2">{flashcard.definition}</span>
-                              </td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="secondary" className="text-xs">
-                                    {flashcard.topic}
-                                  </Badge>
-                                  {flashcard.subTopic && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {flashcard.subTopic}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ) : (
-                <EmptyState
-                  type="flashcards"
-                  hasSearchQuery={searchQuery.length > 0}
-                  hasFilters={selectedTopics.length > 0}
-                  onClearFilters={onClearFilters}
-                />
-              )}
-            </TabsContent>
-
-            {/* Puzzles Table */}
-            <TabsContent value="puzzles" className="mt-0">
-              {filteredPuzzles.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="max-h-[500px] overflow-y-auto">
-                    <table className="w-full">
-                      <thead className="bg-muted/50 sticky top-0">
-                        <tr className="border-b">
-                          <th className="w-12 p-3 text-left">
-                            <div className="flex items-center justify-center">
-                              <span className="text-xs font-medium text-muted-foreground">Select</span>
-                            </div>
-                          </th>
-                          <th className="p-3 text-left">
-                            <span className="text-xs font-medium text-muted-foreground">Level</span>
-                          </th>
-                          <th className="p-3 text-left">
-                            <span className="text-xs font-medium text-muted-foreground">Title</span>
-                          </th>
-                          <th className="p-3 text-left">
-                            <span className="text-xs font-medium text-muted-foreground">Description</span>
-                          </th>
-                          <th className="p-3 text-left">
-                            <span className="text-xs font-medium text-muted-foreground">Section</span>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredPuzzles.map((puzzle) => {
-                          const selected = isTaskSelected(puzzle.id);
-                          return (
-                            <tr
-                              key={puzzle.id}
-                              className={cn(
-                                "border-b hover:bg-muted/30 transition-colors cursor-pointer",
-                                selected && "bg-primary/5"
-                              )}
-                              onClick={() => onTaskToggle({ id: puzzle.id, type: 'puzzle', title: puzzle.title })}
-                            >
-                              <td className="p-3">
-                                <div className="flex items-center justify-center">
-                                  <Checkbox
-                                    checked={selected}
-                                    onCheckedChange={() => onTaskToggle({ id: puzzle.id, type: 'puzzle', title: puzzle.title })}
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                </div>
-                              </td>
-                              <td className="p-3">
-                                <Badge variant="default" className="text-xs">
-                                  Level {puzzle.challengeLevel}
-                                </Badge>
-                              </td>
-                              <td className="p-3">
-                                <span className="font-medium text-sm">{puzzle.title}</span>
-                              </td>
-                              <td className="p-3">
-                                <span className="text-sm text-muted-foreground line-clamp-2">{puzzle.description}</span>
-                              </td>
-                              <td className="p-3">
-                                <Badge variant="outline" className="text-xs">
-                                  {puzzle.skillSection}
-                                </Badge>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ) : (
-                <EmptyState
-                  type="puzzles"
-                  hasSearchQuery={searchQuery.length > 0}
-                  hasFilters={selectedDifficulties.length > 0}
-                  onClearFilters={onClearFilters}
-                />
-              )}
-            </TabsContent>
-          </Tabs>
         </div>
       </Card>
+
+      {/* Split View - List and Detail */}
+      <div className="grid grid-cols-2 gap-6">
+        {/* Left Panel - Compact List */}
+        <Card className="h-[600px] flex flex-col">
+          <div className="flex-1 overflow-hidden">
+            <Tabs value={activeTab} className="h-full flex flex-col">
+              {/* Flashcards List */}
+              <TabsContent value="flashcards" className="flex-1 m-0">
+                <div className="h-full overflow-y-auto">
+                  {filteredFlashcards.length > 0 ? (
+                    <div className="divide-y">
+                      {filteredFlashcards.map((flashcard) => {
+                        const selected = isTaskSelected(flashcard.id);
+                        const isActive = selectedFlashcard?.id === flashcard.id;
+                        return (
+                          <div
+                            key={flashcard.id}
+                            className={cn(
+                              "p-3 hover:bg-muted/30 transition-colors cursor-pointer",
+                              selected && "bg-primary/5",
+                              isActive && "bg-muted/50"
+                            )}
+                            onClick={() => handleFlashcardClick(flashcard)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                checked={selected}
+                                onCheckedChange={() => onTaskToggle({ id: flashcard.id, type: 'flashcard', title: flashcard.term })}
+                                onClick={(e) => e.stopPropagation()}
+                                className="mt-1"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm line-clamp-1">{flashcard.term}</p>
+                                <Badge variant="secondary" className="text-xs mt-1">
+                                  {flashcard.topic}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <EmptyState type="flashcards" hasSearchQuery={searchQuery.length > 0} hasFilters={selectedTopics.length > 0} onClearFilters={onClearFilters} />
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Puzzles List */}
+              <TabsContent value="puzzles" className="flex-1 m-0">
+                <div className="h-full overflow-y-auto">
+                  {filteredPuzzles.length > 0 ? (
+                    <div className="divide-y">
+                      {filteredPuzzles.map((puzzle) => {
+                        const selected = isTaskSelected(puzzle.id);
+                        const isActive = selectedPuzzle?.id === puzzle.id;
+                        return (
+                          <div
+                            key={puzzle.id}
+                            className={cn(
+                              "p-3 hover:bg-muted/30 transition-colors cursor-pointer",
+                              selected && "bg-primary/5",
+                              isActive && "bg-muted/50"
+                            )}
+                            onClick={() => handlePuzzleClick(puzzle)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                checked={selected}
+                                onCheckedChange={() => onTaskToggle({ id: puzzle.id, type: 'puzzle', title: puzzle.title })}
+                                onClick={(e) => e.stopPropagation()}
+                                className="mt-1"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant="default" className="text-xs">
+                                    Level {puzzle.challengeLevel}
+                                  </Badge>
+                                </div>
+                                <p className="font-medium text-sm line-clamp-1">{puzzle.title}</p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <EmptyState type="puzzles" hasSearchQuery={searchQuery.length > 0} hasFilters={selectedDifficulties.length > 0} onClearFilters={onClearFilters} />
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </Card>
+
+        {/* Right Panel - Detail View */}
+        <Card className="h-[600px] flex flex-col">
+          {currentDetail ? (
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-y-auto p-6">
+                {selectedFlashcard && (
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-2">{selectedFlashcard.term}</h3>
+                        <div className="flex items-center gap-2 mb-4">
+                          <Badge variant="secondary">{selectedFlashcard.topic}</Badge>
+                          {selectedFlashcard.subTopic && (
+                            <Badge variant="outline">{selectedFlashcard.subTopic}</Badge>
+                          )}
+                        </div>
+                      </div>
+                      <BookOpen className="w-6 h-6 text-primary" />
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-semibold text-muted-foreground mb-2">Definition</h4>
+                      <p className="text-sm">{selectedFlashcard.definition}</p>
+                    </div>
+
+                    {selectedFlashcard.hint && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground mb-2">Hint</h4>
+                        <p className="text-sm text-muted-foreground">{selectedFlashcard.hint}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedPuzzle && (
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-2">{selectedPuzzle.title}</h3>
+                        <div className="flex items-center gap-2 mb-4">
+                          <Badge variant="default">Level {selectedPuzzle.challengeLevel}</Badge>
+                          <Badge variant="outline">{selectedPuzzle.skillSection}</Badge>
+                        </div>
+                      </div>
+                      <Puzzle className="w-6 h-6 text-secondary" />
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-semibold text-muted-foreground mb-2">Description</h4>
+                      <p className="text-sm">{selectedPuzzle.description}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-semibold text-muted-foreground mb-2">Details</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedPuzzle.initialBlocks?.length || 0} blocks to arrange
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Button */}
+              <div className="border-t p-4">
+                <Button
+                  onClick={handleDetailToggle}
+                  className="w-full"
+                  variant={currentDetailIsSelected ? "destructive" : "default"}
+                >
+                  {currentDetailIsSelected ? (
+                    <>
+                      <Minus className="w-4 h-4 mr-2" />
+                      Remove from Homework
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add to Homework
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-center p-8">
+              <div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                  {activeTab === 'flashcards' ? (
+                    <BookOpen className="w-8 h-8 text-muted-foreground" />
+                  ) : (
+                    <Puzzle className="w-8 h-8 text-muted-foreground" />
+                  )}
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No {activeTab === 'flashcards' ? 'flashcard' : 'puzzle'} selected</h3>
+                <p className="text-sm text-muted-foreground">
+                  Click on a {activeTab === 'flashcards' ? 'flashcard' : 'puzzle'} to view details
+                </p>
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
 
       {/* Selected Tasks */}
       {selectedTasks.length > 0 && (
@@ -372,36 +427,6 @@ export function AddTasksStep({
           onClearAll={onClearAllTasks}
         />
       )}
-
-      {/* Navigation */}
-      <Card>
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <Button variant="outline" onClick={onPrevious} className="flex items-center gap-2">
-              <ChevronLeft className="w-4 h-4" />
-              Back
-            </Button>
-
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                {canProceed
-                  ? `${selectedTasks.length} task${selectedTasks.length !== 1 ? 's' : ''} selected`
-                  : "Select at least one task to continue"
-                }
-              </p>
-            </div>
-
-            <Button
-              onClick={onNext}
-              disabled={!canProceed}
-              className="flex items-center gap-2"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }
@@ -418,7 +443,7 @@ function EmptyState({ type, hasSearchQuery, hasFilters, onClearFilters }: EmptyS
   const Icon = icon;
 
   return (
-    <div className="text-center py-16 border rounded-lg bg-muted/20">
+    <div className="text-center py-16 px-4">
       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
         <Icon className="w-8 h-8 text-muted-foreground" />
       </div>
@@ -427,7 +452,7 @@ function EmptyState({ type, hasSearchQuery, hasFilters, onClearFilters }: EmptyS
         <>
           <h3 className="text-lg font-semibold mb-2">No {type} found</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Try adjusting your search or filters to find more {type}.
+            Try adjusting your search or filters
           </p>
           <Button
             variant="outline"
