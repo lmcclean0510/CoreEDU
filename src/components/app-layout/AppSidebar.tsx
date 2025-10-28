@@ -93,11 +93,35 @@ export function AppSidebar() {
     return item.roles.includes(user.role);
   };
 
+  const normalize = (value: string) => {
+    if (value === '/') return value;
+    return value.replace(/\/+$/, '') || '/';
+  };
+
+  const normalizedPath = normalize(pathname);
+
   const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/dashboard/student' || pathname === '/dashboard/teacher' || pathname === '/dashboard';
+    const normalizedHref = normalize(href);
+
+    if (normalizedHref === '/dashboard') {
+      return normalizedPath === '/dashboard' || normalizedPath === '/dashboard/student';
     }
-    return pathname.startsWith(href);
+
+    if (normalizedPath === normalizedHref) {
+      return true;
+    }
+
+    if (!normalizedPath.startsWith(`${normalizedHref}/`)) {
+      return false;
+    }
+
+    const hasMoreSpecificMatch = navItems.some((item) => {
+      if (item.href === href) return false;
+      const candidate = normalize(item.href);
+      return candidate.length > normalizedHref.length && normalizedPath.startsWith(candidate);
+    });
+
+    return !hasMoreSpecificMatch;
   };
 
   return (
