@@ -62,105 +62,116 @@ export function OverviewStep({
         </p>
       </div>
 
-      {/* Class Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Assignment Target</CardTitle>
-          <CardDescription>
-            This homework will be assigned to the following class
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <BookOpen className="w-4 h-4 text-primary" />
-                <h3 className="font-semibold">{classInfo.className}</h3>
+      {/* Two Column Layout - Assignment Target (smaller) & Homework Details (larger) */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left Column - Assignment Target (4 columns) */}
+        <div className="col-span-4">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="text-lg">Assignment Target</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm">{classInfo.className}</h3>
+                      <p className="text-xs text-muted-foreground">{classInfo.subject}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{students.length} students</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">{classInfo.subject}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-muted-foreground" />
-              <Badge variant="outline">{students.length} students</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Homework Details Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Homework Details</CardTitle>
-          <CardDescription>
-            Provide the essential information for this assignment
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Title */}
-          <div className="space-y-2">
-            <Label htmlFor="homework-title" className="text-sm font-medium">
-              Homework Title *
-            </Label>
-            <Input
-              id="homework-title"
-              placeholder="e.g., CPU & Memory Systems Revision"
-              value={title}
-              onChange={(e) => onTitleChange(e.target.value)}
-              className="text-base"
-            />
-            <p className="text-xs text-muted-foreground">
-              Give your homework a clear, descriptive title that students will see
-            </p>
-          </div>
+        {/* Right Column - Homework Details (8 columns) */}
+        <div className="col-span-8">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="text-lg">Homework Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Title */}
+              <div className="space-y-2">
+                <Label htmlFor="homework-title" className="text-sm font-medium">
+                  Homework Title *
+                </Label>
+                <Input
+                  id="homework-title"
+                  placeholder="e.g., CPU & Memory Systems Revision"
+                  value={title}
+                  onChange={(e) => onTitleChange(e.target.value)}
+                  className="text-base"
+                />
+              </div>
 
-          {/* Instructions */}
-          <div className="space-y-2">
-            <Label htmlFor="homework-instructions" className="text-sm font-medium">
-              Instructions <span className="text-muted-foreground">(Optional)</span>
-            </Label>
-            <Textarea
-              id="homework-instructions"
-              placeholder="Add any specific instructions or context for this homework..."
-              value={instructions}
-              onChange={(e) => onInstructionsChange(e.target.value)}
-              rows={4}
-              className="resize-none"
-            />
-            <p className="text-xs text-muted-foreground">
-              Provide additional context or specific instructions for students
-            </p>
-          </div>
+              {/* Instructions */}
+              <div className="space-y-2">
+                <Label htmlFor="homework-instructions" className="text-sm font-medium">
+                  Instructions <span className="text-muted-foreground font-normal">(Optional)</span>
+                </Label>
+                <Textarea
+                  id="homework-instructions"
+                  placeholder="Add any specific instructions or context for this homework..."
+                  value={instructions}
+                  onChange={(e) => onInstructionsChange(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
+              </div>
 
-          {/* Due Date - Now Enabled */}
-          <div className="space-y-2">
-            <Label htmlFor="homework-due-date" className="text-sm font-medium">
-              Due Date <span className="text-muted-foreground">(Optional)</span>
-            </Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                id="homework-due-date"
-                type="date"
-                value={dueDate}
-                onChange={(e) => onDueDateChange(e.target.value)}
-                min={getTodayDate()}
-                className="pl-10"
-              />
-            </div>
-            {isDueDateInPast && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Due date cannot be in the past. Please select today or a future date.
-                </AlertDescription>
-              </Alert>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Set when students should complete this homework (optional)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+              {/* Due Date - Improved Styling */}
+              <div className="space-y-2">
+                <Label htmlFor="homework-due-date" className="text-sm font-medium">
+                  Due Date <span className="text-muted-foreground font-normal">(Optional)</span>
+                </Label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10 pointer-events-none">
+                    <Calendar className="text-muted-foreground w-4 h-4" />
+                  </div>
+                  <Input
+                    id="homework-due-date"
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => onDueDateChange(e.target.value)}
+                    min={getTodayDate()}
+                    className="pl-10 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:left-0"
+                  />
+                </div>
+                {isDueDateInPast && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Due date cannot be in the past. Please select today or a future date.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {dueDate && isDueDateValid && (
+                  <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-md border border-primary/20">
+                    <Calendar className="w-3 h-3 text-primary" />
+                    <p className="text-xs text-primary font-medium">
+                      Due: {new Date(dueDate).toLocaleDateString('en-GB', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Summary Card */}
       <Card>

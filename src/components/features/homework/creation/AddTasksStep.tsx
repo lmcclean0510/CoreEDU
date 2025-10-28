@@ -223,8 +223,8 @@ export function AddTasksStep({
       {/* Split View - List and Detail */}
       <div className="grid grid-cols-2 gap-6">
         {/* Left Panel - Compact List */}
-        <Card className="h-[600px] flex flex-col">
-          <div className="flex-1 overflow-hidden">
+        <Card className="h-[600px] flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
             <Tabs value={activeTab} className="h-full flex flex-col">
               {/* Flashcards List */}
               <TabsContent value="flashcards" className="flex-1 m-0">
@@ -316,7 +316,7 @@ export function AddTasksStep({
         </Card>
 
         {/* Right Panel - Detail View */}
-        <Card className="h-[600px] flex flex-col">
+        <Card className="h-[400px] flex flex-col">
           {currentDetail ? (
             <div className="flex flex-col h-full">
               <div className="flex-1 overflow-y-auto p-6">

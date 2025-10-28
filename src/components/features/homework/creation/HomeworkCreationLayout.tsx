@@ -208,25 +208,6 @@ export function HomeworkCreationLayout({
 
       {/* Main Content */}
       <div className="container mx-auto max-w-7xl px-4 py-6">
-        {/* Task Summary Bar (only show if tasks selected and not in overview) */}
-        {selectedTasks.length > 0 && currentStep !== 'overview' && (
-          <div className="mb-6 flex items-center gap-4 p-3 bg-muted/50 rounded-lg border border-border">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">{flashcardCount} Flashcard{flashcardCount !== 1 ? 's' : ''}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <PuzzleIcon className="w-4 h-4 text-secondary" />
-              <span className="text-sm font-medium">{puzzleCount} Puzzle{puzzleCount !== 1 ? 's' : ''}</span>
-            </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Est. time:</span>
-              <Badge variant="secondary">{formatTime()}</Badge>
-            </div>
-          </div>
-        )}
-
         {renderCurrentStep()}
       </div>
     </>
