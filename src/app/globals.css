@@ -72,3 +72,21 @@
     -moz-appearance: textfield;
   }
 }
+
+@layer utilities {
+  @keyframes cardPulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.15);
+    }
+    70% {
+      box-shadow: 0 0 0 12px rgba(20, 184, 166, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(20, 184, 166, 0);
+    }
+  }
+
+  .animate-cardPulse {
+    animation: cardPulse 1.6s ease-out infinite;
+  }
+}
