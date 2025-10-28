@@ -2,13 +2,28 @@
 
 "use client";
 
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/providers/UserProvider';
 import { useFlashcardData } from '@/hooks/flashcard/use-flashcard-data';
-import { FlashCardClient } from '@/components/features/flashcards/flashcard-client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, LoaderCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+
+// Dynamically import the heavy FlashCardClient component
+// This reduces initial bundle size and only loads when flashcards are ready
+const FlashCardClient = dynamic(
+  () => import('@/components/features/flashcards/flashcard-client').then(mod => ({ default: mod.FlashCardClient })),
+  {
+    loading: () => (
+      <div className="flex flex-1 items-center justify-center">
+        <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
 // Protected via /corecs server layout
 
 function FlashCardsPageContent() {
