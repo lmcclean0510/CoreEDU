@@ -18,6 +18,9 @@ const SeatingPlanTool = dynamic(() => import('./SeatingPlanTool'), {
 });
 
 export default function SeatingPlanPage() {
+  // Protected by server-side layout (../layout.tsx)
+  // Only teachers can reach this page
+
   return (
     <div className="absolute inset-0">
       <SeatingPlanTool />

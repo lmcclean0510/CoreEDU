@@ -4,10 +4,13 @@ import { Grid3X3, Calculator, FileText, ClipboardList } from 'lucide-react';
 import { ActivityCard, ContentSection } from '@/components/shared/content';
 
 export default function CoreToolsPage() {
+  // Protected by server-side layout (layout.tsx)
+  // Only teachers can reach this page
+
   return (
     <div className="space-y-8">
       {/* Classroom Tools */}
-      <ContentSection 
+      <ContentSection
         title="Classroom Management"
         description="Tools to help organize and manage your classroom"
       >
@@ -40,7 +43,7 @@ export default function CoreToolsPage() {
       </ContentSection>
 
       {/* Productivity Tools */}
-      <ContentSection 
+      <ContentSection
         title="Productivity"
         description="Save time with these helpful utilities"
       >

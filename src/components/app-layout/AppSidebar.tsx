@@ -60,6 +60,7 @@ const navItems: NavItem[] = [
     title: 'CoreTools',
     href: '/coretools',
     icon: Grid3X3,
+    roles: ['teacher'], // Only teachers can access classroom management tools
   },
 ];
 
