@@ -19,16 +19,12 @@ export default function CoreToolsPage() {
           description="Create optimized classroom seating arrangements with intelligent conflict resolution and flexible layouts"
           href="/coretools/seating-plan"
           icon={Grid3X3}
-          badge="Available"
-          badgeVariant="default"
         />
         <ActivityCard
           title="Grade Calculator"
           description="Quickly calculate final grades with weighted assignments and customizable grading scales"
           href="/coretools/grade-calculator"
           icon={Calculator}
-          badge="Coming Soon"
-          badgeVariant="secondary"
           disabled={true}
         />
         <ActivityCard
@@ -36,8 +32,6 @@ export default function CoreToolsPage() {
           description="Track student attendance with easy visualization and reporting features"
           href="/coretools/attendance"
           icon={ClipboardList}
-          badge="Coming Soon"
-          badgeVariant="secondary"
           disabled={true}
         />
       </ContentSection>
@@ -52,8 +46,6 @@ export default function CoreToolsPage() {
           description="Generate student reports with templates and customizable comments"
           href="/coretools/reports"
           icon={FileText}
-          badge="Coming Soon"
-          badgeVariant="secondary"
           disabled={true}
         />
       </ContentSection>

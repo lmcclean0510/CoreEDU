@@ -28,16 +28,12 @@ export default function CoreLabsPage() {
             description="Hone your mouse accuracy, tracking, and control with a series of targeted challenges"
             href="/corelabs/mouse-skills"
             icon={MousePointerClick}
-            badge="Available"
-            badgeVariant="default"
           />
           <ActivityCard
             title="Keyboard Ninja"
             description="Memorize important keyboard shortcuts by slicing them before they fall off screen"
             href="/corelabs/keyboard-ninja"
             icon={Keyboard}
-            badge="Available"
-            badgeVariant="default"
           />
         </ContentSection>
       )}
@@ -52,8 +48,6 @@ export default function CoreLabsPage() {
           description="Convert falling binary numbers to denary before the stack overflows! Fast-paced conversion challenge"
           href="/corelabs/binary-game"
           icon={Gamepad2}
-          badge="Popular"
-          badgeVariant="default"
         />
         <ActivityCard
           title="Binary Builder"

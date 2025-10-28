@@ -171,8 +171,6 @@ export default function StudentDashboardPage() {
             description="Enter a class code to join your teacher's class"
             href="#"
             icon={UserPlus}
-            badge="Available"
-            badgeVariant="default"
           />
         </div>
         <ActivityCard
@@ -180,8 +178,6 @@ export default function StudentDashboardPage() {
           description="Practice Python & algorithms"
           href="/corecs"
           icon={BookOpen}
-          badge="Popular"
-          badgeVariant="default"
         />
         <ActivityCard
           title="CoreLabs"

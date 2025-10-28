@@ -16,8 +16,6 @@ export default function CoreCSPage() {
           description="Interactive puzzles and challenges to build programming foundations for KS3 and GCSE"
           href="/corecs/python"
           icon={Code}
-          badge="Popular"
-          badgeVariant="default"
         />
         <ActivityCard
           title="Binary Conversion"
@@ -43,24 +41,18 @@ export default function CoreCSPage() {
           description="Review key terms and concepts with interactive flashcards organized by topic"
           href="/corecs/gcse/flashcards"
           icon={Layers}
-          badge="Available"
-          badgeVariant="secondary"
         />
         <ActivityCard
           title="Concept Detective"
           description="Recognize key concepts in different scenarios to build transfer learning skills"
           href="/corecs/concept-detective"
           icon={Brain}
-          badge="New!"
-          badgeVariant="default"
         />
         <ActivityCard
           title="Quick Quiz"
           description="Test your knowledge with quick quizzes on various computer science topics"
           href="/corecs/quick-quiz"
           icon={BookOpen}
-          badge="Coming Soon"
-          badgeVariant="secondary"
           disabled={true}
         />
       </ContentSection>

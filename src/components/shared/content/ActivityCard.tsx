@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ArrowRight, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,8 +9,6 @@ export interface ActivityCardProps {
   description: string;
   href: string;
   icon: LucideIcon;
-  badge?: string;
-  badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
   iconColor?: string;
   disabled?: boolean;
 }
@@ -21,8 +18,6 @@ export function ActivityCard({
   description,
   href,
   icon: Icon,
-  badge,
-  badgeVariant = 'default',
   iconColor = 'text-primary',
   disabled = false,
 }: ActivityCardProps) {
@@ -41,11 +36,6 @@ export function ActivityCard({
           )}>
             <Icon className={cn("h-6 w-6", disabled ? "text-muted-foreground" : iconColor)} />
           </div>
-          {badge && (
-            <Badge variant={badgeVariant} className="text-xs">
-              {badge}
-            </Badge>
-          )}
         </div>
         <div>
           <CardTitle className="text-lg">{title}</CardTitle>
