@@ -83,16 +83,6 @@ export default function TeacherDashboardPage() {
 
   return (
     <div className="container mx-auto max-w-7xl py-8 px-4 space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/70">
-          Teacher overview
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Manage your classes, timetable, and student requests from one place.
-        </p>
-      </div>
-
       {/* Weekly Timetable */}
       <WeeklyTimetable classes={classes} />
 
