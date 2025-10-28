@@ -9,9 +9,21 @@ const pageRateLimit = rateLimit({
   maxAttempts: 100, // 100 requests per minute per IP
 });
 
+const getClientIp = (req: NextRequest) => {
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0]?.trim() || 'unknown';
+  }
+  const realIp = req.headers.get('x-real-ip');
+  if (realIp) {
+    return realIp;
+  }
+  return 'unknown';
+};
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const clientIp = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+  const clientIp = getClientIp(request);
   
   // Apply rate limiting to all requests
   const rateLimitResult = await pageRateLimit.check(clientIp);

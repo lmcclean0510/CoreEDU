@@ -109,7 +109,7 @@ export const puzzleSchema = z.object({
 export const flashcardRatingSchema = z.object({
   userId: z.string().min(1),
   flashcardId: z.string().min(1),
-  confidence: z.enum([1, 2, 3]).nullable().optional(),
+  confidence: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable().optional(),
   correct: z.number().int().min(0).optional(),
   incorrect: z.number().int().min(0).optional(),
   totalAttempts: z.number().int().min(0).optional(),

@@ -144,10 +144,23 @@ const signupMessages = [
 ];
 
 // Password strength indicator
+type PasswordStrengthLevel = 'weak' | 'medium' | 'strong';
+type PasswordStrengthChecks = {
+  length: boolean;
+  lowercase: boolean;
+  uppercase: boolean;
+  number: boolean;
+  special: boolean;
+};
+
 const PasswordStrengthIndicator = ({ password }: { password: string }) => {
-  const getStrength = (pwd: string) => {
+  const getStrength = (pwd: string): {
+    score: number;
+    checks: PasswordStrengthChecks;
+    level: PasswordStrengthLevel;
+  } => {
     let score = 0;
-    const checks = {
+    const checks: PasswordStrengthChecks = {
       length: pwd.length >= 8,
       lowercase: /[a-z]/.test(pwd),
       uppercase: /[A-Z]/.test(pwd),
@@ -167,7 +180,7 @@ const PasswordStrengthIndicator = ({ password }: { password: string }) => {
   if (!password) return null;
 
   const strength = getStrength(password);
-  const colors = {
+  const colors: Record<PasswordStrengthLevel, string> = {
     weak: 'bg-destructive',
     medium: 'bg-yellow-500',
     strong: 'bg-success'

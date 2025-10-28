@@ -183,7 +183,7 @@ export default function AccountPage() {
 
     setIsUpdatingPassword(true);
     try {
-      await updatePassword(user, newPassword);
+      await updatePassword(user.firebaseUser, newPassword);
       setNewPassword('');
       setConfirmPassword('');
       toast({

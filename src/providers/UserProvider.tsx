@@ -6,7 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import type { UserProfile } from '@/lib/types';
 
-type AppUser = UserProfile & {
+export type AppUser = UserProfile & {
   firebaseUser: User;
   isAdmin: boolean;
 };
@@ -72,15 +72,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           
           if (userDoc.exists()) {
             const profileData = userDoc.data() as Omit<UserProfile, 'uid'>;
+            const {
+              email: profileEmail,
+              photoURL: profilePhotoURL,
+              ...restProfile
+            } = profileData;
+
             const appUser: AppUser = {
               uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              photoURL: firebaseUser.photoURL,
-              ...profileData,
+              email: profileEmail ?? firebaseUser.email,
+              photoURL: profilePhotoURL ?? firebaseUser.photoURL,
+              ...restProfile,
               firebaseUser,
               isAdmin: adminClaim,
             };
-            
+
             setUser(appUser);
           } else {
             setIsAdmin(false);

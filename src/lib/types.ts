@@ -6,6 +6,9 @@ export type UserProfile = {
   firstName: string | null;
   lastName: string | null;
   photoURL: string | null;
+  avatarBgColor?: string | null;
+  avatarOutlineColor?: string | null;
+  avatarTextColor?: string | null;
   role: 'student' | 'teacher' | null;
   schoolId: string | null;
   corebinStats?: CorebinStats;
@@ -160,3 +163,5 @@ export interface ConfidenceMapping {
   value: ConfidenceLevel;
   icon: React.ReactNode;
 }
+
+export type { Timestamp };

@@ -36,9 +36,11 @@ export function useContentSearch<T extends SearchableItem>(
       });
 
       // Filter logic - check if item matches the selected filter
-      const matchesFilter = !config.filterField || 
-                           filterValue === 'all' || 
-                           item[config.filterField] === filterValue;
+      const filterField = config.filterField;
+      const matchesFilter =
+        !filterField ||
+        filterValue === 'all' ||
+        item[filterField] === filterValue;
 
       return (searchTerm === '' || matchesSearch) && matchesFilter;
     });
@@ -52,9 +54,10 @@ export function useContentSearch<T extends SearchableItem>(
 
   // Get unique filter options from the items
   const getFilterOptions = () => {
-    if (!config.filterField) return [];
-    
-    const uniqueValues = [...new Set(items.map(item => item[config.filterField] as string))];
+    const filterField = config.filterField;
+    if (!filterField) return [];
+
+    const uniqueValues = [...new Set(items.map(item => item[filterField] as string))];
     return uniqueValues.filter(Boolean).sort();
   };
 

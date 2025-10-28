@@ -50,7 +50,7 @@ export function useJoinRequests(teacherClassIds: string[] = []) {
   const quickCheck = useCallback(async (classIds: string[]) => {
     if (classIds.length === 0) return 0;
 
-    window.firestoreMonitor?.logRead('Quick join requests count check');
+    window.firestoreMonitor?.logRead?.('Quick join requests count check');
     
     const quickQuery = query(
       collection(db, 'classJoinRequests'),
@@ -64,7 +64,7 @@ export function useJoinRequests(teacherClassIds: string[] = []) {
 
   // Full fetch with student details (when we know requests exist)
   const fullFetch = useCallback(async (classIds: string[]) => {
-    window.firestoreMonitor?.logRead('Full join requests fetch with details');
+    window.firestoreMonitor?.logRead?.('Full join requests fetch with details');
     
     const requestsQuery = query(
       collection(db, 'classJoinRequests'),
@@ -75,16 +75,16 @@ export function useJoinRequests(teacherClassIds: string[] = []) {
     const snapshot = await getDocs(requestsQuery);
     
     // Map requests with basic info (you can enhance this later with real student data)
-    const requests = snapshot.docs.map(doc => {
-      const data = doc.data() as ClassJoinRequest;
+    const requests = snapshot.docs.map(document => {
+      const { id: _ignored, ...requestData } = document.data() as ClassJoinRequest;
       return {
-        id: doc.id,
-        ...data,
+        id: document.id,
+        ...requestData,
         studentInfo: {
-          name: `Student ${data.studentId.slice(-4)}`, // Better placeholder
-          email: `student${data.studentId.slice(-4)}@school.edu`
+          name: `Student ${requestData.studentId.slice(-4)}`, // Better placeholder
+          email: `student${requestData.studentId.slice(-4)}@school.edu`
         },
-        className: `Class ${data.classId.slice(-4)}`
+        className: `Class ${requestData.classId.slice(-4)}`
       };
     });
 
@@ -228,7 +228,7 @@ export function useJoinRequests(teacherClassIds: string[] = []) {
   }, [state.cooldownEndsAt]);
 
   // Check if we have cached data
-  const hasCachedData = state.lastChecked && (Date.now() - state.lastChecked) < 60000;
+  const hasCachedData = !!(state.lastChecked && (Date.now() - state.lastChecked) < 60000);
 
   return {
     // State

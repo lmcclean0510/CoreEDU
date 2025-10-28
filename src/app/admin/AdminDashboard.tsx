@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { LoaderCircle, BookOpen, Puzzle, BarChart3, Plus } from 'lucide-react';
+import { LoaderCircle, BookOpen, Puzzle as PuzzleIcon, BarChart3, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
   };
 
   const handleLoadAnalytics = () => {
-    const toLoad = [];
+    const toLoad: Array<'flashcards' | 'puzzles'> = [];
     if (!loadedTabs.has('flashcards')) {
       toLoad.push('flashcards');
       loadFlashcards();
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
             ) : (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center space-y-4">
-                  <Puzzle className="w-12 h-12 mx-auto text-muted-foreground" />
+                  <PuzzleIcon className="w-12 h-12 mx-auto text-muted-foreground" />
                   <div>
                     <h3 className="text-lg font-medium mb-2">Puzzle Management</h3>
                     <p className="text-muted-foreground mb-4">
@@ -257,7 +257,7 @@ export default function AdminDashboard() {
                     </p>
                     <div className="flex gap-2 justify-center">
                       <Button onClick={handleLoadPuzzles}>
-                        <Puzzle className="w-4 h-4 mr-2" />
+                        <PuzzleIcon className="w-4 h-4 mr-2" />
                         Load Puzzles
                       </Button>
                       <Button variant="outline" onClick={() => setIsPuzzleDialogOpen(true)}>

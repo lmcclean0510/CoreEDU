@@ -1,7 +1,9 @@
 "use client";
 
-import { LoaderCircle, Plus, Users } from 'lucide-react';
+import Link from 'next/link';
+import { LoaderCircle, Plus, Users, ClipboardList } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/UserProvider';
 import { useTeacherClasses } from '@/hooks/teacher/use-teacher-classes';
 import { useJoinRequests } from '@/hooks/teacher/use-join-requests';
@@ -84,13 +86,21 @@ export default function TeacherDashboardPage() {
   return (
     <div className="container mx-auto max-w-7xl py-8 px-4 space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tighter text-foreground">
-          Teacher Dashboard
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your classes and student requests
-        </p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tighter text-foreground">
+            Teacher Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your classes and student requests
+          </p>
+        </div>
+        <Button asChild variant="secondary" className="gap-2">
+          <Link href="/dashboard/teacher/homeworks">
+            <ClipboardList className="h-4 w-4" />
+            Homework overview
+          </Link>
+        </Button>
       </div>
 
       {/* Weekly Timetable */}

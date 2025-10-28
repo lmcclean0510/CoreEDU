@@ -1,7 +1,5 @@
-
 "use client";
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
@@ -29,8 +27,8 @@ import {
 } from "@/components/ui/tooltip";
 import { LogIn, LogOut, User as UserIcon, LayoutDashboard } from 'lucide-react';
 import { useToast } from '@/hooks/shared/use-toast';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/UserProvider';
+
 export function UserNav() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -53,30 +51,10 @@ export function UserNav() {
       });
     }
   };
-
-  const getProfileFromAppUser = (appUser: AppUser) => {
-    if (!appUser) return null;
-    // The AppUser object from useAuth now contains all the profile info we need.
-    // However, the structure of the `profile` state in this component was slightly different.
-    // We will adapt to the new structure provided by `useAuth`.
-    // The AppUser contains `photoURL`, `firstName`, etc., directly if we fetch it.
-    // My new `useAuth` hook merges the firebase auth user with the firestore user document.
-    // Let's assume `user` from `useAuth` has firstName, lastName, etc.
-    // The AppUser type needs to be defined in useAuth and exported.
-    return {
-        firstName: (user as any).firstName || null,
-        lastName: (user as any).lastName || null,
-        photoURL: user.photoURL || null,
-        avatarBgColor: (user as any).avatarBgColor || null,
-        avatarOutlineColor: (user as any).avatarOutlineColor || null,
-        avatarTextColor: (user as any).avatarTextColor || null,
-        role: user.role || null,
-    };
-  }
-  
-  const profile = user ? getProfileFromAppUser(user) : null;
-  const initials = ((user as any)?.firstName?.[0] || '' + (user as any)?.lastName?.[0] || '').toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'U';
-
+  const initials =
+    `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.trim().toUpperCase() ||
+    user?.email?.slice(0, 2)?.toUpperCase() ||
+    'U';
 
   if (isLoading) {
     return <div className="w-28 h-10 bg-muted rounded-full animate-pulse" />;
@@ -106,20 +84,20 @@ export function UserNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-auto px-2 py-1 flex items-center gap-3 rounded-full hover:bg-muted/50">
-           {(user as any).firstName && (
+          {user?.firstName && (
             <span className="text-sm font-medium text-muted-foreground">
-              {(user as any).firstName}
+              {user.firstName}
             </span>
           )}
           <Avatar 
             className="h-8 w-8 border-2"
-            style={{ borderColor: (user as any).avatarOutlineColor || 'transparent' }}
+            style={{ borderColor: user?.avatarOutlineColor || 'transparent' }}
           >
             <AvatarImage src={user.photoURL || undefined} alt={user.email || ''} />
             <AvatarFallback 
               style={{ 
-                backgroundColor: user.photoURL ? undefined : (user as any).avatarBgColor || undefined,
-                color: user.photoURL ? undefined : ((user as any).avatarTextColor || 'hsl(var(--foreground))')
+                backgroundColor: user.photoURL ? undefined : user?.avatarBgColor || undefined,
+                color: user.photoURL ? undefined : user?.avatarTextColor || 'hsl(var(--foreground))'
               }}
             >
               {initials.substring(0,2)}

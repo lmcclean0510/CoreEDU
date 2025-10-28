@@ -11,11 +11,11 @@ import {
   Grid3X3,
   FileText,
   GraduationCap,
-  BookOpen,
   User,
   Settings,
   LogOut,
   Home,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,6 +38,12 @@ const navItems: NavItem[] = [
     title: 'My Classes',
     href: '/dashboard/teacher',
     icon: GraduationCap,
+    roles: ['teacher'],
+  },
+  {
+    title: 'Homework Overview',
+    href: '/dashboard/teacher/homeworks',
+    icon: ClipboardList,
     roles: ['teacher'],
   },
   {

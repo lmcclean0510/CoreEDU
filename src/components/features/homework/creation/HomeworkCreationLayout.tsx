@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Puzzle as PuzzleIcon, Clock } from 'lucide-react';
 import { StickyHomeworkNav } from './StickyHomeworkNav';

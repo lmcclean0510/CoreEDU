@@ -40,7 +40,7 @@ export function useTeacherClasses() {
 
     // Fetch from Firestore
     setIsLoading(true);
-    window.firestoreMonitor?.logRead(`Teacher classes ${forceRefresh ? 'refresh' : 'initial fetch'}`);
+    window.firestoreMonitor?.logRead?.(`Teacher classes ${forceRefresh ? 'refresh' : 'initial fetch'}`);
     
     try {
       const classQuery = query(

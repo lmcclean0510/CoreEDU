@@ -11,6 +11,8 @@ import {
   writeBatch,
   serverTimestamp,
   Timestamp,
+  updateDoc,
+  deleteField,
 } from 'firebase/firestore';
 import type { HomeworkTask, UserProfile } from '@/lib/types';
 import { useToast } from '@/hooks/shared/use-toast';
@@ -93,6 +95,75 @@ export function useHomeworkManagement() {
     }
   }, [toast]);
 
+  const updateHomework = useCallback(async (
+    homeworkId: string,
+    updates: {
+      title?: string;
+      instructions?: string | null;
+      dueDate?: string | null; // ISO string or null to clear
+    },
+    options?: {
+      classId?: string;
+      teacherId?: string;
+    }
+  ) => {
+    try {
+      const homeworkRef = doc(db, 'homework', homeworkId);
+      const updatePayload: Record<string, any> = {};
+
+      if (typeof updates.title === 'string') {
+        updatePayload.title = updates.title.trim();
+      }
+
+      if (typeof updates.instructions === 'string') {
+        updatePayload.instructions = updates.instructions.trim();
+      } else if (updates.instructions === null) {
+        updatePayload.instructions = deleteField();
+      }
+
+      if (typeof updates.dueDate === 'string' && updates.dueDate) {
+        const dueDateObj = new Date(updates.dueDate);
+        dueDateObj.setHours(23, 59, 59, 999);
+        updatePayload.dueDate = Timestamp.fromDate(dueDateObj);
+      } else if (updates.dueDate === null) {
+        updatePayload.dueDate = deleteField();
+      }
+
+      if (Object.keys(updatePayload).length === 0) {
+        return;
+      }
+
+      window.firestoreMonitor?.logWrite?.('Update homework details');
+      await updateDoc(homeworkRef, {
+        ...updatePayload,
+        updatedAt: serverTimestamp(),
+      });
+
+      if (options?.classId) {
+        dataCache.invalidate(options.classId);
+        dataCache.invalidate(`class-data-${options.classId}`);
+      }
+      if (options?.teacherId) {
+        dataCache.invalidate(`teacher-${options.teacherId}`);
+        dataCache.invalidate(`teacher-homeworks-${options.teacherId}`);
+      }
+      dataCache.invalidate('homework');
+
+      toast({
+        title: 'Homework updated',
+        description: 'Your changes have been saved.',
+      });
+    } catch (error) {
+      console.error('Error updating homework:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not update the homework.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [toast]);
+
   const deleteHomework = useCallback(async (homeworkId: string, classId?: string, teacherId?: string) => {
     try {
       const batch = writeBatch(db);
@@ -143,6 +214,7 @@ export function useHomeworkManagement() {
 
   return {
     createHomework,
+    updateHomework,
     deleteHomework,
   };
 }

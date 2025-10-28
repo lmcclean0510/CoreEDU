@@ -86,6 +86,10 @@ export default function CreateHomeworkPage() {
 
   // Handle cancel
   const handleCancel = () => {
+    if (!classInfo) {
+      router.push('/dashboard/teacher');
+      return;
+    }
     router.push(`/dashboard/teacher/class/${classInfo.id}`);
   };
 
