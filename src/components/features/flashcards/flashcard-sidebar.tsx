@@ -86,17 +86,57 @@ export function FlashcardSidebar({
         </CardHeader>
       </Card>
       
-      {/* Topic Information */}
+      {/* Topic Information & Statistics */}
       {currentCard && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold text-center">
-              Topic Information
+              Card Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm space-y-1 text-muted-foreground">
-            <p><strong>Topic:</strong> {currentCard.topic}</p>
-            <p><strong>Sub-Topic:</strong> {currentCard.subTopic}</p>
+          <CardContent className="text-sm space-y-3">
+            {/* Topic Details */}
+            <div className="space-y-1 text-muted-foreground">
+              <p><strong>Topic:</strong> {currentCard.topic}</p>
+              <p><strong>Sub-Topic:</strong> {currentCard.subTopic}</p>
+            </div>
+
+            {/* Statistics */}
+            {(() => {
+              const cardRating = ratings[currentCard.id];
+              const totalAttempts = cardRating?.totalAttempts || 0;
+              const correct = cardRating?.correct || 0;
+              const incorrect = cardRating?.incorrect || 0;
+              const successRate = totalAttempts > 0
+                ? Math.round((correct / totalAttempts) * 100)
+                : 0;
+
+              return (
+                <>
+                  <div className="border-t pt-3 space-y-2">
+                    <p className="text-xs font-semibold text-foreground">Card Statistics</p>
+                    <div className="space-y-1 text-muted-foreground">
+                      <p><strong>Total Attempts:</strong> {totalAttempts}</p>
+                      {totalAttempts > 0 && (
+                        <>
+                          <p><strong>Correct:</strong> <span className="text-success">{correct}</span></p>
+                          <p><strong>Incorrect:</strong> <span className="text-destructive">{incorrect}</span></p>
+                          <p>
+                            <strong>Success Rate:</strong>{' '}
+                            <span className={successRate >= 70 ? 'text-success' : successRate >= 40 ? 'text-yellow-600' : 'text-destructive'}>
+                              {successRate}%
+                            </span>
+                          </p>
+                        </>
+                      )}
+                      {totalAttempts === 0 && (
+                        <p className="text-xs italic">No attempts yet</p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
       )}
